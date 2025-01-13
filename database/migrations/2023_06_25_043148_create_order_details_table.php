@@ -24,6 +24,7 @@ return new class extends Migration
             $table->char('tema', 50)->nullable();
             $table->integer('jumlah')->nullable();
             $table->integer('harga')->nullable();
+            $table->integer('hpp')->nullable();
             $table->text('keterangan')->nullable();
             $table->date('deathline')->nullable();
             $table->string('gambar')->nullable();

@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\ProdukKategoriController;
+use App\Http\Controllers\ProdukController;
 
 /*
 |--------------------------------------------------------------------------
@@ -202,6 +204,15 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::resource('marketplaces', 'MarketplaceController');
             Route::post('/marketplaces/{id}/uploadKeuangan', 'MarketplaceController@uploadKeuangan')->name('marketplaces.uploadKeuangan');
             Route::post('/marketplaces/{id}/uploadOrder', 'MarketplaceController@uploadOrder')->name('marketplaces.uploadOrder');
+
+            // produk-kategori-utama
+            Route::resource('produk-kategori-utama', 'ProdukKategoriUtamaController');
+
+            // produk-kategori
+            Route::resource('produk-kategori', 'ProdukKategoriController');
+
+            // produk
+            Route::resource('produkModel', 'ProdukModelController');
         });
     });
 });

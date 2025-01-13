@@ -38,8 +38,8 @@
         <ul class="nav-group-items" style="height: 0px;">
             @can('produk_access')
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->is('kategori*') ? 'active' : '' }}"
-                        href="{{ route('kategori.index') }}">
+                    <a class="nav-link {{ request()->is('produk-kategori-utama*') ? 'active' : '' }}"
+                        href="{{ route('produk-kategori-utama.index') }}">
                         <svg class="nav-icon">
                             <use xlink:href="{{ asset('icons/coreui.svg#cil-basket') }}"></use>
                         </svg>

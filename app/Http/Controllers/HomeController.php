@@ -27,7 +27,17 @@ class HomeController extends Controller
     public function index(Request $request)
     {
         // $tglGaji = $CI->Tglbackup_model->ambil_gaji();
-        $tglGaji = Whattodo::where('nama','gaji')->first()->isi;
+        $gaji = Whattodo::where('nama','gaji')->first();
+        if (!$gaji) {
+            Whattodo::create([
+                'nama' => 'gaji',
+                'isi' => date('d')
+            ]);
+            $tglGaji = date('d');
+        } else {
+            $tglGaji = $gaji->isi;
+        }
+
         $tgl_skr = date('d');
         if ($tglGaji != $tgl_skr) {
             if ($tglGaji < $tgl_skr) {
@@ -52,8 +62,13 @@ class HomeController extends Controller
         }
 
         $whattodos = Whattodo::where('nama','!=','gaji')->get();
+        if ($whattodos->isEmpty()) {
+            $whattodos = collect(); // Return empty collection if no records found
+        }
         $sistems = Sistem::get()->pluck('isi', 'nama');
-        $request->session()->put('logo', $sistems['logo']);
+        if (isset($sistems['logo'])) {
+            $request->session()->put('logo', $sistems['logo']);
+        }
         return view('admin.whattodos.home', compact('whattodos'));
     }
 

@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('kategoris', function (Blueprint $table) {
+        Schema::create('produk_kategoris', function (Blueprint $table) {
             $table->id();
             $table->string('nama')->nullable();
+            $table->unsignedBigInteger('kategori_utama_id')->nullable();
+            $table->foreign('kategori_utama_id')->references('id')->on('produk_kategori_utamas')->onUpdate('cascade')->onDelete('cascade');
             $table->timestamps();
             $table->softDeletes();
         });

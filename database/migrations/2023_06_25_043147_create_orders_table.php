@@ -27,6 +27,9 @@ return new class extends Migration
             $table->char('invoice', 10)->nullable();
             $table->char('jenis_pembayaran', 10)->nullable();
             $table->text('ket_kirim')->nullable();
+            $table->text('konsumen_detail')->nullable();
+            $table->tinyInteger('marketplace')->nullable();
+            $table->string('nota')->nullable();
             $table->date('deathline')->nullable();
             $table->timestamps();
             $table->softDeletes();
