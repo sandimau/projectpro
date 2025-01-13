@@ -17,7 +17,7 @@ class Produk extends Model
         'deleted_at',
     ];
 
-    protected $guarded = [];
+    protected $fillable = ['nama', 'hpp', 'status', 'produk_model_id'];
 
     public function getLastStokAttribute()
     {
@@ -38,13 +38,13 @@ class Produk extends Model
         return $this->belongsTo(AkunDetail::class, 'akun_detail_id');
     }
 
-    public function kategori()
-    {
-        return $this->belongsTo(Kategori::class, 'kategori_id');
-    }
-
     public function lastStok()
     {
         return $this->belongsToMany(Produk::class, 'produk_last_stoks', 'produk_id')->withPivot('saldo');
+    }
+
+    public function produkModel()
+    {
+        return $this->belongsTo(ProdukModel::class);
     }
 }

@@ -213,6 +213,9 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
 
             // produk
             Route::resource('produkModel', 'ProdukModelController');
+
+            // produk
+            Route::resource('produk', 'ProdukController');
         });
     });
 });

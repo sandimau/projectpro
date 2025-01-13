@@ -22,7 +22,7 @@ class BelanjaController extends Controller
     {
         abort_if(Gate::denies('belanja_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $belanjas = Belanja::orderBy('id','desc')->paginate(12);
+        $belanjas = Belanja::orderBy('id', 'desc')->paginate(12);
 
         return view('admin.belanjas.index', compact('belanjas'));
     }
@@ -87,7 +87,18 @@ class BelanjaController extends Controller
                         $produk->update([
                             'harga_beli' => $request->harga[$item],
                         ]);
-                        if ($produk->stok == 1) {
+                        if ($produk->produkModel->stok == 1) {
+
+                            $total = $produk->stok();
+
+                            if ($total > 0) {
+                                $hpp = (($total * $produk->hpp) + ($request->harga[$item] * $request->jumlah[$item])) / ($request->jumlah[$item] + $total);
+                            } else {
+                                $hpp = $request->harga[$item];
+                            }
+
+                            $produk->update(['hpp' => $hpp]);
+
                             ProdukStok::create([
                                 'tanggal' => Carbon::now(),
                                 'produk_id' => $request->barang_beli_id[$item],
@@ -98,10 +109,8 @@ class BelanjaController extends Controller
                             ]);
                         }
                     }
-
                 }
             }
-
         });
 
         return redirect()->route('belanja.index')->withSuccess(__('Belanja created successfully.'));
@@ -111,9 +120,9 @@ class BelanjaController extends Controller
     {
         abort_if(Gate::denies('belanja_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $belanjaDetail = BelanjaDetail::where('belanja_id',$belanja)->get();
+        $belanjaDetail = BelanjaDetail::where('belanja_id', $belanja)->get();
         $belanja = Belanja::find($belanja);
 
-        return view('admin.belanjas.detail', compact('belanjaDetail','belanja'));
+        return view('admin.belanjas.detail', compact('belanjaDetail', 'belanja'));
     }
 }

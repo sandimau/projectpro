@@ -15,8 +15,7 @@
     </title>
     <meta name="theme-color" content="#ffffff">
     @stack('before-styles')
-    <link rel="stylesheet" href="{{ asset('build/assets/app-aff29bc1.css') }}">
-    <link rel="stylesheet" href="{{ asset('build/assets/magnific-popup.css') }}">
+    <link rel="stylesheet" href="{{ asset('build/assets/app-c3db2d24.css') }}">
     {{-- @vite('resources/sass/app.scss') --}}
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css" />
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
@@ -86,7 +85,6 @@
     <script src="{{ asset('js/jquery.min.js') }}"></script>
     <script src="{{ asset('js/coreui.bundle.min.js') }}"></script>
     <script src="{{ asset('js/jquery.PrintArea.js') }}"></script>
-    <script src="{{ asset('js/jquery.magnific-popup.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous">
     </script>

@@ -11,7 +11,6 @@ class ProdukKategoriController extends Controller
 {
     public function index()
     {
-
         $currentUrl = request()->fullUrl();
         $lastNumber = preg_replace('/[^0-9]/', '', substr($currentUrl, strrpos($currentUrl, '?') + 1));
         $kategoriUtama = ProdukKategoriUtama::find($lastNumber);

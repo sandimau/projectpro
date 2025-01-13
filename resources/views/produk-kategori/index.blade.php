@@ -3,7 +3,7 @@
 @section('content')
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h5>Daftar Kategori Produk</h5>
+        <h5><a href="{{ route('produk-kategori-utama.index') }}" class="text-decoration-none text-primary">{{$kategoriUtama->nama}}</a> > Kategori Produk</h5>
         <a href="{{ route('produk-kategori.create', ['kategori_utama_id' => $kategoriUtama?->id]) }}" class="btn btn-primary">Tambah Kategori</a>
     </div>
     <div class="card-body">

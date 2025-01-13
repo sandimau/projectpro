@@ -2,26 +2,48 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
-use App\Models\ProdukModel;
-use App\Models\ProdukKategori;
 use App\Models\Kontak;
+use App\Models\Produk;
+use App\Models\ProdukModel;
 use Illuminate\Http\Request;
+use App\Models\ProdukKategori;
+use App\Http\Controllers\Controller;
+use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 
 class ProdukModelController extends Controller
 {
+    protected $satuan = [
+        'Pcs',
+        'Box',
+        'Lusin',
+        'Pack',
+        'Kg',
+        'Gram',
+        'Liter',
+        'Meter',
+        'Roll',
+        'Unit',
+        'Set',
+        'Karton'
+    ];
+
     public function index()
     {
-        $produks = ProdukModel::with(['kategori', 'kontak'])->get();
-        return view('produkModel.index', compact('produks'));
+        $currentUrl = request()->fullUrl();
+        $lastNumber = preg_replace('/[^0-9]/', '', substr($currentUrl, strrpos($currentUrl, '?') + 1));
+        $kategori = ProdukKategori::find($lastNumber);
+        $produks = ProdukModel::with(['kategori', 'kontak'])->where('kategori_id', $kategori->id)->get();
+        return view('produkModel.index', compact('produks', 'kategori'));
     }
 
     public function create()
     {
-        $kategoris = ProdukKategori::all();
+        $kategori = ProdukKategori::find(request()->input('kategori_id'));
         $kontaks = Kontak::all();
-        return view('produkModel.create', compact('kategoris', 'kontaks'));
+        $satuan = $this->satuan;
+        return view('produkModel.create', compact('kategori', 'kontaks', 'satuan'));
     }
 
     public function store(Request $request)
@@ -31,63 +53,97 @@ class ProdukModelController extends Controller
             'harga' => 'required|numeric',
             'satuan' => 'required',
             'deskripsi' => 'nullable',
-            'jual' => 'nullable',
-            'beli' => 'nullable',
-            'stok' => 'nullable|numeric',
-            'gambar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'kategori_id' => 'required',
-            'kontak_id' => 'required'
+            'gambar' => 'nullable|image|mimes:jpeg,png,jpg',
         ]);
 
+        $gambar = null;
         if ($request->hasFile('gambar')) {
-            $gambar = $request->file('gambar');
-            $path = $gambar->store('public/produk');
-            $validated['gambar'] = str_replace('public/', '', $path);
+            $img = $request->file('gambar');
+            $filename = time() . '.' . $request->gambar->extension();
+            $img_resize = Image::make($img->getRealPath());
+            $img_resize->resize(500, null, function ($constraint) {
+                $constraint->aspectRatio();
+            });
+            $save_path = 'uploads/produk/';
+            if (!file_exists($save_path)) {
+                mkdir($save_path, 666, true);
+            }
+            $img_resize->save(public_path($save_path . $filename));
+            $gambar = $filename;
         }
 
-        ProdukModel::create($validated);
-        return redirect()->route('produkModel.index')->with('success', 'Produk berhasil ditambahkan');
+        $kategori = ProdukKategori::find($request->kategori_id);
+
+        $validated['kategori_id'] = $request->kategori_id;
+        $validated['jual'] = $kategori->kategoriUtama->jual;
+        $validated['beli'] = $kategori->kategoriUtama->beli;
+        $validated['stok'] = $kategori->kategoriUtama->stok;
+        $validated['gambar'] = $gambar;
+
+        $produkModel = ProdukModel::create($validated);
+
+        // Tambahkan data ke tabel produk
+        Produk::create([
+            'status' => 1,
+            'produk_model_id' => $produkModel->id
+        ]);
+        return redirect()->route('produkModel.index', ['kategori_id' => $kategori->id])->with('success', 'Produk berhasil ditambahkan');
     }
 
-    public function edit(ProdukModel $produk)
+    public function edit(ProdukModel $produkModel)
     {
-        $kategoris = ProdukKategori::all();
+        $kategori = ProdukKategori::find($produkModel->kategori_id);
         $kontaks = Kontak::all();
-        return view('produkModel.edit', compact('produk', 'kategoris', 'kontaks'));
+        $satuan = $this->satuan;
+        return view('produkModel.edit', [
+            'produkModel' => $produkModel,
+            'kategori' => $kategori,
+            'kontaks' => $kontaks,
+            'satuan' => $satuan
+        ]);
     }
 
-    public function update(Request $request, ProdukModel $produk)
+    public function update(Request $request, ProdukModel $produkModel)
     {
         $validated = $request->validate([
             'nama' => 'required',
             'harga' => 'required|numeric',
             'satuan' => 'required',
             'deskripsi' => 'nullable',
-            'jual' => 'nullable',
-            'beli' => 'nullable',
-            'stok' => 'nullable|numeric',
-            'gambar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'kategori_id' => 'required',
-            'kontak_id' => 'required'
+            'gambar' => 'nullable|image|mimes:jpeg,png,jpg',
         ]);
 
+        $gambar = $produkModel->gambar;
         if ($request->hasFile('gambar')) {
-            if ($produk->gambar) {
-                Storage::delete('public/' . $produk->gambar);
+            $img = $request->file('gambar');
+            $filename = time() . '.' . $request->gambar->extension();
+            $img_resize = Image::make($img->getRealPath());
+            $img_resize->resize(500, null, function ($constraint) {
+                $constraint->aspectRatio();
+            });
+            $save_path = 'uploads/produk/';
+            if (!file_exists($save_path)) {
+                mkdir($save_path, 666, true);
             }
-            $gambar = $request->file('gambar');
-            $path = $gambar->store('public/produk');
-            $validated['gambar'] = str_replace('public/', '', $path);
+            $img_resize->save(public_path($save_path . $filename));
+            $gambar = $filename;
         }
 
-        $produk->update($validated);
-        return redirect()->route('produkModel.index')->with('success', 'Produk berhasil diperbarui');
+        $kategori = ProdukKategori::find($request->kategori_id);
+
+        $validated['kategori_id'] = $request->kategori_id;
+        $validated['jual'] = $kategori->kategoriUtama->jual;
+        $validated['beli'] = $kategori->kategoriUtama->beli;
+        $validated['stok'] = $kategori->kategoriUtama->stok;
+        $validated['gambar'] = $gambar;
+        $produkModel->update($validated);
+        return redirect()->route('produkModel.index', ['kategori_id' => $kategori->id])->with('success', 'Produk berhasil diperbarui');
     }
 
-    public function destroy(ProdukModel $produk)
+    public function destroy(ProdukModel $produkModel)
     {
-        if ($produk->gambar) {
-            Storage::delete('public/' . $produk->gambar);
+        if ($produkModel->gambar) {
+            Storage::delete('public/' . $produkModel->gambar);
         }
         $produk->delete();
         return redirect()->route('produkModel.index')->with('success', 'Produk berhasil dihapus');

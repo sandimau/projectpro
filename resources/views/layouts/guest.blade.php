@@ -9,7 +9,7 @@
     <title>{{ config('app.name', 'sablonku') }}</title>
     <meta name="theme-color" content="#ffffff">
     @stack('before-styles')
-    <link rel="stylesheet" href="{{ asset('build/assets/app-aff29bc1.css') }}">
+    <link rel="stylesheet" href="{{ asset('build/assets/app-c3db2d24.css') }}">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css" />
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     @stack('after-styles')
@@ -25,7 +25,7 @@
         </div>
     </div>
     @stack('before-scripts')
-    <script src="{{ asset('build/assets/app-5f772514.js') }}"></script>
+    <script src="{{ asset('build/assets/app-0a6d7623.js') }}"></script>
     <script src="{{ asset('js/jquery.min.js') }}"></script>
     <script src="{{ asset('js/coreui.bundle.min.js') }}"></script>
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
