@@ -1,0 +1,17 @@
+// Here you can add other styles
+.bg-login-image {
+    background-image: url("../sass/back.jpg");
+    background-position: center;
+    background-size: cover;
+}
+.travel-details .travel-tab {
+    border: 0 none;
+    background: #f5f5f5;
+    border-radius: 5px;
+    justify-content: space-between;
+    font-family: var(--font-primary);
+}
+
+a {
+    text-decoration: none !important;
+}
