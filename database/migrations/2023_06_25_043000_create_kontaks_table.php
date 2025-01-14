@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('alamat')->nullable();
             $table->tinyInteger('supplier')->nullable();
             $table->tinyInteger('konsumen')->nullable();
+            $table->bigInteger('ar_id')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

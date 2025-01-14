@@ -3,18 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Produk extends Model
 {
-    use SoftDeletes;
 
     public $table = 'produks';
 
     protected $dates = [
         'created_at',
         'updated_at',
-        'deleted_at',
     ];
 
     protected $fillable = ['nama', 'hpp', 'status', 'produk_model_id'];

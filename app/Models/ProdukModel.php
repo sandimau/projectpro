@@ -32,4 +32,9 @@ class ProdukModel extends Model
     {
         return $this->belongsTo(Kontak::class, 'kontak_id');
     }
+
+    public function produk()
+    {
+        return $this->hasMany(Produk::class, 'produk_model_id');
+    }
 }

@@ -7,10 +7,11 @@ use App\Models\Produk;
 use App\Models\ProdukModel;
 use Illuminate\Http\Request;
 use App\Models\ProdukKategori;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\File;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\File;
 
 class ProdukModelController extends Controller
 {
@@ -34,7 +35,10 @@ class ProdukModelController extends Controller
         $currentUrl = request()->fullUrl();
         $lastNumber = preg_replace('/[^0-9]/', '', substr($currentUrl, strrpos($currentUrl, '?') + 1));
         $kategori = ProdukKategori::find($lastNumber);
-        $produks = ProdukModel::with(['kategori', 'kontak'])->where('kategori_id', $kategori->id)->get();
+        $produks = DB::table('produks')
+            ->join('produk_models', 'produks.produk_model_id', '=', 'produk_models.id')
+            ->where('produk_models.kategori_id', $kategori->id)
+            ->get();
         return view('produkModel.index', compact('produks', 'kategori'));
     }
 

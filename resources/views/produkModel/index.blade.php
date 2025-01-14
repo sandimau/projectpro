@@ -27,13 +27,13 @@
                                 <th>Nama</th>
                                 <th>varian</th>
                                 <th>Satuan</th>
-                                <th>Harga Jual</th>
-                                <th>hpp</th>
+                                <th>harga beli</th>
+                                <th>harga jual</th>
                                 <th>stok</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($produks as $produk)
+                            @foreach ($produkModels as $produkModel)
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
                                     <td>
@@ -50,11 +50,13 @@
                                     </td>
                                     <td>
                                         <a
-                                            href="{{ route('produkModel.edit', ['produkModel' => $produk->id, 'kategori_id' => $kategori->id]) }}">{{ $produk->nama }}</a>
+                                            href="{{ route('produkModel.edit', ['produkModel' => $produk->produkModel->id, 'kategori_id' => $kategori->id]) }}">{{ $produk->produkModel->nama }}</a>
                                     </td>
-                                    <td>Rp {{ number_format($produk->harga, 0, ',', '.') }}</td>
+                                    <td>{{ $produk->nama }}</td>
                                     <td>{{ $produk->satuan }}</td>
-                                    <td>{{ $produk->kategori->nama ?? '-' }}</td>
+                                    <td>Rp {{ number_format($produk->harga, 0, ',', '.') }}</td>
+                                    <td>Rp {{ number_format($produk->harga, 0, ',', '.') }}</td>
+                                    <td>Rp {{ number_format($produk->hpp, 0, ',', '.') }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

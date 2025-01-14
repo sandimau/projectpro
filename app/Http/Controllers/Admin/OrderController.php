@@ -37,29 +37,45 @@ class OrderController extends Controller
 
     public function apiProduk()
     {
-        $produk = Produk::select('nama', 'id')->where('jual', 1)->where('nama', 'LIKE', '%' . $_GET['q'] . '%')->get();
+        $produk = Produk::select('produk_models.nama', 'produk_models.harga','produks.nama as varian', 'produks.id')
+            ->join('produk_models', 'produks.produk_model_id', '=', 'produk_models.id')
+            ->where('produk_models.jual', 1)
+            ->where('produks.status', 1)
+            ->where(function($query) {
+                $query->where('produks.nama', 'LIKE', '%' . $_GET['q'] . '%')
+                      ->orWhere('produk_models.nama', 'LIKE', '%' . $_GET['q'] . '%');
+            })
+            ->get();
         return response()->json($produk);
     }
 
     public function apiProdukBeli()
     {
-        $produk = Produk::select('nama', 'id','harga_beli','satuan','harga')->where('beli', 1)->where('nama', 'LIKE', '%' . $_GET['q'] . '%')->get();
+        $produk = Produk::select('produk_models.nama', 'produk_models.harga', 'produk_models.satuan', 'produks.nama as varian', 'produks.id')
+            ->join('produk_models', 'produks.produk_model_id', '=', 'produk_models.id')
+            ->where('produk_models.beli', 1)
+            ->where('produks.status', 1)
+            ->where(function($query) {
+                $query->where('produks.nama', 'LIKE', '%' . $_GET['q'] . '%')
+                      ->orWhere('produk_models.nama', 'LIKE', '%' . $_GET['q'] . '%');
+            })
+            ->get();
         return response()->json($produk);
     }
 
     public function index(Request $request)
     {
         if ($request->dari == null && $request->sampai == null && $request->nota == null && $request->kontak_id == null) {
-            $orders = Order::orderBy('id','desc')->paginate(10);
+            $orders = Order::orderBy('id', 'desc')->paginate(10);
         } else {
             $orders = Order::query()
-                ->when($request->dari && $request->sampai, function($query) use ($request) {
+                ->when($request->dari && $request->sampai, function ($query) use ($request) {
                     $query->whereBetween('created_at', [$request->dari, $request->sampai]);
                 })
-                ->when($request->nota, function($query) use ($request) {
+                ->when($request->nota, function ($query) use ($request) {
                     $query->where('nota', 'LIKE', '%' . $request->nota . '%');
                 })
-                ->when($request->kontak_id, function($query) use ($request) {
+                ->when($request->kontak_id, function ($query) use ($request) {
                     $query->where('kontak_id', $request->kontak_id);
                 })
                 ->orderBy('id', 'desc')
@@ -123,11 +139,9 @@ class OrderController extends Controller
             if ($request->{$spek->nama}) {
                 $sync[$spek->id] = ['keterangan' => $request->{$spek->nama}];
             }
-
         }
         $orderDetail->spek()->sync($sync);
         return redirect('/admin/order/' . $dataOrder->id . '/detail')->withSuccess(__('Order created successfully.'));
-
     }
 
     public function dashboard()
@@ -160,16 +174,16 @@ class OrderController extends Controller
     public function unpaid(Request $request)
     {
         if ($request->dari == null && $request->sampai == null && $request->nota == null && $request->kontak_id == null) {
-            $orders = Order::belumLunas()->orderBy('id','desc')->paginate(10);
+            $orders = Order::belumLunas()->orderBy('id', 'desc')->paginate(10);
         } else {
             $orders = Order::query()
-                ->when($request->dari && $request->sampai, function($query) use ($request) {
+                ->when($request->dari && $request->sampai, function ($query) use ($request) {
                     $query->whereBetween('created_at', [$request->dari, $request->sampai]);
                 })
-                ->when($request->nota, function($query) use ($request) {
+                ->when($request->nota, function ($query) use ($request) {
                     $query->where('nota', 'LIKE', '%' . $request->nota . '%');
                 })
-                ->when($request->kontak_id, function($query) use ($request) {
+                ->when($request->kontak_id, function ($query) use ($request) {
                     $query->where('kontak_id', $request->kontak_id);
                 })
                 ->whereRaw('total > bayar')

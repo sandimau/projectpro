@@ -85,14 +85,13 @@ class BelanjaController extends Controller
 
                         $produk = Produk::find($request->barang_beli_id[$item]);
                         $produk->update([
-                            'harga_beli' => $request->harga[$item],
+                            'harga' => $request->harga[$item],
                         ]);
+
                         if ($produk->produkModel->stok == 1) {
-
-                            $total = $produk->stok();
-
-                            if ($total > 0) {
-                                $hpp = (($total * $produk->hpp) + ($request->harga[$item] * $request->jumlah[$item])) / ($request->jumlah[$item] + $total);
+                            $total = $produk->lastStok()->where('produk_id', $produk->id)->latest('id')->first();
+                            if ($total) {
+                                $hpp = (($total->pivot->saldo * $produk->hpp) + ($request->harga[$item] * $request->jumlah[$item])) / ($request->jumlah[$item] + $total->pivot->saldo);
                             } else {
                                 $hpp = $request->harga[$item];
                             }
@@ -100,7 +99,6 @@ class BelanjaController extends Controller
                             $produk->update(['hpp' => $hpp]);
 
                             ProdukStok::create([
-                                'tanggal' => Carbon::now(),
                                 'produk_id' => $request->barang_beli_id[$item],
                                 'tambah' => $request->jumlah[$item],
                                 'kurang' => 0,

@@ -30,11 +30,11 @@
                     <td>{{ $kategori->kategoriUtama->nama ?? '-' }}</td>
                     <td>
                         <a href="{{ route('produk-kategori.edit', $kategori) }}" class="btn btn-sm btn-warning">Edit</a>
-                        <form action="{{ route('produk-kategori.destroy', $kategori) }}" method="POST" class="d-inline">
+                        {{-- <form action="{{ route('produk-kategori.destroy', $kategori) }}" method="POST" class="d-inline">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus?')">Hapus</button>
-                        </form>
+                        </form> --}}
                     </td>
                 </tr>
                 @endforeach

@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Ar;
 use App\Models\Kontak;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 
 class KontakController extends Controller
 {
@@ -28,7 +27,8 @@ class KontakController extends Controller
         $request->validate([
             'nama' => 'required',
             'noTelp' => 'required',
-            'konsumen' => 'accepted',
+            'konsumen' => 'required_without:supplier',
+            'supplier' => 'required_without:konsumen',
         ]);
 
         Kontak::create([
