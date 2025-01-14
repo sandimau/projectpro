@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title')
-    Create Orders
+    Create Order Details
 @endsection
 
 @section('content')
@@ -119,7 +119,7 @@
                         })
                 })
             },
-            getResultValue: result => result.nama,
+            getResultValue: result => result.varian ? result.kategori + ' - ' + result.nama + ' - ' + result.varian : result.kategori + ' - ' + result.nama,
             onSubmit: result => {
                 let idProduk = document.getElementById('produkId');
                 idProduk.value = result.id;

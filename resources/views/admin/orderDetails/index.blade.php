@@ -86,7 +86,7 @@
                                     @foreach ($orderDetails as $detail)
                                         <tr>
                                             <td style="font-weight: 600;"><a style="text-decoration:none"
-                                                    href="{{ route('orderDetail.edit', $detail->id) }}">{{ $detail->produk->nama }}</a>
+                                                    href="{{ route('orderDetail.edit', $detail->id) }}">{{ $detail->produk->namaLengkap }}</a>
                                             </td>
                                             <td>{{ $detail->tema }}</td>
                                             <td>{{ $detail->jumlah }}</td>

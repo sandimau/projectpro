@@ -22,7 +22,7 @@
                     <label for="nama" class="mb-2">Produk</label>
                     <div id="autocompleteProduk" class="autocomplete">
                         <input class="autocomplete-input produk {{ $errors->has('produk_id') ? 'invalid' : '' }}"
-                            placeholder="cari produk" aria-label="cari produk" value="{{ $detail->produk->nama }}">
+                            placeholder="cari produk" aria-label="cari produk" value="{{ $detail->produk->namaLengkap }}">
                         <span id="closeBrgProduk" style="display: block">
                             @if ($detail->produk_id)
                                 <button onclick="clearProduk()" type="button" class="btnClose btn-warning"><i
@@ -95,44 +95,6 @@
                         </div>
                     @endif
                 </div>
-                <div class="mb-3">
-                    <div class="form-check">
-                        <input name="bahan" class="form-check-input {{ $errors->has('bahan') ? 'is-invalid' : '' }}"
-                            type="checkbox" value="1" id="flexCheckDefault" {{ $detail->bahan ? 'checked' : '' }}>
-                        <label class="form-check-label" for="flexCheckDefault">
-                            Bahan
-                        </label>
-                        @if ($errors->has('bahan'))
-                            <div class="invalid-feedback">
-                                {{ $errors->first('bahan') }}
-                            </div>
-                        @endif
-                    </div>
-                    <div class="form-check">
-                        <input name="kalkir" class="form-check-input {{ $errors->has('kalkir') ? 'is-invalid' : '' }}"
-                            type="checkbox" value="1" id="flexCheckChecked" {{ $detail->kalkir ? 'checked' : '' }}>
-                        <label class="form-check-label" for="flexCheckChecked">
-                            kalkir
-                        </label>
-                        @if ($errors->has('kalkir'))
-                            <div class="invalid-feedback">
-                                {{ $errors->first('kalkir') }}
-                            </div>
-                        @endif
-                    </div>
-                    <div class="form-check">
-                        <input name="screen" class="form-check-input {{ $errors->has('screen') ? 'is-invalid' : '' }}"
-                            type="checkbox" value="1" id="flexCheckChecked" {{ $detail->screen ? 'checked' : '' }}>
-                        <label class="form-check-label" for="flexCheckChecked">
-                            screen
-                        </label>
-                        @if ($errors->has('screen'))
-                            <div class="invalid-feedback">
-                                {{ $errors->first('screen') }}
-                            </div>
-                        @endif
-                    </div>
-                </div>
                 <div class="form-group">
                     <button class="btn btn-primary mt-4" type="submit">
                         save
@@ -162,7 +124,7 @@
                         })
                 })
             },
-            getResultValue: result => result.nama,
+            getResultValue: result => result.varian ? result.kategori + ' - ' + result.nama + ' - ' + result.varian : result.kategori + ' - ' + result.nama,
             onSubmit: result => {
                 let idProduk = document.getElementById('produkId');
                 idProduk.value = result.id;

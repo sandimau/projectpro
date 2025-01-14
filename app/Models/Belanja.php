@@ -41,7 +41,9 @@ class Belanja extends Model
 
         foreach ($this->belanjaDetail as $item) {
             if ($item->produk) {
-                $yy[$item->produk_id] = $item->produk->nama;
+                $nama_produk = '';
+                $nama_produk .= $item->produk->namaLengkap;
+                $yy[$item->produk_id] = $nama_produk;
             }
         }
         if (empty($yy)) {

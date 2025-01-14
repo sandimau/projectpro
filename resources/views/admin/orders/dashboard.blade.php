@@ -122,7 +122,6 @@
                                                     }
 
                                                     $nama_produk = '';
-                                                    $nama_produk .= $detail->produk->produkModel->kategori->nama . ' ';
                                                     $nama_produk .= $detail->produk->namaLengkap;
 
                                                     $jadwalx = '';

@@ -19,12 +19,12 @@
                 @method('patch')
                 @csrf
                 <div class="form-group mb-3">
-                    <label for="username">username</label>
-                    <input class="form-control {{ $errors->has('username') ? 'is-invalid' : '' }}" type="text" name="username"
-                        id="username" value="{{ old('username',$order->username) }}">
-                    @if ($errors->has('username'))
+                    <label for="konsumen_detail">konsumen_detail</label>
+                    <input class="form-control {{ $errors->has('konsumen_detail') ? 'is-invalid' : '' }}" type="text" name="konsumen_detail"
+                        id="konsumen_detail" value="{{ old('konsumen_detail',$order->konsumen_detail) }}">
+                    @if ($errors->has('konsumen_detail'))
                         <div class="invalid-feedback">
-                            {{ $errors->first('username') }}
+                            {{ $errors->first('konsumen_detail') }}
                         </div>
                     @endif
                 </div>
@@ -204,7 +204,7 @@
                         })
                 })
             },
-            getResultValue: result => result.nama,
+            getResultValue: result => result.nama + ' - ' + result.perusahaan,
             onSubmit: result => {
                 let kontak = document.getElementById('kontakId');
                 kontak.value = result.id;
@@ -232,7 +232,7 @@
                         })
                 })
             },
-            getResultValue: result => result.nama,
+            getResultValue: result => result.varian ? result.kategori + ' - ' + result.nama + ' - ' + result.varian : result.kategori + ' - ' + result.nama,
             onSubmit: result => {
                 let idProduk = document.getElementById('produkId');
                 idProduk.value = result.id;

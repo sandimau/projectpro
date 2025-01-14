@@ -23,6 +23,7 @@ class Produksi extends Model
         'nama',
         'grup',
         'warna',
+        'urutan',
         'created_at',
         'updated_at',
         'deleted_at',

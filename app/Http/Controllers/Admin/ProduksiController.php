@@ -3,13 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\MassDestroyProduksiRequest;
-use App\Http\Requests\StoreProduksiRequest;
-use App\Http\Requests\UpdateProduksiRequest;
 use App\Models\Produksi;
-use Gate;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
 
 class ProduksiController extends Controller
 {

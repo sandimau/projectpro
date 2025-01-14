@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('nama')->nullable();
             $table->string('grup')->nullable();
             $table->string('warna')->nullable();
+            $table->tinyInteger('urutan')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

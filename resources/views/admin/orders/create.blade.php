@@ -292,7 +292,7 @@
                         })
                 })
             },
-            getResultValue: result => result.varian ? result.nama + ' - ' + result.varian : result.nama,
+            getResultValue: result => result.varian ? result.kategori + ' - ' + result.nama + ' - ' + result.varian : result.kategori + ' - ' + result.nama,
             onSubmit: result => {
                 let idProduk = document.getElementById('produkId');
                 idProduk.value = result.id;

@@ -24,7 +24,7 @@ class OrderDetailController extends Controller
         abort_if(Gate::denies('order_detail_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $orderDetails = OrderDetail::where('order_id', $order->id)->get();
-        $produksi = Produksi::get();
+        $produksi = Produksi::orderBy('urutan')->get();
         $chats = Chat::where('order_id',$order->id)->get();
 
         return view('admin.orderDetails.index', compact('orderDetails', 'order', 'produksi','chats'));
@@ -115,7 +115,7 @@ class OrderDetailController extends Controller
     {
         DB::transaction(function () use ($detail, $request) {
             //update stok produk
-            if ($detail->produk->stok == 1) {
+            if ($detail->produk->produkModel->stok == 1) {
                 $awal = Produksi::find($detail->produksi_id)->grup;
                 $perubahan = Produksi::find($request->produksi_id)->grup;
 
@@ -128,7 +128,6 @@ class OrderDetailController extends Controller
                 if ($awal == 'awal' and $perubahan != 'awal' and $perubahan != 'batal') {
                     //ngurangi stok
                     ProdukStok::create([
-                        'tanggal' => Carbon::now(),
                         'tambah' => 0,
                         'kurang' => $detail->jumlah,
                         'keterangan' => 'barang dijual ke ' .$detail->order->kontak->nama.' '.$username,
@@ -139,10 +138,9 @@ class OrderDetailController extends Controller
                 if ($awal == 'selesai' and $perubahan == 'batal') {
                     //tambah stok
                     ProdukStok::create([
-                        'tanggal' => Carbon::now(),
                         'tambah' => $detail->jumlah,
                         'kurang' => 0,
-                        'keterangan' => $request->keterangan,
+                        'keterangan' => 'barang dikembalikan dari ' .$detail->order->kontak->nama.' '.$username,
                         'kode' => 'jual',
                         'produk_id' => $detail->produk->id,
                     ]);
@@ -177,9 +175,6 @@ class OrderDetailController extends Controller
             'harga' => $request->harga,
             'keterangan' => $request->keterangan,
             'deathline' => $request->deathline,
-            'bahan' => $request->bahan,
-            'kalkir' => $request->kalkir,
-            'screen' => $request->screen,
         ]);
         $speks = Spek::all();
 

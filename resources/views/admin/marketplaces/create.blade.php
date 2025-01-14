@@ -88,6 +88,16 @@
                         </label>
                     </div>
                 </div>
+
+                <div class="form-group mb-3">
+                    <label>baru order</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="baruOrder" id="baruOrder" value="1">
+                        <label class="form-check-label" for="baruOrder">
+                            baru Order
+                        </label>
+                    </div>
+                </div>
                 <div class="form-group">
                     <button class="btn btn-primary mt-4" type="submit">
                         save

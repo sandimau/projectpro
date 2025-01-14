@@ -20,6 +20,7 @@ return new class extends Migration
             $table->integer('debet')->nullable();
             $table->integer('kredit')->nullable();
             $table->integer('saldo')->nullable();
+            $table->unsignedBigInteger('detail_id')->nullable();
             $table->timestamps();
         });
     }

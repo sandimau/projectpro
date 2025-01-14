@@ -19,9 +19,9 @@ class Produk extends Model
     public function getNamaLengkapAttribute()
     {
         if ($this->nama) {
-            return $this->produkModel->nama . '(' . $this->nama . ')';
+            return $this->produkModel->kategori->nama . ' - ' . $this->produkModel->nama . ' (' . $this->nama . ')';
         } else {
-            return $this->produkModel->nama;
+            return $this->produkModel->kategori->nama . ' - ' . $this->produkModel->nama;
         }
     }
 

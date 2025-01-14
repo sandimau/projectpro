@@ -46,6 +46,15 @@ Create Produksi
                 @endif
             </div>
             <div class="form-group">
+                <label for="urutan">Urutan</label>
+                <input class="form-control {{ $errors->has('urutan') ? 'is-invalid' : '' }}" type="number" name="urutan" id="urutan" value="{{ old('urutan', '') }}">
+                @if($errors->has('urutan'))
+                    <div class="invalid-feedback">
+                        {{ $errors->first('urutan') }}
+                    </div>
+                @endif
+            </div>
+            <div class="form-group">
                 <button class="btn btn-primary mt-4" type="submit">
                     save
                 </button>

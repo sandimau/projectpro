@@ -27,6 +27,7 @@
                                 <th scope="col">Nama</th>
                                 <th scope="col">Warna</th>
                                 <th scope="col">Grup</th>
+                                <th scope="col">Urutan</th>
                                 <th scope="col">Action</th>
                             </tr>
                         </thead>
@@ -36,6 +37,7 @@
                                     <td>{{ $produksi->nama }}</td>
                                     <td>{{ $produksi->warna }}</td>
                                     <td>{{ $produksi->grup }}</td>
+                                    <td>{{ $produksi->urutan }}</td>
                                     <td>
                                         <div class="d-flex">
                                             <a href="{{ route('produksis.edit', $produksi->id) }}"
