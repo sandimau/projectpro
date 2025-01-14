@@ -250,11 +250,14 @@ class MarketplaceController extends Controller
                 $id_shopee = $config->kontak_id;
 
                 ////ambil data semua produk di company
-                $ambil = DB::table('produks')->get();
+                $ambil = $ambil = DB::table('produks')->select('produks.id', 'hpp', 'stok', 'id_produk', 'harga')->where('produks.status', 1)
+                    ->where('produks.company_id', session('company'))
+                    ->join('produk_models', 'produks.produk_model_id', '=', 'produk_models.id')
+                    ->get();
 
                 ////bikin array data produk dengan key id dan id_produk(id project yg lama)
                 $produks = $ambil->keyBy('id');
-
+                $produks2 = $ambil->keyBy('id_produk');
                 //////posisi header di baris brapa
                 $header = $marketplace->barisHeader ?? 1;
 
@@ -299,13 +302,6 @@ class MarketplaceController extends Controller
                     $barang = $baris[$marketplace->sku_anak];
                     if (empty($barang))
                         $barang = $baris[$marketplace->sku];
-
-                    if (empty($barang))
-                        continue;
-
-                    if (!preg_match('/CUSTOM_/', $barang) && !preg_match('/\d/', $barang)) {
-                        continue;
-                    }
 
                     //////pengecekan order yg udah terinput sebelumnya
                     if (!$input) {
@@ -361,7 +357,7 @@ class MarketplaceController extends Controller
                                 'total' => $total,
                                 'nota' => $nota,
                                 'created_at' => $tanggal,
-                                'username' => $nama
+                                'konsumen_detail' => $nama,
                             );
                         }
                         ////jika sku NON_PRODUK, skip penginputan
