@@ -123,14 +123,6 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::get('/penggajian/{penggajian}/slip', 'PenggajianController@slip')->name('penggajian.slip');
             Route::post('/penggajian/create', 'PenggajianController@store')->name('penggajian.store');
 
-            // produk
-            Route::get('/kategori/{kategori}/produk', 'ProdukController@index')->name('produks.index');
-            Route::get('/kategori/{kategori}/produk/create', 'ProdukController@create')->name('produks.create');
-            Route::post('/produk', 'ProdukController@store')->name('produks.store');
-            Route::get('/produk/{produk}/edit', 'ProdukController@edit')->name('produks.edit');
-            Route::patch('/produk/{produk}/update', 'ProdukController@update')->name('produks.update');
-            Route::get('/aset', 'ProdukController@aset')->name('produk.aset');
-
             //produkStoks
             Route::get('/produk/{produk}/produkStok', 'ProdukStokController@index')->name('produkStok.index');
             Route::get('/produk/{produk}/produk/create', 'ProdukStokController@create')->name('produkStok.create');
@@ -211,11 +203,13 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             // produk-kategori
             Route::resource('produk-kategori', 'ProdukKategoriController');
 
-            // produk
+            // produk model
             Route::resource('produkModel', 'ProdukModelController');
 
             // produk
-            Route::resource('produk', 'ProdukController');
+            Route::resource('produks', 'ProdukController');
+
+            Route::get('/aset', 'ProdukController@aset')->name('produk.aset');
         });
     });
 });

@@ -71,7 +71,6 @@
                             <table class="table table-striped" id="myTable">
                                 <thead>
                                     <tr>
-                                        <th>detail</th>
                                         <th>produk</th>
                                         <th>tema</th>
                                         <th>jml</th>
@@ -86,26 +85,6 @@
                                 <tbody>
                                     @foreach ($orderDetails as $detail)
                                         <tr>
-                                            <td>
-                                                <div class="form-check">
-                                                    <input name="jual" class="form-check-input" type="checkbox" value="1" id="flexCheckDefault" {{ $detail->bahan ? 'checked' : '' }} disabled>
-                                                    <label style="opacity: 1 !important; font-weight: 600" class="form-check-label" for="flexCheckDefault">
-                                                        bahan
-                                                    </label>
-                                                </div>
-                                                <div class="form-check">
-                                                    <input name="jual" class="form-check-input" type="checkbox" value="1" id="flexCheckDefault" {{ $detail->kalkir ? 'checked' : '' }} disabled>
-                                                    <label style="opacity: 1 !important; font-weight: 600" class="form-check-label" for="flexCheckDefault">
-                                                        kalkir
-                                                    </label>
-                                                </div>
-                                                <div class="form-check">
-                                                    <input name="jual" class="form-check-input" type="checkbox" value="1" id="flexCheckDefault" {{ $detail->screen ? 'checked' : '' }} disabled>
-                                                    <label style="opacity: 1 !important; font-weight: 600" class="form-check-label" for="flexCheckDefault">
-                                                        screen
-                                                    </label>
-                                                </div>
-                                            </td>
                                             <td style="font-weight: 600;"><a style="text-decoration:none"
                                                     href="{{ route('orderDetail.edit', $detail->id) }}">{{ $detail->produk->nama }}</a>
                                             </td>

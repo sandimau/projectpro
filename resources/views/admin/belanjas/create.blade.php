@@ -69,28 +69,28 @@
                                     <tr>
                                         <td>
                                             <div id="autocomplete{{ $i }}" class="autocomplete">
-                                                <input id="hasilInput{{ $i }}" class="autocomplete-input" />
+                                                <input id="hasilInput{{ $i }}" class="autocomplete-input" value="{{ old('hasilInput.'.$i) }}" />
                                                 <ul class="autocomplete-result-list"></ul>
                                             </div>
                                             <input type="hidden" name="barang_beli_id[]"
-                                                id="dataBarang{{ $i }}">
+                                                id="dataBarang{{ $i }}" value="{{ old('barang_beli_id.'.$i) }}">
                                             <span id="closeBarang{{ $i }}"></span>
                                         </td>
                                         <td>
                                             <input id="ket{{ $i }}" name="keterangan[]" class="form-control"
-                                                type="text" />
+                                                type="text" value="{{ old('keterangan.'.$i) }}" />
                                         </td>
                                         <td>
                                             <input id="satuan{{ $i }}" readonly class="form-control"
-                                                type="text" />
+                                                type="text" value="{{ old('satuan.'.$i) }}" />
                                         </td>
                                         <td>
                                             <input id="jumlah{{ $i }}" name="jumlah[]" step=".01"
-                                                class="form-control" type="number" />
+                                                class="form-control" type="number" value="{{ old('jumlah.'.$i) }}" />
                                         </td>
                                         <td>
                                             <input id="harga{{ $i }}" name="harga[]" class="form-control"
-                                                step=".01" type="number" />
+                                                step=".01" type="number" value="{{ old('harga.'.$i) }}" />
                                         </td>
                                         <td>
                                             <input id="subtotal{{ $i }}" readonly
@@ -243,7 +243,7 @@
                             })
                     })
                 },
-                getResultValue: result => result.nama,
+                getResultValue: result => result.nama + ' - ' + result.varian,
                 onSubmit: result => {
                     //insert id barang
                     let dataBarang = document.getElementById('dataBarang' + i);

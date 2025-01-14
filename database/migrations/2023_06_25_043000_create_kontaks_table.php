@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('noTelp');
             $table->string('email')->unique();
             $table->string('alamat')->nullable();
+            $table->string('perusahaan')->nullable();
             $table->tinyInteger('supplier')->nullable();
             $table->tinyInteger('konsumen')->nullable();
             $table->bigInteger('ar_id')->nullable();

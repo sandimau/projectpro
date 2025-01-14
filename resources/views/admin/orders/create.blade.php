@@ -52,11 +52,6 @@
                     <input class="form-control" type="text" name="nota" id="nota" value="{{ old('nota', '') }}">
                 </div>
                 <div class="form-group mb-3">
-                    <label for="username">Username</label>
-                    <input class="form-control" type="text" name="username" id="username"
-                        value="{{ old('username', '') }}">
-                </div>
-                <div class="form-group mb-3">
                     <label for="tema">Tema</label>
                     <input class="form-control {{ $errors->has('tema') ? 'is-invalid' : '' }}" type="text" name="tema"
                         id="tema" value="{{ old('tema', '') }}">
@@ -269,7 +264,7 @@
                         })
                 })
             },
-            getResultValue: result => result.nama,
+            getResultValue: result => result.nama + ' - ' + result.perusahaan,
             onSubmit: result => {
                 let kontak = document.getElementById('kontakId');
                 kontak.value = result.id;
@@ -297,10 +292,14 @@
                         })
                 })
             },
-            getResultValue: result => result.nama,
+            getResultValue: result => result.nama + ' - ' + result.varian,
             onSubmit: result => {
                 let idProduk = document.getElementById('produkId');
                 idProduk.value = result.id;
+
+                //set harga
+                let harga = document.getElementById("harga");
+                harga.value = result.harga;
 
                 let btn = document.getElementById("closeBrgProduk");
                 btn.style.display = "block";
@@ -325,6 +324,10 @@
             auto.value = null;
             let idProduk = document.getElementById('produkId');
             idProduk.value = null;
+
+            //set harga
+            let harga = document.getElementById("harga");
+            harga.value = null;
         }
     </script>
     <style>

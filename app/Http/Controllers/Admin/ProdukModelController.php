@@ -35,8 +35,15 @@ class ProdukModelController extends Controller
         $currentUrl = request()->fullUrl();
         $lastNumber = preg_replace('/[^0-9]/', '', substr($currentUrl, strrpos($currentUrl, '?') + 1));
         $kategori = ProdukKategori::find($lastNumber);
-        $produks = DB::table('produks')
+        $produks = Produk::select('produks.id as produk_id', 'produks.nama as varian', 'produk_models.nama as model', 'produk_models.harga', 'produk_models.satuan',
+        'produk_models.deskripsi', 'produk_models.jual', 'produk_models.beli', 'produk_models.stok', 'produk_models.id as model_id',
+        'produk_models.gambar', 'produk_models.kategori_id', 'produk_models.kontak_id', 'produk_last_stoks.saldo as lastStok', 'belanja_details.harga as harga_beli')
             ->join('produk_models', 'produks.produk_model_id', '=', 'produk_models.id')
+            ->leftJoin('produk_last_stoks', 'produks.id', '=', 'produk_last_stoks.produk_id')
+            ->leftJoin('belanja_details', function($join) {
+                $join->on('produks.id', '=', 'belanja_details.produk_id')
+                     ->whereRaw('belanja_details.id = (SELECT id FROM belanja_details WHERE produk_id = produks.id LIMIT 1)');
+            })
             ->where('produk_models.kategori_id', $kategori->id)
             ->get();
         return view('produkModel.index', compact('produks', 'kategori'));
@@ -151,5 +158,10 @@ class ProdukModelController extends Controller
         }
         $produk->delete();
         return redirect()->route('produkModel.index')->with('success', 'Produk berhasil dihapus');
+    }
+
+    public function show(ProdukModel $produkModel)
+    {
+        return view('produkModel.show', compact('produkModel'));
     }
 }

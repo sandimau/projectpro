@@ -16,17 +16,12 @@ class Produk extends Model
 
     protected $fillable = ['nama', 'hpp', 'status', 'produk_model_id'];
 
-    public function getLastStokAttribute()
+    public function getNamaLengkapAttribute()
     {
-        if ($this->attributes['stok'] == 1) {
-            $stok = $this->lastStok()->first();
-            if ($stok) {
-                return $stok->pivot->saldo;
-            } else {
-                return 0;
-            }
+        if ($this->nama) {
+            return $this->produkModel->nama . '(' . $this->nama . ')';
         } else {
-            return '';
+            return $this->produkModel->nama;
         }
     }
 

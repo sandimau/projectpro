@@ -80,7 +80,7 @@
                                                         }
 
                                                         $konsumen = $order->kontak;
-
+                                                        $konsumen_detail = $order->konsumen_detail;
                                                         $model_ar = $konsumen->ar ?? null;
                                                         $kode = $model_ar ? $model_ar->kode : '';
                                                         $test = $model_ar ? $model_ar->warna : '';
@@ -106,7 +106,7 @@
                                                         $tampilan .=
                                                             $konsumen->nama .
                                                             ' <span style="color:#222222">' .
-                                                            $order->username .
+                                                            $konsumen_detail .
                                                             '</span></p>';
                                                     }
 
@@ -121,7 +121,9 @@
                                                             '</span>';
                                                     }
 
-                                                    $nama_produk = $detail->produk->nama;
+                                                    $nama_produk = '';
+                                                    $nama_produk .= $detail->produk->produkModel->kategori->nama . ' ';
+                                                    $nama_produk .= $detail->produk->namaLengkap;
 
                                                     $jadwalx = '';
                                                     if ($detail->deathline) {
@@ -190,14 +192,6 @@
         let table = new DataTable('#myTable');
     </script>
     <style>
-        .nav-nonaktif {
-            font-weight: 600;
-            background-color: #cecece !important;
-        }
-
-        .navl-link.aktif .nonaktif{
-            background-color: #ffffff !important;
-        }
 
         a {
             text-decoration: none;

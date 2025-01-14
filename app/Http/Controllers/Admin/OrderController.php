@@ -25,7 +25,7 @@ class OrderController extends Controller
 {
     public function apiKonsumen()
     {
-        $kontak = Kontak::select('nama', 'id')->where('konsumen', 1)->where('nama', 'LIKE', '%' . $_GET['q'] . '%')->get();
+        $kontak = Kontak::select('nama', 'id','perusahaan')->where('konsumen', 1)->where('nama', 'LIKE', '%' . $_GET['q'] . '%')->get();
         return response()->json($kontak);
     }
 
@@ -113,11 +113,10 @@ class OrderController extends Controller
         $order['jenis_pembayaran'] = $request->jenis_pembayaran;
         $order['ket_kirim'] = $request->ket_kirim;
         $order['deathline'] = $request->deathline;
-        $order['username'] = $request->username;
         $order['nota'] = $request->nota;
 
         // ambil order flow setiap perusahaan
-        $produksi = Produksi::where('nama', 'persiapan')->first();
+        $produksi = Produksi::where('grup', 'awal')->first();
 
         $dataOrder = Order::create($order);
 

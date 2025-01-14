@@ -69,7 +69,10 @@ class Order extends Model
     {
         $yy = array();
         foreach ($this->orderDetail as $item) {
-            $yy[] = $item->produk->nama;
+            $nama_produk = '';
+            $nama_produk .= $item->produk->produkModel->kategori->nama . ' ';
+            $nama_produk .= $item->produk->namaLengkap;
+            $yy[] = $nama_produk;
         }
         return implode(', ', $yy);
     }
