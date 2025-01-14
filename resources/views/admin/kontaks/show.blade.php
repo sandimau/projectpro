@@ -46,7 +46,7 @@
                                     Kontak
                                 </th>
                                 <td>
-                                    {{ $kontak->kontak }}
+                                    {{ $kontak->perusahaan }}
                                 </td>
                             </tr>
                             <tr>

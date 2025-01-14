@@ -208,7 +208,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
 
             // produk
             Route::resource('produks', 'ProdukController');
-
+            Route::get('/produk/{produk}/stok', 'ProdukController@stok')->name('produk.stok');
             Route::get('/aset', 'ProdukController@aset')->name('produk.aset');
         });
     });

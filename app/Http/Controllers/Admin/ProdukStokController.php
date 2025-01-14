@@ -43,6 +43,7 @@ class ProdukStokController extends Controller
             'keterangan' => $request->keterangan,
             'kode' => 'opn',
             'produk_id' => $request->produk_id,
+            'user_id' => auth()->user()->id,
         ]);
 
         return redirect()->route('produkStok.index', $request->produk_id)->withSuccess(__('Produksi created successfully.'));

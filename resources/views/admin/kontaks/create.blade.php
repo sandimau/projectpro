@@ -14,7 +14,7 @@
             <form method="POST" action="{{ route('kontaks.store') }}" enctype="multipart/form-data">
                 @csrf
                 <div class="form-group mb-3">
-                    <label for="nama">Perusahaan</label>
+                    <label for="nama">Nama</label>
                     <input class="form-control {{ $errors->has('nama') ? 'is-invalid' : '' }}" type="text" name="nama"
                         id="nama" value="{{ old('nama', '') }}">
                     @if ($errors->has('nama'))
@@ -24,12 +24,12 @@
                     @endif
                 </div>
                 <div class="form-group mb-3">
-                    <label for="kontak">Kontak Person</label>
-                    <input class="form-control {{ $errors->has('kontak') ? 'is-invalid' : '' }}" type="text" name="kontak"
-                        id="kontak" value="{{ old('kontak', '') }}">
-                    @if ($errors->has('kontak'))
+                    <label for="perusahaan">Perusahaan</label>
+                    <input class="form-control {{ $errors->has('perusahaan') ? 'is-invalid' : '' }}" type="text" name="perusahaan"
+                        id="perusahaan" value="{{ old('perusahaan', '') }}">
+                    @if ($errors->has('perusahaan'))
                         <div class="invalid-feedback">
-                            {{ $errors->first('kontak') }}
+                            {{ $errors->first('perusahaan') }}
                         </div>
                     @endif
                 </div>

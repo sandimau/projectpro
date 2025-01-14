@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Produk;
+use App\Models\ProdukStok;
 use App\Models\ProdukModel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 
 class ProdukController extends Controller
@@ -56,5 +58,27 @@ class ProdukController extends Controller
     {
         $produk->delete();
         return redirect()->route('produk.index')->with('success', 'Produk berhasil dihapus');
+    }
+
+    public function stok(Produk $produk)
+    {
+        $produks = ProdukStok::where('produk_id', $produk->id)->orderBy('created_at', 'desc')->get();
+        return view('produk.stok', compact('produks'));
+    }
+
+    public function aset()
+    {
+        $asets = DB::table('produk_last_stoks as t')
+            ->join(
+                DB::raw('(SELECT produk_id FROM produk_last_stoks GROUP BY produk_id) as subquery'),
+                't.produk_id',
+                '=',
+                'subquery.produk_id'
+            )
+            ->join('produks as p', 'p.id', '=', 't.produk_id')
+            ->join('kategoris as k', 'k.id', '=', 'p.kategori_id')
+            ->select('t.saldo', 'p.harga_beli','p.nama', 'k.nama as namaKategori')
+            ->get();
+        return view('admin.produks.aset', compact('asets'));
     }
 }

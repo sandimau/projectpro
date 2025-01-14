@@ -292,7 +292,7 @@
                         })
                 })
             },
-            getResultValue: result => result.nama + ' - ' + result.varian,
+            getResultValue: result => result.varian ? result.nama + ' - ' + result.varian : result.nama,
             onSubmit: result => {
                 let idProduk = document.getElementById('produkId');
                 idProduk.value = result.id;

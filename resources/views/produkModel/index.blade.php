@@ -66,7 +66,9 @@
                                 <td>Rp {{ number_format($produk->harga_beli, 0, ',', '.') }}</td>
                                 <td>Rp {{ number_format($produk->harga, 0, ',', '.') }}</td>
                                 <td>Rp {{ number_format($produk->hpp, 0, ',', '.') }}</td>
-                                <td>{{ $produk->lastStok ?? 0 }}</td>
+                                <td>
+                                    <a href="{{ route('produk.stok', ['produk' => $produk->produk_id]) }}">{{ $produk->lastStok ?? 0 }}</a>
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>

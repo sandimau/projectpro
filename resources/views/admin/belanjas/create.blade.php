@@ -243,7 +243,7 @@
                             })
                     })
                 },
-                getResultValue: result => result.nama + ' - ' + result.varian,
+                getResultValue: result => result.varian ? result.nama + ' - ' + result.varian : result.nama,
                 onSubmit: result => {
                     //insert id barang
                     let dataBarang = document.getElementById('dataBarang' + i);

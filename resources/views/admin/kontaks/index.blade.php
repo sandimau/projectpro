@@ -26,8 +26,8 @@
                     <table class="table table-striped" id="myTable">
                         <thead>
                             <tr>
+                                <th scope="col">nama</th>
                                 <th scope="col">perusahaan</th>
-                                <th scope="col">kontak</th>
                                 <th scope="col">No Telp</th>
                                 <th scope="col">Lama Gabung(bln)</th>
                                 <th scope="col">Order Terakhir(bln)</th>
@@ -40,7 +40,7 @@
                             @foreach ($kontaks as $kontak)
                                 <tr>
                                     <td><a href="{{ route('kontaks.show',$kontak->id) }}">{{ $kontak->nama }}</a></td>
-                                    <td>{{ $kontak->kontak }}</td>
+                                    <td>{{ $kontak->perusahaan }}</td>
                                     <td>{{ $kontak->noTelp }}</td>
                                     <td>{{ $kontak->bergabung }}</td>
                                     <td>{{ $kontak->lastOrder }}</td>

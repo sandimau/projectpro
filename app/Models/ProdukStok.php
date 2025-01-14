@@ -40,6 +40,8 @@ class ProdukStok extends Model
                 $dataProduk->lastStok()->attach($model->produk_id, ['saldo' => $model->saldo]);
             }
 
+            $model->hpp = $model->produk->hpp ?? 0;
+
         });
     }
 
@@ -51,5 +53,10 @@ class ProdukStok extends Model
     static function lastStok($produk)
     {
         return self::where('produk_id', $produk)->orderBy('id', 'desc')->first()->saldo ?? 0;
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 }
