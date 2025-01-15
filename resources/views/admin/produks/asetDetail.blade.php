@@ -1,51 +1,46 @@
 @extends('layouts.app')
 
 @section('title')
-    Data Aset Produk
+    Detail Aset Produk
 @endsection
 
 @section('content')
 <div class="container">
     <div class="card">
         <div class="card-header">
-            <h4>Aset Produk</h4>
+            <h4>Detail Aset Produk</h4>
         </div>
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-bordered">
                     <thead>
                         <tr>
-                            <th>Kategori Utama</th>
-                            <th>Kategori</th>
-                            <th>Model</th>
+                            <th>Nama Produk</th>
+                            <th>Varian</th>
+                            <th>Stok</th>
                             <th class="text-end">Aset</th>
                         </tr>
                     </thead>
                     <tbody>
                         @php
                             $totalAset = 0;
-                            $currentKategori = '';
+                            $currentProduk = '';
                         @endphp
 
                         @foreach($asets as $aset)
                             @php
-                                $nilaiAset = $aset->saldo * $aset->harga;
-                                $totalAset += $nilaiAset;
+                                $totalAset += $aset->nilai_aset;
                             @endphp
                             <tr>
                                 <td>
-                                    @if($currentKategori != $aset->namaKategoriUtama)
-                                        {{ $aset->namaKategoriUtama }}
-                                        @php $currentKategori = $aset->namaKategoriUtama @endphp
+                                    @if($currentProduk != $aset->namaProduk)
+                                        {{ $aset->namaProduk }}
+                                        @php $currentProduk = $aset->namaProduk @endphp
                                     @endif
                                 </td>
-                                <td>
-                                    <a href="{{ route('produk.asetDetail', $aset->kategori_id) }}">
-                                        {{ $aset->namaKategori }}
-                                    </a>
-                                </td>
-                                <td>{{ $aset->namaProdukModel }}</td>
-                                <td class="text-end">{{ number_format($nilaiAset, 2, ',', '.') }}</td>
+                                <td>{{ $aset->varian }}</td>
+                                <td>{{ number_format($aset->stok, 0, ',', '.') }}</td>
+                                <td class="text-end">{{ number_format($aset->nilai_aset, 2, ',', '.') }}</td>
                             </tr>
                         @endforeach
                         <tr class="fw-bold">

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Produk;
+use App\Models\Kategori;
 use App\Models\ProdukStok;
 use App\Models\ProdukModel;
 use Illuminate\Http\Request;
@@ -76,9 +77,43 @@ class ProdukController extends Controller
                 'subquery.produk_id'
             )
             ->join('produks as p', 'p.id', '=', 't.produk_id')
-            ->join('kategoris as k', 'k.id', '=', 'p.kategori_id')
-            ->select('t.saldo', 'p.harga_beli','p.nama', 'k.nama as namaKategori')
+            ->join('produk_models as pm', 'pm.id', '=', 'p.produk_model_id')
+            ->join('produk_kategoris as k', 'k.id', '=', 'pm.kategori_id')
+            ->join('produk_kategori_utamas as ku', 'ku.id', '=', 'k.kategori_utama_id')
+            ->select(
+                't.saldo',
+                'pm.harga',
+                'pm.nama as namaProdukModel',
+                'p.nama as namaProduk',
+                'ku.nama as namaKategoriUtama',
+                'k.nama as namaKategori',
+                'k.id as kategori_id'
+            )
+            ->orderBy('ku.nama')
+            ->orderBy('k.nama')
+            ->orderBy('pm.nama')
             ->get();
+
         return view('admin.produks.aset', compact('asets'));
+    }
+
+    public function asetDetail(Kategori $kategori)
+    {
+        $asets = DB::table('produk_last_stoks as t')
+            ->join('produks as p', 'p.id', '=', 't.produk_id')
+            ->join('produk_models as pm', 'pm.id', '=', 'p.produk_model_id')
+            ->join('produk_kategoris as k', 'k.id', '=', 'pm.kategori_id')
+            ->where('pm.kategori_id', $kategori->id)
+            ->select(
+                DB::raw("CONCAT(k.nama, ' - ', pm.nama) as namaProduk"),
+                'p.nama as varian',
+                't.saldo as stok',
+                'pm.harga',
+                DB::raw('t.saldo * pm.harga as nilai_aset')
+            )
+            ->orderBy('p.nama')
+            ->get();
+
+        return view('admin.produks.asetDetail', compact('asets', 'kategori'));
     }
 }

@@ -2,27 +2,22 @@
 
 namespace App\Models;
 
-use DateTimeInterface;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Kategori extends Model
 {
-    use SoftDeletes, HasFactory;
-
-    public $table = 'kategoris';
+    public $table = 'produk_kategoris';
 
     protected $dates = [
         'created_at',
         'updated_at',
-        'deleted_at',
     ];
 
     protected $guarded = [];
 
-    public function kategori(): HasMany
+    public function kategoriUtama(): BelongsTo
     {
-        return $this->hasMany(Kategori::class);
+        return $this->belongsTo(ProdukKategoriUtama::class, 'kategori_utama_id');
     }
 }
