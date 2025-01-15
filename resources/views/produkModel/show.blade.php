@@ -112,6 +112,7 @@
                             <table class="table table-bordered">
                                 <thead>
                                     <tr>
+                                        <th>action</th>
                                         <th>SKU</th>
                                         <th>Varian</th>
                                         <th>Status</th>
@@ -121,6 +122,9 @@
                                 <tbody>
                                     @foreach ($produkModel->produk as $produk)
                                         <tr>
+                                            <td>
+                                                <a href="{{ route('produks.edit', $produk->id) }}" class="btn btn-primary">Edit</a>
+                                            </td>
                                             <td>{{ $produk->id }}</td>
                                             <td>{{ $produk->nama }}</td>
                                             <td>

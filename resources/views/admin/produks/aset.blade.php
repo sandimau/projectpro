@@ -17,26 +17,24 @@
                         <tr>
                             <th>Kategori Utama</th>
                             <th>Kategori</th>
-                            <th>Model</th>
                             <th class="text-end">Aset</th>
                         </tr>
                     </thead>
                     <tbody>
                         @php
                             $totalAset = 0;
-                            $currentKategori = '';
+                            $currentKategoriUtama = '';
                         @endphp
 
                         @foreach($asets as $aset)
                             @php
-                                $nilaiAset = $aset->saldo * $aset->harga;
-                                $totalAset += $nilaiAset;
+                                $totalAset += $aset->nilai_aset;
                             @endphp
                             <tr>
                                 <td>
-                                    @if($currentKategori != $aset->namaKategoriUtama)
+                                    @if($currentKategoriUtama !== $aset->namaKategoriUtama)
                                         {{ $aset->namaKategoriUtama }}
-                                        @php $currentKategori = $aset->namaKategoriUtama @endphp
+                                        @php $currentKategoriUtama = $aset->namaKategoriUtama @endphp
                                     @endif
                                 </td>
                                 <td>
@@ -44,12 +42,11 @@
                                         {{ $aset->namaKategori }}
                                     </a>
                                 </td>
-                                <td>{{ $aset->namaProdukModel }}</td>
-                                <td class="text-end">{{ number_format($nilaiAset, 2, ',', '.') }}</td>
+                                <td class="text-end">{{ number_format($aset->nilai_aset, 2, ',', '.') }}</td>
                             </tr>
                         @endforeach
                         <tr class="fw-bold">
-                            <td colspan="3">Total Aset</td>
+                            <td colspan="2">Total Aset</td>
                             <td class="text-end">{{ number_format($totalAset, 2, ',', '.') }}</td>
                         </tr>
                     </tbody>

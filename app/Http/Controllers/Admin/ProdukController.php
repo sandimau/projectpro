@@ -15,7 +15,7 @@ class ProdukController extends Controller
     public function create(Request $request)
     {
         $produkModel = ProdukModel::find($request->produkModel);
-        return view('produk.create', compact('produkModel'));
+        return view('admin.produks.create', compact('produkModel'));
     }
 
     public function store(Request $request)
@@ -38,21 +38,21 @@ class ProdukController extends Controller
 
     public function edit(Produk $produk)
     {
-        $produkModels = ProdukModel::all();
-        return view('produk.edit', compact('produk', 'produkModels'));
+        $produkModel = ProdukModel::find($produk->produk_model_id);
+        return view('admin.produks.edit', compact('produk', 'produkModel'));
     }
 
     public function update(Request $request, Produk $produk)
     {
         $request->validate([
             'nama' => 'required',
-            'hpp' => 'required|numeric',
             'status' => 'required|in:0,1',
-            'produk_model_id' => 'required|exists:produk_models,id'
         ]);
 
+        $produkModel = ProdukModel::find($produk->produk_model_id);
+
         $produk->update($request->all());
-        return redirect()->route('produk.index')->with('success', 'Produk berhasil diperbarui');
+        return redirect()->route('produkModel.show', ['produkModel' => $produkModel->id])->with('success', 'Produk berhasil diperbarui');
     }
 
     public function destroy(Produk $produk)
@@ -64,7 +64,7 @@ class ProdukController extends Controller
     public function stok(Produk $produk)
     {
         $produks = ProdukStok::where('produk_id', $produk->id)->orderBy('created_at', 'desc')->get();
-        return view('produk.stok', compact('produks'));
+        return view('admin.produks.stok', compact('produks'));
     }
 
     public function aset()
@@ -81,17 +81,14 @@ class ProdukController extends Controller
             ->join('produk_kategoris as k', 'k.id', '=', 'pm.kategori_id')
             ->join('produk_kategori_utamas as ku', 'ku.id', '=', 'k.kategori_utama_id')
             ->select(
-                't.saldo',
-                'pm.harga',
-                'pm.nama as namaProdukModel',
-                'p.nama as namaProduk',
+                'k.id as kategori_id',
                 'ku.nama as namaKategoriUtama',
                 'k.nama as namaKategori',
-                'k.id as kategori_id'
+                DB::raw('SUM(t.saldo * pm.harga) as nilai_aset')
             )
+            ->groupBy('k.id', 'ku.nama', 'k.nama')
             ->orderBy('ku.nama')
             ->orderBy('k.nama')
-            ->orderBy('pm.nama')
             ->get();
 
         return view('admin.produks.aset', compact('asets'));
