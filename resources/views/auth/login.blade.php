@@ -1,7 +1,7 @@
 @extends('layouts.guest')
 
 @section('content')
-    <div class="col-lg-8">
+    <div class="col-lg-6">
         <div class="card-group d-block d-md-flex row">
             <div class="card col-md-7 p-4 mb-0">
                 <div class="card-body">
@@ -51,8 +51,6 @@
                         </div>
                     </form>
                 </div>
-            </div>
-            <div class="card col-md-5 text-white bg-login-image py-5">
             </div>
         </div>
     </div>
