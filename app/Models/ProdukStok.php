@@ -30,14 +30,18 @@ class ProdukStok extends Model
             $terakhir = ($model->where('produk_id', $model->produk_id)->latest('id')->first()->saldo) ?? 0;
             $model->saldo = $terakhir + $model->tambah - $model->kurang;
 
-            $dataProduk = Produk::find($model->produk_id)->lastStok()->where('produk_id',$model->produk_id)->latest('id')->first();
+            $dataProduk = Produk::find($model->produk_id);
+
             if ($dataProduk) {
-                $dataProduk->lastStok()->updateExistingPivot($model->produk_id, [
-                    'saldo' => $model->saldo,
-                ]);
-            } else {
-                $dataProduk = Produk::find($model->produk_id);
-                $dataProduk->lastStok()->attach($model->produk_id, ['saldo' => $model->saldo]);
+                $existingStok = $dataProduk->lastStok()->where('produk_id', $model->produk_id)->latest('id')->first();
+
+                if ($existingStok) {
+                    $dataProduk->lastStok()->updateExistingPivot($model->produk_id, [
+                        'saldo' => $model->saldo,
+                    ]);
+                } else {
+                    $dataProduk->lastStok()->attach($model->produk_id, ['saldo' => $model->saldo]);
+                }
             }
 
             $model->hpp = $model->produk->hpp ?? 0;

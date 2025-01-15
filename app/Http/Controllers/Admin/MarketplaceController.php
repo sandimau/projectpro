@@ -247,17 +247,17 @@ class MarketplaceController extends Controller
                 $config = $id;
                 $marketplace = DB::table('marketplace_formats')->where('jenis', 'order')->where('marketplace', $config->marketplace)->first();
 
+                $toko = $config->cabang_id;
                 $id_shopee = $config->kontak_id;
 
                 ////ambil data semua produk di company
-                $ambil = $ambil = DB::table('produks')->select('produks.id', 'hpp', 'stok', 'id_produk', 'harga')->where('produks.status', 1)
-                    ->where('produks.company_id', session('company'))
+                $ambil = DB::table('produks')->select('produks.id', 'hpp', 'stok', 'harga')->where('produks.status', 1)
                     ->join('produk_models', 'produks.produk_model_id', '=', 'produk_models.id')
                     ->get();
 
                 ////bikin array data produk dengan key id dan id_produk(id project yg lama)
                 $produks = $ambil->keyBy('id');
-                $produks2 = $ambil->keyBy('id_produk');
+
                 //////posisi header di baris brapa
                 $header = $marketplace->barisHeader ?? 1;
 
@@ -324,25 +324,22 @@ class MarketplaceController extends Controller
                     if ($input) {
 
                         $tanggal = $baris[$marketplace->tanggal];
-                        $tanggal = carbon::createFromFormat($marketplace->formatTanggal, $tanggal)->toDateTimeString();
+                        $tanggal = Carbon::createFromFormat($marketplace->formatTanggal, $tanggal)->toDateTimeString();
                         $nama = $baris[$marketplace->nama];
                         $tema = $baris[$marketplace->tema];
                         $total = $baris[$marketplace->saldo];
                         $total = str_replace(".", "", $total);
 
-
                         $jumlah = $baris[$marketplace->jumlah];
                         $harga = str_replace("Rp ", "", $baris[$marketplace->harga]);
                         $harga = str_replace(".", "", $harga);
-                        $jumlah = str_replace(".", "", $jumlah);
 
 
                         if ($status == $marketplace->batal) {
                             $produksi_id = $batal_id;
                             $total = 0;
-                        } else {
+                        } else
                             $produksi_id = $finish_id;
-                        }
 
                         //jika ganti nota
                         if ($nota != $nota_skr) {
@@ -358,6 +355,7 @@ class MarketplaceController extends Controller
                                 'nota' => $nota,
                                 'created_at' => $tanggal,
                                 'konsumen_detail' => $nama,
+                                'deathline' => $baris[8]
                             );
                         }
                         ////jika sku NON_PRODUK, skip penginputan
@@ -371,7 +369,6 @@ class MarketplaceController extends Controller
                         if (strpos($barang, 'CUSTOM_') !== false) {
                             $produksi_id = $awal_id;
                             $barang = str_replace('CUSTOM_', "", $barang);
-
                             $orderCustom = true;
                             $custom = $tema;
                         }
@@ -391,13 +388,13 @@ class MarketplaceController extends Controller
                             'produksi_id' => $produksi_id,
                             'nota' => $nota,
                             'created_at' => $tanggal,
+                            'deathline' => $baris[8]
                         );
 
                         ///////////////////kalo ordernya ga batal, dan produknya ada stoknya, input brapa yg terjual
-                        if ($status != $marketplace->batal and !$orderCustom)
+                        if ($status != $marketplace->batal and $produk->stok == 1 and !$orderCustom)
                             $stok[$produk->id] = $jumlah + ($stok[$produk->id] ?? 0);
                     }
-
                     $nota_skr = $nota;
                 }
 
@@ -438,20 +435,14 @@ class MarketplaceController extends Controller
 
                             $produk = $produks[$produk_id];
 
-                            $lastStok = ProdukStok::lastStok($produk_id);
-
-                            $saldo = $lastStok + $stokx;
-                            $inputBatal[] = array(
+                            ProdukStok::create([
                                 'produk_id' => $produk_id,
-                                'tambah' => $stokx,
-                                'saldo' => $saldo,
-                                'keterangan' => $config->nama . ' tdk jd beli',
-                                'kode' => 'jual',
-                                'created_at' => now()
-                            );
+                                'tambah' => 0,
+                                'kurang' => $stokx,
+                                'keterangan' => 'upload ' . $config->nama,
+                                'kode' => 'jual'
+                            ]);
                         }
-
-                        DB::table('produk_stoks')->insert($inputBatal);
                     }
                 }
 
@@ -481,20 +472,14 @@ class MarketplaceController extends Controller
 
                             $produk = $produks[$produk_id];
 
-                            $lastStok = ProdukStok::lastStok($produk_id);
-
-                            $saldo = $lastStok - $stokx;
-                            $inputStok[] = array(
+                            ProdukStok::create([
                                 'produk_id' => $produk_id,
+                                'tambah' => 0,
                                 'kurang' => $stokx,
-                                'saldo' => $saldo,
                                 'keterangan' => 'upload ' . $config->nama,
-                                'kode' => 'jual',
-                                'created_at' => now()
-                            );
+                                'kode' => 'jual'
+                            ]);
                         }
-
-                        DB::table('produk_stoks')->insert($inputStok);
                     }
                 }
 

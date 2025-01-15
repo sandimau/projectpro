@@ -159,7 +159,7 @@
                                                     $tampilan .=
                                                         "<span style='color:#636363; padding-right:5px;'> " .
                                                         $nama_produk .
-                                                        ' ' .
+                                                        ', ' .
                                                         $proses .
                                                         $jadwalx .
                                                         '</span> ';

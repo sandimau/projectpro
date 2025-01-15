@@ -28,6 +28,7 @@ return new class extends Migration
             $table->text('keterangan')->nullable();
             $table->date('deathline')->nullable();
             $table->string('gambar')->nullable();
+            $table->string('nota')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

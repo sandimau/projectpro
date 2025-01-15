@@ -27,6 +27,14 @@
                 <div class="tab-pane fade show active" id="detail" role="tabpanel" aria-labelledby="detail-tab">
                     <div class="row mt-3">
                         <div class="col-md-4">
+                            <a href="{{ route('produkModel.edit', ['produkModel' => $produkModel->id, 'kategori_id' => $produkModel->kategori_id]) }}"
+                                class="btn btn-primary mb-3">Edit Produk</a>
+                            {{-- <form action="{{ route('produkModel.destroy', $produkModel->id) }}" method="POST" class="d-inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-danger"
+                                    onclick="return confirm('Apakah Anda yakin ingin menghapus produk ini?')">Hapus</button>
+                            </form> --}}
                             @if ($produkModel->gambar)
                                 <a class="test-popup-link" href="{{ asset('uploads/produk/' . $produkModel->gambar) }}">
                                     <img src="{{ asset('uploads/produk/' . $produkModel->gambar) }}" class="img-fluid"
@@ -41,7 +49,7 @@
                         <div class="col-md-8">
                             <table class="table">
                                 <tr>
-                                    <th width="200">Model</th>
+                                    <th width="200">Produk</th>
                                     <td>{{ $produkModel->nama }}</td>
                                 </tr>
                                 <tr>
@@ -92,16 +100,7 @@
                                 </tr>
                             </table>
 
-                            <div class="mt-3">
-                                <a href="{{ route('produkModel.edit', ['produkModel' => $produkModel->id, 'kategori_id' => $produkModel->kategori_id]) }}"
-                                    class="btn btn-primary">Edit</a>
-                                {{-- <form action="{{ route('produkModel.destroy', $produkModel->id) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger"
-                                        onclick="return confirm('Apakah Anda yakin ingin menghapus produk ini?')">Hapus</button>
-                                </form> --}}
-                            </div>
+
                         </div>
                     </div>
                 </div>
