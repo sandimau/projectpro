@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use Gate;
-use Carbon\Carbon;
 use App\Models\Chat;
 use App\Models\Spek;
 use App\Models\Order;
@@ -53,7 +52,14 @@ class OrderController extends Controller
 
     public function apiProdukBeli()
     {
-        $produk = Produk::select('produk_models.nama', 'produk_models.harga', 'produk_models.satuan', 'produks.nama as varian', 'produks.id', 'produk_kategoris.nama as kategori')
+        $produk = Produk::select(
+                'produk_models.nama',
+                'produk_models.satuan',
+                'produks.nama as varian',
+                'produks.id',
+                'produk_kategoris.nama as kategori',
+                DB::raw('COALESCE((SELECT harga FROM belanja_details WHERE produk_id = produks.id ORDER BY created_at DESC LIMIT 1), produk_models.harga) as harga')
+            )
             ->join('produk_models', 'produks.produk_model_id', '=', 'produk_models.id')
             ->join('produk_kategoris', 'produk_models.kategori_id', '=', 'produk_kategoris.id')
             ->where('produk_models.beli', 1)
