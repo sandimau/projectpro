@@ -116,7 +116,13 @@ class MarketplaceController extends Controller
 
                 $header = $marketplace->barisHeader ?? 1;
 
-                $keuangan = [];
+                // Get existing orders for this marketplace contact
+                $existingOrders = DB::table('orders')
+                    ->where('kontak_id', $config->kontak_id)
+                    ->get();
+                $orders = $existingOrders->keyBy('nota');
+
+                $keuangan = $order = [];
                 $input = false;
                 if ($config->baruKeuangan == 1)
                     $input = true;
@@ -173,9 +179,22 @@ class MarketplaceController extends Controller
                     if ($harga < 0 and strpos($baris[$marketplace->tema], $marketplace->batal) !== false) {
                         $keuangan[] = $baris;
                     }
+
+                    if (strlen($baris[4]) > 8) {
+                        if (isset($orders[$baris[4]])) {
+                            $order[] = $baris;
+                        }
+                    }
                 }
 
                 if ($input) {
+                    //proses update order sudah dibayar
+                    foreach ($order as $baris) {
+                        Order::where('nota', $baris[4])->update([
+                            'status' => 'sudah dibayar',
+                            'bayar' => $baris[6]
+                        ]);
+                    }
                     //////////////////////proses masukin dana yg ditarik
                     foreach (array_reverse($keuangan) as $baris) {
 
@@ -355,7 +374,8 @@ class MarketplaceController extends Controller
                                 'nota' => $nota,
                                 'created_at' => $tanggal,
                                 'konsumen_detail' => $nama,
-                                'deathline' => $baris[8]
+                                'deathline' => $baris[8],
+                                'marketplace' => 1
                             );
                         }
                         ////jika sku NON_PRODUK, skip penginputan
