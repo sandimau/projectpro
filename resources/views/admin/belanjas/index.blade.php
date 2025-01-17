@@ -22,10 +22,10 @@
         <div class="card">
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
-                    <form action="{{ route('order.index') }}" method="get" class="d-flex gap-2 align-items-center">
+                    <form action="{{ route('belanja.index') }}" method="get" class="d-flex gap-2 align-items-center">
                         <label for="nota" class="form-label mb-0">Nota</label>
                         <input type="text" name="nota" class="form-control">
-                        <label for="nota" class="form-label mb-0">Konsumen</label>
+                        <label for="nota" class="form-label mb-0">Supplier</label>
                         <div id="autocomplete" class="autocomplete">
                             <input class="autocomplete-input {{ $errors->has('kontak_id') ? 'is-invalid' : '' }}"
                                 placeholder="cari kontak" aria-label="cari kontak">
@@ -77,7 +77,7 @@
     <script>
         new Autocomplete('#autocomplete', {
             search: input => {
-                const url = "{{ url('admin/konsumen/api?q=') }}" + `${escape(input)}`;
+                const url = "{{ url('admin/supplier/api?q=') }}" + `${escape(input)}`;
                 return new Promise(resolve => {
                     if (input.length < 1) {
                         return resolve([])

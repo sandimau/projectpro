@@ -35,7 +35,7 @@ class ProdukModelController extends Controller
         $currentUrl = request()->fullUrl();
         $lastNumber = preg_replace('/[^0-9]/', '', substr($currentUrl, strrpos($currentUrl, '?') + 1));
         $kategori = ProdukKategori::find($lastNumber);
-        $produks = Produk::select('produks.id as produk_id', 'produks.nama as varian', 'produk_models.nama as model', 'produk_models.harga', 'produk_models.satuan',
+        $produks = Produk::select('produks.id as produk_id', 'produks.nama as varian', 'produks.hpp as hpp','produk_models.nama as model', 'produk_models.harga', 'produk_models.satuan',
         'produk_models.deskripsi', 'produk_models.jual', 'produk_models.beli', 'produk_models.stok', 'produk_models.id as model_id',
         'produk_models.gambar', 'produk_models.kategori_id', 'produk_models.kontak_id', 'produk_last_stoks.saldo as lastStok', 'belanja_details.harga as harga_beli')
             ->join('produk_models', 'produks.produk_model_id', '=', 'produk_models.id')

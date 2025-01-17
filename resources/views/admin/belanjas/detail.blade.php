@@ -56,9 +56,9 @@
                         <tbody>
                             @foreach ($belanjaDetail as $belanja)
                                 <tr data-entry-id="{{ $belanja->id }}">
-                                    <td>{{ $belanja->produk->nama}}</td>
+                                    <td>{{ $belanja->produk->namaLengkap}}</td>
                                     <td>{{ $belanja->keterangan }}</td>
-                                    <td>{{ $belanja->produk->satuan }}</td>
+                                    <td>{{ $belanja->produk->produkModel->satuan }}</td>
                                     <td>{{ number_format($belanja->jumlah, 0, ',', '.') }}</td>
                                     <td>{{ number_format($belanja->harga, 0, ',', '.') }}</td>
                                     <td>{{ number_format($belanja->harga * $belanja->jumlah, 0, ',', '.') }}</td>
