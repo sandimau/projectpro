@@ -1,5 +1,9 @@
 @extends('layouts.app')
 
+@section('title')
+    Add Produk Kategori
+@endsection
+
 @section('content')
 <div class="card">
     <div class="card-header">

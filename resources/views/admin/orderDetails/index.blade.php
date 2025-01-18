@@ -1,11 +1,17 @@
 @extends('layouts.app')
 
 @section('title')
-    Proses Produksi
+    Detail Order
 @endsection
 
 @section('content')
     <div class="bg-light rounded">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page"> <a href="{{ route('order.dashboard') }}" >Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Order Detail</li>
+            </ol>
+        </nav>
         @include('layouts.includes.messages')
         <div class="row">
             <div class="col-lg-12">
@@ -13,10 +19,7 @@
                     <div class="card-header">
                         <div class="d-flex justify-content-between align-details-center">
                             <div>
-                                <h5 class="card-title">Order Detail</h5>
-                            </div>
-                            <div>
-                                <a href="{{ route('order.dashboard') }}" class="btn btn-secondary text-white">back</a>
+                                <h5 class="card-title">{{ $order->kontak->nama }} - {{ $order->konsumen_detail }}</h5>
                             </div>
                         </div>
                     </div>
@@ -25,28 +28,24 @@
                             <div class="col-md-8">
                                 <div class="row">
                                     <div class="col-lg-2 col-sm-4">
-                                        <h6 class="mb-0">Konsumen</h6>
-                                        <p>{{ $order->kontak->nama }}</p>
+                                        <h6 class="mb-0 text-secondary">Ongkir</h6>
+                                        <p>{{ number_format($order->ongkir, 0, ',', '.') }}</p>
                                     </div>
                                     <div class="col-lg-2 col-sm-4">
-                                        <h6 class="mb-0">Ongkir</h6>
-                                        <p>{{ number_format($order->ongkir) }}</p>
+                                        <h6 class="mb-0 text-secondary">Diskon</h6>
+                                        <p>{{ number_format($order->diskon, 0, ',', '.') }}</p>
                                     </div>
                                     <div class="col-lg-2 col-sm-4">
-                                        <h6 class="mb-0">Diskon</h6>
-                                        <p>{{ number_format($order->diskon) }}</p>
+                                        <h6 class="mb-0 text-secondary">Total</h6>
+                                        <p>{{ number_format($order->total, 0, ',', '.') }}</p>
                                     </div>
                                     <div class="col-lg-2 col-sm-4">
-                                        <h6 class="mb-0">Total</h6>
-                                        <p>{{ number_format($order->total) }}</p>
+                                        <h6 class="mb-0 text-secondary">Pembayaran</h6>
+                                        <p>{{ number_format($order->bayar, 0, ',', '.') }}</p>
                                     </div>
                                     <div class="col-lg-2 col-sm-4">
-                                        <h6 class="mb-0">Pembayaran</h6>
-                                        <p>{{ number_format($order->bayar) }}</p>
-                                    </div>
-                                    <div class="col-lg-2 col-sm-4">
-                                        <h6 class="mb-0">Kekurangan</h6>
-                                        <p>{{ number_format($order->kekurangan) }}</p>
+                                        <h6 class="mb-0 text-secondary">Kekurangan</h6>
+                                        <p>{{ number_format($order->kekurangan, 0, ',', '.') }}</p>
                                     </div>
                                 </div>
                             </div>

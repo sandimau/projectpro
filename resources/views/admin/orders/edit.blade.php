@@ -5,23 +5,23 @@
 @endsection
 
 @section('content')
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item active" aria-current="page"> <a
+                    href="{{ route('order.detail', $order->id) }}">{{ $order->kontak->nama }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Edit Order</li>
+        </ol>
+    </nav>
     <div class="card">
-        <div class="card-header">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="card-title">Update Order</h5>
-                </div>
-                <a href="{{ route('order.dashboard') }}" class="btn btn-success ">back</a>
-            </div>
-        </div>
         <div class="card-body">
             <form method="POST" action="{{ route('order.update', [$order->id]) }}" enctype="multipart/form-data">
                 @method('patch')
                 @csrf
                 <div class="form-group mb-3">
                     <label for="konsumen_detail">konsumen_detail</label>
-                    <input class="form-control {{ $errors->has('konsumen_detail') ? 'is-invalid' : '' }}" type="text" name="konsumen_detail"
-                        id="konsumen_detail" value="{{ old('konsumen_detail',$order->konsumen_detail) }}">
+                    <input class="form-control {{ $errors->has('konsumen_detail') ? 'is-invalid' : '' }}" type="text"
+                        name="konsumen_detail" id="konsumen_detail"
+                        value="{{ old('konsumen_detail', $order->konsumen_detail) }}">
                     @if ($errors->has('konsumen_detail'))
                         <div class="invalid-feedback">
                             {{ $errors->first('konsumen_detail') }}
@@ -30,8 +30,8 @@
                 </div>
                 <div class="form-group mb-3">
                     <label for="diskon">Diskon</label>
-                    <input class="form-control {{ $errors->has('diskon') ? 'is-invalid' : '' }}" type="number" name="diskon"
-                        id="diskon" value="{{ old('diskon',$order->diskon) }}">
+                    <input class="form-control {{ $errors->has('diskon') ? 'is-invalid' : '' }}" type="number"
+                        name="diskon" id="diskon" value="{{ old('diskon', $order->diskon) }}">
                     @if ($errors->has('diskon'))
                         <div class="invalid-feedback">
                             {{ $errors->first('diskon') }}
@@ -41,7 +41,7 @@
                 <div class="form-group mb-3">
                     <label for="ket_diskon">ket diskon</label>
                     <input class="form-control {{ $errors->has('ket_diskon') ? 'is-invalid' : '' }}" type="text"
-                        name="ket_diskon" id="ket_diskon" value="{{ old('ket_diskon',$order->ket_diskon) }}">
+                        name="ket_diskon" id="ket_diskon" value="{{ old('ket_diskon', $order->ket_diskon) }}">
                     @if ($errors->has('ket_diskon'))
                         <div class="invalid-feedback">
                             {{ $errors->first('ket_diskon') }}
@@ -63,8 +63,8 @@
                             </div>
                             <div class="col-lg-3 col-sm-12">
                                 <div class="form-check ms-3">
-                                    <input class="form-check-input" type="radio" name="pengiriman"
-                                        id="flexRadioDefault2" value="dikirim" {{ $order->pengiriman == 'dikirim' ? 'checked' : '' }}>
+                                    <input class="form-check-input" type="radio" name="pengiriman" id="flexRadioDefault2"
+                                        value="dikirim" {{ $order->pengiriman == 'dikirim' ? 'checked' : '' }}>
                                     <label class="form-check-label" for="flexRadioDefault2">
                                         dikirim
                                     </label>
@@ -72,8 +72,9 @@
                             </div>
                             <div class="col-lg-3 col-sm-12">
                                 <div class="form-check ms-3">
-                                    <input class="form-check-input" type="radio" name="pengiriman"
-                                        id="flexRadioDefault3" value="jasa pengiriman" {{ $order->pengiriman == 'jasa pengiriman' ? 'checked' : '' }}>
+                                    <input class="form-check-input" type="radio" name="pengiriman" id="flexRadioDefault3"
+                                        value="jasa pengiriman"
+                                        {{ $order->pengiriman == 'jasa pengiriman' ? 'checked' : '' }}>
                                     <label class="form-check-label" for="flexRadioDefault3">
                                         jasa pengiriman
                                     </label>
@@ -89,7 +90,8 @@
                             <div class="col-sm-12 col-lg-3">
                                 <div class="form-check me-1">
                                     <input class="form-check-input" type="radio" name="invoice" id="invoice"
-                                        value="disertakan barang" {{ $order->invoice == 'disertakan barang' ? 'checked' : '' }}>
+                                        value="disertakan barang"
+                                        {{ $order->invoice == 'disertakan barang' ? 'checked' : '' }}>
                                     <label class="form-check-label" for="invoice">
                                         disertakan barang
                                     </label>
@@ -98,7 +100,8 @@
                             <div class="col-sm-12 col-lg-3">
                                 <div class="form-check me-1">
                                     <input class="form-check-input" type="radio" name="invoice" id="invoice2"
-                                        value="dikirim terpisah" {{ $order->invoice == 'dikirim terpisah' ? 'checked' : '' }}>
+                                        value="dikirim terpisah"
+                                        {{ $order->invoice == 'dikirim terpisah' ? 'checked' : '' }}>
                                     <label class="form-check-label" for="invoice2">
                                         dikirim terpisah
                                     </label>
@@ -130,7 +133,8 @@
                         <label for="harga">Pembayaran</label>
                         <div class="d-flex">
                             <div class="form-check me-2">
-                                <input class="form-check-input" type="radio" name="jenis_pembayaran" id="pembayaran" value="cod" {{ $order->jenis_pembayaran == 'cod' ? 'checked' : '' }}>
+                                <input class="form-check-input" type="radio" name="jenis_pembayaran" id="pembayaran"
+                                    value="cod" {{ $order->jenis_pembayaran == 'cod' ? 'checked' : '' }}>
                                 <label class="form-check-label" for="pembayaran">
                                     cod
                                 </label>
@@ -147,8 +151,8 @@
                 </div>
                 <div class="form-group mb-3">
                     <label for="jasa">jasa pengiriman</label>
-                    <input class="form-control {{ $errors->has('jasa') ? 'is-invalid' : '' }}" type="text" name="jasa"
-                        id="jasa" value="{{ old('jasa',$order->jasa) }}">
+                    <input class="form-control {{ $errors->has('jasa') ? 'is-invalid' : '' }}" type="text"
+                        name="jasa" id="jasa" value="{{ old('jasa', $order->jasa) }}">
                     @if ($errors->has('jasa'))
                         <div class="invalid-feedback">
                             {{ $errors->first('jasa') }}
@@ -158,7 +162,7 @@
                 <div class="form-group mb-3">
                     <label for="ongkir">ongkir</label>
                     <input class="form-control {{ $errors->has('ongkir') ? 'is-invalid' : '' }}" type="number"
-                        name="ongkir" id="ongkir" value="{{ old('ongkir',$order->ongkir) }}">
+                        name="ongkir" id="ongkir" value="{{ old('ongkir', $order->ongkir) }}">
                     @if ($errors->has('ongkir'))
                         <div class="invalid-feedback">
                             {{ $errors->first('ongkir') }}
@@ -168,7 +172,7 @@
                 <div class="form-group mb-3">
                     <label for="ket_kirim">ket ongkir</label>
                     <input class="form-control {{ $errors->has('ket_kirim') ? 'is-invalid' : '' }}" type="text"
-                        name="ket_kirim" id="ket_kirim" value="{{ old('ket_kirim',$order->ket_kirim) }}">
+                        name="ket_kirim" id="ket_kirim" value="{{ old('ket_kirim', $order->ket_kirim) }}">
                     @if ($errors->has('ket_kirim'))
                         <div class="invalid-feedback">
                             {{ $errors->first('ket_kirim') }}
@@ -232,7 +236,8 @@
                         })
                 })
             },
-            getResultValue: result => result.varian ? result.kategori + ' - ' + result.nama + ' - ' + result.varian : result.kategori + ' - ' + result.nama,
+            getResultValue: result => result.varian ? result.kategori + ' - ' + result.nama + ' - ' + result
+                .varian : result.kategori + ' - ' + result.nama,
             onSubmit: result => {
                 let idProduk = document.getElementById('produkId');
                 idProduk.value = result.id;

@@ -6,7 +6,6 @@ use Gate;
 use App\Models\Chat;
 use App\Models\Spek;
 use App\Models\Order;
-use App\Models\Member;
 use App\Models\Produksi;
 use App\Models\ProdukStok;
 use App\Models\OrderDetail;
@@ -44,7 +43,6 @@ class OrderDetailController extends Controller
             'produk_id' => 'required',
             'harga' => 'required',
             'jumlah' => 'required',
-            'deathline' => 'required',
         ]);
 
         $produksi = Produksi::where('nama', 'persiapan')->first();

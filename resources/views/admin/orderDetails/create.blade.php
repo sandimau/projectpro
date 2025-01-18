@@ -5,15 +5,14 @@
 @endsection
 
 @section('content')
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item active" aria-current="page"> <a
+                    href="{{ route('order.detail', $order->id) }}">{{ $order->kontak->nama }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Tambah Order Detail</li>
+        </ol>
+    </nav>
     <div class="card">
-        <div class="card-header">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="card-title">add order</h5>
-                </div>
-                <a href="{{ route('order.dashboard') }}" class="btn btn-success ">back</a>
-            </div>
-        </div>
         <div class="card-body">
             <form method="POST" action="{{ route('orderDetail.store') }}" enctype="multipart/form-data">
                 @csrf
@@ -66,8 +65,7 @@
                 @foreach ($speks as $item)
                     <div class="form-group mb-3">
                         <label for="spek">{{ $item->nama }}</label>
-                        <input class="form-control" type="text"
-                            name="{{ $item->nama }}" id="spek" >
+                        <input class="form-control" type="text" name="{{ $item->nama }}" id="spek">
                     </div>
                 @endforeach
                 <div class="form-group mb-3">
@@ -119,10 +117,15 @@
                         })
                 })
             },
-            getResultValue: result => result.varian ? result.kategori + ' - ' + result.nama + ' - ' + result.varian : result.kategori + ' - ' + result.nama,
+            getResultValue: result => result.varian ? result.kategori + ' - ' + result.nama + ' - ' + result
+                .varian : result.kategori + ' - ' + result.nama,
             onSubmit: result => {
                 let idProduk = document.getElementById('produkId');
                 idProduk.value = result.id;
+
+                //set harga
+                let harga = document.getElementById("harga");
+                harga.value = result.harga;
 
                 let btn = document.getElementById("closeBrgProduk");
                 btn.style.display = "block";

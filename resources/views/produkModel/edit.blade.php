@@ -1,5 +1,9 @@
 @extends('layouts.app')
 
+@section('title')
+    Edit Produk Model
+@endsection
+
 @section('content')
 <div class="container">
     <div class="card">
