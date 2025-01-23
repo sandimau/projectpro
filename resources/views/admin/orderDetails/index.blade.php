@@ -123,7 +123,7 @@
                                                 @if ($detail->gambar)
                                                     <a href="{{ route('orderDetail.editGambar', $detail->id) }}">
                                                         <img style="height: 60px"
-                                                            src="{{ asset('uploads/gambar/' . $detail->gambar) }}"
+                                                            src="{{ asset('uploads/order/' . $detail->gambar) }}"
                                                             alt="" srcset="">
                                                     </a>
                                                 @else

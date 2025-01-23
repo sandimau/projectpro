@@ -6,6 +6,7 @@ use Gate;
 use App\Models\Chat;
 use App\Models\Spek;
 use App\Models\Order;
+use App\Models\Member;
 use App\Models\Produksi;
 use App\Models\ProdukStok;
 use App\Models\OrderDetail;
@@ -43,6 +44,7 @@ class OrderDetailController extends Controller
             'produk_id' => 'required',
             'harga' => 'required',
             'jumlah' => 'required',
+            'deathline' => 'required',
         ]);
 
         $produksi = Produksi::where('nama', 'persiapan')->first();
@@ -94,11 +96,15 @@ class OrderDetailController extends Controller
             $img_resize->resize(500, null, function ($constraint) {
                 $constraint->aspectRatio();
             });
-            $save_path = 'uploads/gambar/';
+            $save_path = public_path('uploads/order/');
             if (!file_exists($save_path)) {
-                mkdir($save_path, 666, true);
+                try {
+                    mkdir($save_path, 0755, true);
+                } catch (\Exception $e) {
+                    throw new \Exception('Unable to create directory. Please check folder permissions.');
+                }
             }
-            $img_resize->save(public_path($save_path . $filename));
+            $img_resize->save($save_path . $filename);
             $gambar = $filename;
         }
 
@@ -208,11 +214,15 @@ class OrderDetailController extends Controller
             $img_resize->resize(500, null, function ($constraint) {
                 $constraint->aspectRatio();
             });
-            $save_path = 'uploads/gambar/';
+            $save_path = public_path('uploads/order/');
             if (!file_exists($save_path)) {
-                mkdir($save_path, 666, true);
+                try {
+                    mkdir($save_path, 0755, true);
+                } catch (\Exception $e) {
+                    throw new \Exception('Unable to create directory. Please check folder permissions.');
+                }
             }
-            $img_resize->save(public_path($save_path . $filename));
+            $img_resize->save($save_path . $filename);
             $gambar = $filename;
         }
 
