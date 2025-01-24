@@ -63,8 +63,8 @@ class ProdukController extends Controller
 
     public function stok(Produk $produk)
     {
-        $produks = ProdukStok::where('produk_id', $produk->id)->orderBy('created_at', 'desc')->get();
-        return view('admin.produks.stok', compact('produks'));
+        $produkStoks = ProdukStok::where('produk_id', $produk->id)->orderBy('id', 'desc')->get();
+        return view('admin.produkStoks.index', compact('produkStoks','produk'));
     }
 
     public function aset()

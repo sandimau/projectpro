@@ -33,11 +33,10 @@ class ProdukStokController extends Controller
             'tambah' => 'required',
             'kurang' => 'required',
             'keterangan' => 'required',
-            'tanggal' => 'required',
         ]);
 
         ProdukStok::create([
-            'tanggal' => $request->tanggal,
+            'created_at' => $request->tanggal,
             'tambah' => $request->tambah,
             'kurang' => $request->kurang,
             'keterangan' => $request->keterangan,
@@ -46,18 +45,6 @@ class ProdukStokController extends Controller
             'user_id' => auth()->user()->id,
         ]);
 
-        return redirect()->route('produkStok.index', $request->produk_id)->withSuccess(__('Produksi created successfully.'));
-    }
-
-    public function edit(ProdukStok $produkStok)
-    {
-        abort_if(Gate::denies('produk_stok_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-
-        return view('admin.produkStoks.edit', compact('orders', 'produkStok'));
-    }
-
-    public function update(Request $request, ProdukStok $produkStok)
-    {
-        return redirect()->route('admin.produk-stoks.index')->withSuccess(__('Produksi updated successfully.'));
+        return redirect()->route('produkStok.index', $request->produk_id)->withSuccess(__('Produk Stok berhasil diupdate'));
     }
 }

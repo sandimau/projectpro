@@ -10,11 +10,9 @@
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h5 class="card-title">Produk Stoks > {{ $produk->nama }}</h5>
-                        <h6 class="card-subtitle mb-2 text-muted">Manage your produk stoks here.</h6>
+                        <h5 class="card-title"><a href="{{route('produkModel.index', $produk->produkModel->kategori_id)}}">{{ $produk->namaLengkap }}</a> > {{ $produk->nama }}</h5>
                     </div>
                     <div style="text-align: right">
-                        <a href="{{ route('produks.index', $produk->kategori_id) }}" class="btn btn-secondary mb-2">back</a>
                         @can('kontak_create')
                             <a href="{{ route('produkStok.create', $produk->id) }}" class="btn btn-primary mb-2">opname</a>
                         @endcan
@@ -29,21 +27,27 @@
                     <table class="table table-striped">
                         <thead>
                             <tr>
-                                <th scope="col">tanggal</th>
-                                <th scope="col">keterangan</th>
-                                <th scope="col">penambahan</th>
-                                <th scope="col">pengurangan</th>
-                                <th scope="col">stok akhir</th>
+                                <th>Tanggal</th>
+                                <th>Keterangan</th>
+                                <th>kode</th>
+                                <th>hpp</th>
+                                <th>tambah</th>
+                                <th>kurang</th>
+                                <th>saldo</th>
+                                <th>user</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($produkStoks as $stok)
                                 <tr>
-                                    <td>{{ $stok->tanggal }}</td>
+                                    <td>{{ $stok->created_at->format('d-m-Y') }}</td>
                                     <td>{{ $stok->keterangan }}</td>
-                                    <td>{{ number_format($stok->tambah) }}</td>
-                                    <td>{{ number_format($stok->kurang) }}</td>
-                                    <td>{{ number_format($stok->saldo) }}</td>
+                                    <td>{{ $stok->kode }}</td>
+                                    <td>{{ $stok->hpp }}</td>
+                                    <td>{{ $stok->tambah }}</td>
+                                    <td>{{ $stok->kurang }}</td>
+                                    <td>{{ $stok->saldo }}</td>
+                                    <td>{{ $stok->user ? $stok->user->name : null }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
