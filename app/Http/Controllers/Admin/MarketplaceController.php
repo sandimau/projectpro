@@ -393,6 +393,14 @@ class MarketplaceController extends Controller
                             $custom = $tema;
                         }
 
+                        $paket = 1;
+                        if (strpos($barang, '_') !== false) {
+                            $skuParts = explode('_', $barang);
+                            $barang = $skuParts[0]; // Mengambil bagian pertama dari SKU
+                            $paket = $skuParts[1]; // Menambahkan paket dengan bagian kedua dari SKU
+                            $jumlah = $jumlah * $paket;
+                        }
+
                         /////////////////cek, apakah sku udah sesuai dgn produk_id
                         $produk = $produks[$barang] ?? false;
                         if (!$produk)
