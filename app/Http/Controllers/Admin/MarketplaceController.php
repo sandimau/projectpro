@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\Produksi;
 use App\Models\BukuBesar;
 use App\Models\AkunDetail;
+use App\Models\Pembayaran;
 use App\Models\ProdukStok;
 use App\Models\Marketplace;
 use Illuminate\Http\Request;
@@ -191,8 +192,15 @@ class MarketplaceController extends Controller
                     //proses update order sudah dibayar
                     foreach ($order as $baris) {
                         Order::where('nota', $baris[4])->update([
-                            'status' => 'sudah dibayar',
                             'bayar' => $baris[6]
+                        ]);
+                        Pembayaran::create([
+                            'order_id' => Order::where('nota', $baris[4])->first()->id,
+                            'jumlah' => $baris[6],
+                            'created_at' => $baris[$marketplace->tanggal],
+                            'status' => 'lunas',
+                            'akun_detail_id' => $config->penarikan_id,
+                            'ket' => 'upload keuangan',
                         ]);
                     }
                     //////////////////////proses masukin dana yg ditarik
