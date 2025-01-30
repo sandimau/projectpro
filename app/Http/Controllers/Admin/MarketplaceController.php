@@ -321,7 +321,7 @@ class MarketplaceController extends Controller
 
                         continue;
                     }
-                    if ($no_baris == $header + 1)
+                    if ($no_baris == $header)
                         continue;
 
                     $nota = $baris[$marketplace->nota];
@@ -338,12 +338,12 @@ class MarketplaceController extends Controller
                             $batal[$nota] = 1;
 
                         /////jika ketemu dgn nota terakhir, set nota terakhir true
-                        if ($nota == $terakhir->nota) {
+                        if ($terakhir && $nota == $terakhir->nota) {
                             $notaTerakhir = true;
                             continue;
                         }
                         /////////jika nota terakhir udah selesai, dan ketemu nota baru, baru bisa mulai input
-                        else   if ($notaTerakhir and $nota != $terakhir->nota)
+                        else if ($notaTerakhir && $terakhir && $nota != $terakhir->nota)
                             $input = true;
                     }
 
@@ -383,7 +383,8 @@ class MarketplaceController extends Controller
                                 'created_at' => $tanggal,
                                 'konsumen_detail' => $nama,
                                 'deathline' => $baris[8],
-                                'marketplace' => 1
+                                'marketplace' => 1,
+                                'ongkir' => $total - str_replace(".", "", $baris[21])
                             );
                         }
                         ////jika sku NON_PRODUK, skip penginputan
@@ -418,7 +419,7 @@ class MarketplaceController extends Controller
                         /////mulai input orderdetil ke array
                         $orderdetil[] = array(
                             'produk_id' => $produk->id,
-                            'jumlah' => $jumlah,
+                            'jumlah' => $baris[$marketplace->jumlah],
                             'tema' => $custom,
                             'harga' => $harga,
                             'produksi_id' => $produksi_id,
@@ -429,7 +430,11 @@ class MarketplaceController extends Controller
 
                         ///////////////////kalo ordernya ga batal, dan produknya ada stoknya, input brapa yg terjual
                         if ($status != $marketplace->batal and $produk->stok == 1 and !$orderCustom)
-                            $stok[$produk->id] = $jumlah + ($stok[$produk->id] ?? 0);
+                            $stok[] = array(
+                                'produk_id' => $produk->id,
+                                'jumlah' => $jumlah,
+                                'keterangan' => 'dibeli oleh ' . $nama
+                            );
                     }
                     $nota_skr = $nota;
                 }
@@ -504,15 +509,12 @@ class MarketplaceController extends Controller
 
                     //////ngurangi stok yg terjual/////////////////////////////////////////////////////////
                     if ($stok) {
-                        foreach ($stok as $produk_id => $stokx) {
-
-                            $produk = $produks[$produk_id];
-
+                        foreach ($stok as $value) {
                             ProdukStok::create([
-                                'produk_id' => $produk_id,
+                                'produk_id' => $value['produk_id'],
                                 'tambah' => 0,
-                                'kurang' => $stokx,
-                                'keterangan' => 'upload ' . $config->nama,
+                                'kurang' => $value['jumlah'],
+                                'keterangan' => $value['keterangan'],
                                 'kode' => 'jual'
                             ]);
                         }
