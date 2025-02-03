@@ -231,6 +231,28 @@
     <li class="nav-group" aria-expanded="false">
         <a class="nav-link nav-group-toggle" href="#">
             <svg class="nav-icon">
+                <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
+            </svg>
+            Laporan
+        </a>
+        <ul class="nav-group-items" style="height: 0px;">
+            @can('laporan_access')
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->is('laporan*') ? 'active' : '' }}"
+                        href="{{ route('laporan.labarugi') }}">
+                        <svg class="nav-icon">
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
+                        </svg>
+                        {{ __('Laba Rugi') }}
+                    </a>
+                </li>
+            @endcan
+        </ul>
+    </li>
+
+    <li class="nav-group" aria-expanded="false">
+        <a class="nav-link nav-group-toggle" href="#">
+            <svg class="nav-icon">
                 <use xlink:href="{{ asset('icons/coreui.svg#cil-cog') }}"></use>
             </svg>
             User Management
