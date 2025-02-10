@@ -196,6 +196,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::resource('marketplaces', 'MarketplaceController');
             Route::post('/marketplaces/{id}/uploadKeuangan', 'MarketplaceController@uploadKeuangan')->name('marketplaces.uploadKeuangan');
             Route::post('/marketplaces/{id}/uploadOrder', 'MarketplaceController@uploadOrder')->name('marketplaces.uploadOrder');
+            Route::post('/marketplaces/{id}/uploadStok', 'MarketplaceController@uploadStok')->name('marketplaces.uploadStok');
 
             // produk-kategori-utama
             Route::resource('produk-kategori-utama', 'ProdukKategoriUtamaController');

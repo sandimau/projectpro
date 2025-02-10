@@ -532,4 +532,137 @@ class MarketplaceController extends Controller
             return redirect()->back()->withErrors(['error' => 'Upload Order gagal: ' . $e->getMessage()]);
         }
     }
+
+    public function uploadStok(Request $request, Marketplace $id)
+    {
+        $request->validate([
+            'stok' => 'required|mimes:csv',
+        ]);
+
+        try {
+            $file_excel = fopen(request()->stok, "r");
+
+            $i = 0;
+
+
+            $config = $id;
+            $marketplace = DB::table('marketplace_formats')->where('jenis', 'stok')->where('marketplace', $config->marketplace)->first();
+
+            $header = $marketplace->barisHeader ?? 1;
+
+
+            $table = '<table border="1" cellpadding="0" cellspacing="0" width=100% class=table>';
+
+
+            /////////////ambil semua produk, masukin ke array
+            $ambil = DB::table('produks')->select('produks.id',  'stok', 'harga')->where('produks.status', 1)
+                ->join('produk_models', 'produks.produk_model_id', '=', 'produk_models.id')
+                ->get();
+            $produks = $ambil->keyBy('id');
+
+
+            while (($baris = fgetcsv($file_excel, 1000, ",")) !== false) {
+
+                $i++;
+                array_unshift($baris, $i);
+
+                if ($i < $header)
+                    continue;
+                else if ($i == $header) {
+                    if ($baris[1] != $marketplace->kolom1 or $baris[2] != $marketplace->kolom2 or $baris[3] != $marketplace->kolom3)
+                        throw new \Exception('excel salah');
+
+                    continue;
+                } else if ($i < ($header + $marketplace->status))
+                    continue;
+
+                $varian = $baris[$marketplace->tema] ?? '';
+                $produk = $baris[$marketplace->produk];
+                $sku_induk = $baris[$marketplace->sku];
+                $sku_anak = $baris[$marketplace->sku_anak] ?? '';
+                $harga = $baris[$marketplace->harga];
+                $stok = $baris[$marketplace->saldo] ?? 0;
+
+                $custom = false;
+
+
+                $sku = !empty($sku_anak) ? $sku_anak : $sku_induk;
+
+
+                $table .= "<tr ><td>" . $i . '<td>' . $produk . '<td>' . $varian . "<td>" . $sku_induk . '<td>' . $sku_anak . '<td>' . $harga;
+                if (empty($sku)) {
+                    $table .= "<td colspan=4><h2><font color=red>error!! sku yg di shopee blm diisi";
+                    break;
+                }
+
+                if ($sku != 'NON_PRODUK') {
+                    if (strpos($sku, 'CUSTOM_') !== false) {
+                        $custom = true;
+                        $sku = str_replace('CUSTOM_', "", $sku);
+                    }
+
+                    // //////// sampe sini hapusnya
+
+
+                    $produk = $produks[$sku] ?? false;
+
+                    //////// sampe sini hapusnya
+
+
+                    if ($produk) {
+
+                        if ($produk->stok == 1) {
+
+                            $stok = ProdukStok::lastStok($produk->id);
+
+                            if ($stok < 0)
+                                $stok = 0;
+                        } else
+                            $stok = 10000;
+
+
+
+                        if (!$custom)
+                            $harga_baru = $produk->harga;
+                        else
+                            $harga_baru = $harga;
+
+
+                        if (empty($harga_baru)) {
+                            $table .= "<td colspan=4><h2><font color=red>error!! harga di project masih kosong";
+                            break;
+                        }
+                        $harga_baru = floor($harga_baru * (100 + $config->harga) / 100);
+
+                        if ((abs($harga - $harga_baru) / $harga * 100) > 20)
+                            $harga = "<h4><font color=red>" . $harga_baru;
+                        else if ($harga != $harga_baru)
+                            $harga = "<h4><font color=green>" . $harga_baru;
+                        else
+                            $harga = $harga_baru;
+                    } else {
+                        $table .= "<td colspan=4><h2><font color=red>error!! sku tidak ada di project";
+                        break;
+                    }
+                }
+
+                $table .= '<td>'
+
+                    //////// kalo semua migrasi udah beres, ini hapus
+                    . ($produk->id ?? '') . '<td>'
+                    //////// sampe sini hapusnya
+
+                    . $harga . '<td>' . $stok;
+            }
+
+            $table .= '</table>';
+
+            $config->update(['tglUploadStok' => now()]);
+
+            echo $table;
+
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'Upload Stok gagal: ' . $e->getMessage()]);
+        }
+    }
 }

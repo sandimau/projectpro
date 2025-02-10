@@ -112,6 +112,32 @@
             </form>
         </div>
     </div>
+    <div class="card mt-5">
+        <div class="card-header">
+            <b>Upload Stok</b>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ route('marketplaces.uploadStok', $marketplace->id) }}" enctype="multipart/form-data">
+                @csrf
+                <div class="form-group mb-3">
+                    <label class="required" for="stok">file harus berformat .csv</label>
+                    <input class="form-control {{ $errors->has('stok') ? 'is-invalid' : '' }}" type="file"
+                        name="stok" id="stok" value="{{ old('stok', '') }}">
+                    @if ($errors->has('stok'))
+                        <div class="invalid-feedback">
+                            {{ $errors->first('stok') }}
+                        </div>
+                    @endif
+                    <label class="required text-danger" for="stok">terakhir upload {{$marketplace->tglUploadStok}}</label>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-primary mt-1" type="submit">
+                        upload
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 @endsection
 @push('after-scripts')
     <script src="https://unpkg.com/@trevoreyre/autocomplete-js"></script>

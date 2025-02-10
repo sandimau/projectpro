@@ -60,7 +60,7 @@
                                     @if ($item->produksi->nama != 'batal')
                                         <tr>
                                             <td class="text-center">{{ $i++ }}</td>
-                                            <td>{{ $item->produk->nama }}</td>
+                                            <td>{{ $item->produk->namaLengkap }}</td>
                                             <td>{{ $item->tema }}</td>
                                             <td class="test">{!! number_format($item->jumlah) !!}</td>
                                             <td class="test">{!! number_format($item->harga) !!}</td>
@@ -87,7 +87,7 @@
                         <div class="col-lg-5 col-sm-6">
                             <p style="font-size: 13px" class="text-center">pembayaran bisa dilakukan
                                 melalui transfer ke rekening berikut: <br>
-                                {{ $sistems['rek'] }}
+                                {{ $sistems['rekening'] }}
                             </p>
                         </div>
                         <div class="col-lg-4 col-sm-12">
