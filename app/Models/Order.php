@@ -60,7 +60,15 @@ class Order extends Model
 
     public function scopeBelumLunas($query)
     {
-        $query->whereRaw('total > bayar');
+        $query->where(function($q) {
+            $q->where(function($subq) {
+                $subq->whereNull('marketplace')
+                    ->whereRaw('total > bayar');
+            })->orWhere(function($subq) {
+                $subq->whereNotNull('marketplace')
+                    ->whereRaw('(SELECT SUM(jumlah) FROM pembayarans WHERE order_id = orders.id) < total');
+            });
+        });
         $query->orderBy('id','desc');
         return $query;
     }
@@ -97,5 +105,10 @@ class Order extends Model
         $query->groupBy('month');
         $query->orderBy('created_at');
         return $query;
+    }
+
+    public function pembayaran()
+    {
+        return $this->hasMany(Pembayaran::class);
     }
 }

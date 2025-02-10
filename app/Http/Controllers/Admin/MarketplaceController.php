@@ -600,6 +600,11 @@ class MarketplaceController extends Controller
                         $custom = true;
                         $sku = str_replace('CUSTOM_', "", $sku);
                     }
+                    if (strpos($sku, '_') !== false) {
+                        $skuParts = explode('_', $sku);
+                        $paket = $skuParts[1];
+                        $sku = $skuParts[0]; // Mengambil bagian pertama dari SKU
+                    }
 
                     // //////// sampe sini hapusnya
 
@@ -617,6 +622,9 @@ class MarketplaceController extends Controller
 
                             if ($stok < 0)
                                 $stok = 0;
+                            if($paket){
+                                $stok = floor($stok / $paket);
+                            }
                         } else
                             $stok = 10000;
 
@@ -625,7 +633,7 @@ class MarketplaceController extends Controller
                         if (!$custom)
                             $harga_baru = $produk->harga;
                         else
-                            $harga_baru = $harga;
+                            $harga_baru = (float)$harga;
 
 
                         if (empty($harga_baru)) {
@@ -634,9 +642,16 @@ class MarketplaceController extends Controller
                         }
                         $harga_baru = floor($harga_baru * (100 + $config->harga) / 100);
 
-                        if ((abs($harga - $harga_baru) / $harga * 100) > 20)
+                        if ((float)$harga == 0) {
+                            $table .= "<td colspan=4><h2><font color=red>error!! harga tidak boleh 0";
+                            break;
+                        }
+
+                        $perbedaan_persen = abs((float)$harga - $harga_baru) / (float)$harga * 100;
+
+                        if ($perbedaan_persen > 20)
                             $harga = "<h4><font color=red>" . $harga_baru;
-                        else if ($harga != $harga_baru)
+                        else if ((float)$harga != $harga_baru)
                             $harga = "<h4><font color=green>" . $harga_baru;
                         else
                             $harga = $harga_baru;
@@ -660,7 +675,6 @@ class MarketplaceController extends Controller
             $config->update(['tglUploadStok' => now()]);
 
             echo $table;
-
         } catch (\Exception $e) {
             return redirect()->back()->withErrors(['error' => 'Upload Stok gagal: ' . $e->getMessage()]);
         }
