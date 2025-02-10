@@ -21,7 +21,16 @@
                         <svg class="nav-icon">
                             <use xlink:href="{{ asset('icons/coreui.svg#cil-3d') }}"></use>
                         </svg>
-                        Arsip Order
+                        Arsip Offline
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->is('order*') ? 'active' : '' }}"
+                        href="{{ route('order.marketplace') }}">
+                        <svg class="nav-icon">
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-3d') }}"></use>
+                        </svg>
+                        Arsip Online
                     </a>
                 </li>
             @endcan
@@ -72,7 +81,8 @@
             @role('super')
                 @can('akun_access')
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->is('akuns*') ? 'active' : '' }}" href="{{ route('akuns.index') }}">
+                        <a class="nav-link {{ request()->is('akunKategoris*') ? 'active' : '' }}"
+                            href="{{ route('akunDetails.index') }}">
                             <svg class="nav-icon">
                                 <use xlink:href="{{ asset('icons/coreui.svg#cil-cash') }}"></use>
                             </svg>
@@ -80,22 +90,11 @@
                         </a>
                     </li>
                 @endcan
-                @can('akun_kategori_access')
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('akunKategoris*') ? 'active' : '' }}"
-                            href="{{ route('akunKategoris.index') }}">
-                            <svg class="nav-icon">
-                                <use xlink:href="{{ asset('icons/coreui.svg#cil-cash') }}"></use>
-                            </svg>
-                            {{ __('akun kategoris') }}
-                        </a>
-                    </li>
-                @endcan
             @endrole
             @can('akun_detail_access')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('akunDetails*') ? 'active' : '' }}"
-                        href="{{ route('akunDetails.index') }}">
+                        href="{{ route('akunDetail.kas') }}">
                         <svg class="nav-icon">
                             <use xlink:href="{{ asset('icons/coreui.svg#cil-cash') }}"></use>
                         </svg>
@@ -189,6 +188,28 @@
     <li class="nav-group" aria-expanded="false">
         <a class="nav-link nav-group-toggle" href="#">
             <svg class="nav-icon">
+                <use xlink:href="{{ asset('icons/coreui.svg#cil-cash') }}"></use>
+            </svg>
+            Laporan
+        </a>
+        <ul class="nav-group-items" style="height: 0px;">
+            @can('laporan_access')
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->is('laporan*') ? 'active' : '' }}"
+                        href="{{ route('laporan.neraca') }}">
+                        <svg class="nav-icon">
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-cash') }}"></use>
+                        </svg>
+                        {{ __('Neraca') }}
+                    </a>
+                </li>
+            @endcan
+        </ul>
+    </li>
+
+    <li class="nav-group" aria-expanded="false">
+        <a class="nav-link nav-group-toggle" href="#">
+            <svg class="nav-icon">
                 <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
             </svg>
             Omzet
@@ -196,8 +217,7 @@
         <ul class="nav-group-items" style="height: 0px;">
             @can('omzet_access')
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->is('order*') ? 'active' : '' }}"
-                        href="{{ route('order.omzet') }}">
+                    <a class="nav-link {{ request()->is('order*') ? 'active' : '' }}" href="{{ route('order.omzet') }}">
                         <svg class="nav-icon">
                             <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
                         </svg>
@@ -222,28 +242,6 @@
                             <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
                         </svg>
                         {{ __('Aset') }}
-                    </a>
-                </li>
-            @endcan
-        </ul>
-    </li>
-
-    <li class="nav-group" aria-expanded="false">
-        <a class="nav-link nav-group-toggle" href="#">
-            <svg class="nav-icon">
-                <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
-            </svg>
-            Laporan
-        </a>
-        <ul class="nav-group-items" style="height: 0px;">
-            @can('laporan_access')
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->is('laporan*') ? 'active' : '' }}"
-                        href="{{ route('laporan.labarugi') }}">
-                        <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
-                        </svg>
-                        {{ __('Laba Rugi') }}
                     </a>
                 </li>
             @endcan

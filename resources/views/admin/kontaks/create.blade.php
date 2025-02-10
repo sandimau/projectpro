@@ -71,6 +71,12 @@
                             Supplier
                         </label>
                     </div>
+                    <div class="form-check">
+                        <input name="marketplace" class="form-check-input" type="checkbox" value="1" id="flexCheckChecked">
+                        <label class="form-check-label" for="flexCheckChecked">
+                            Marketplace
+                        </label>
+                    </div>
                 </div>
                 <div class="form-group mb-3">
                     <label for="alamat">Alamat</label>

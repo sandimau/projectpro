@@ -11,11 +11,23 @@ use Illuminate\Support\Facades\DB;
 
 class AkunDetailController extends Controller
 {
+
     public function index()
     {
         $akunDetails = AkunDetail::with(['akun_kategori'])->get();
 
         return view('admin.akundetails.index', compact('akunDetails'));
+    }
+
+    public function kas()
+    {
+        $akunDetails = AkunDetail::with(['akun_kategori'])
+            ->whereHas('akun_kategori', function ($q) {
+                $q->whereIn('id', [1, 8]); // Kas categories
+            })
+            ->get();
+
+        return view('admin.akundetails.kas', compact('akunDetails'));
     }
 
     public function create()
@@ -124,7 +136,7 @@ class AkunDetailController extends Controller
             'keterangan' => 'required',
         ]);
 
-        DB::transaction(function () use($request) {
+        DB::transaction(function () use ($request) {
             //insert into buku besar table dari
             BukuBesar::create([
                 'akun_detail_id' => $request->akun_detail_id,

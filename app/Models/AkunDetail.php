@@ -30,4 +30,25 @@ class AkunDetail extends Model
     {
         return $this->belongsTo(AkunKategori::class, 'akun_kategori_id');
     }
+
+    public static function TotalKas()
+    {
+        return self::selectRaw('SUM(saldo) as saldo')
+            ->whereHas('akun_kategori', function($q) {
+                $q->whereIn('id', [101, 102, 103]);
+            })
+            ->first()
+            ->saldo ?? 0;
+    }
+
+    public static function modal()
+    {
+        return self::selectRaw('SUM(saldo) as saldo')
+            ->whereHas('akun_kategori', function($q) {
+                $q->whereIn('id', [101, 102, 103]);
+            })
+            ->first()
+            ->saldo ?? 0;
+    }
+
 }

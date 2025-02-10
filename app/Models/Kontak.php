@@ -92,12 +92,20 @@ class Kontak extends Model
         } else {
             $supplier = null;
         }
+        if ($this->attributes['marketplace'] == 1) {
+            $marketplace = 'marketplace';
+        } else {
+            $marketplace = null;
+        }
         $test = '';
         if ($konsumen) {
             $test .= '<li>'.$konsumen.'</li>';
         }
         if ($supplier) {
             $test .= '<li>'.$supplier.'</li>';
+        }
+        if ($marketplace) {
+            $test .= '<li>'.$marketplace.'</li>';
         }
         return $test;
     }

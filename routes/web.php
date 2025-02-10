@@ -66,6 +66,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::post('/transfer/create', 'AkunDetailController@transferStore')->name('transfer.store');
             Route::get('/akunDetails/{akunDetail}/transferLain', 'AkunDetailController@transferLain')->name('akundetail.transferLain');
             Route::post('/transferLain/create', 'AkunDetailController@transferStoreLain')->name('transferLain.store');
+            Route::get('/kas', 'AkunDetailController@kas')->name('akunDetail.kas');
 
             Route::resource('akunKategoris', 'AkunKategoriController');
 
@@ -162,6 +163,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
 
             //order
             Route::get('/order', 'OrderController@index')->name('order.index');
+            Route::get('/order/marketplace', 'OrderController@marketplace')->name('order.marketplace');
             Route::get('/order/create', 'OrderController@create')->name('order.create');
             Route::post('/order', 'OrderController@store')->name('order.store');
             Route::get('/konsumen/api', 'OrderController@apiKonsumen')->name('order.konsumen');
@@ -212,6 +214,9 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::get('/produk/{produk}/stok', 'ProdukController@stok')->name('produk.stok');
             Route::get('/aset', 'ProdukController@aset')->name('produk.aset');
             Route::get('/aset/{kategori}', 'ProdukController@asetDetail')->name('produk.asetDetail');
+
+            // laporan
+            Route::get('/neraca', 'LaporanController@neraca')->name('laporan.neraca');
         });
     });
 });

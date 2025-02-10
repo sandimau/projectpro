@@ -17,8 +17,10 @@
                     </div>
                     <div style="text-align: right" class="col-lg-6">
                         @can('akun_kategori_create')
-                            <a href="{{ route('akundetail.transferLain', $akunDetail->id) }}" class="btn btn-success text-white">pemasukan lain</a>
-                            <a href="{{ route('akundetail.transfer', $akunDetail->id) }}" class="btn btn-primary">transfer</a>
+                            @if ($akunDetail->akun_kategori_id == 1)
+                                <a href="{{ route('akundetail.transferLain', $akunDetail->id) }}" class="btn btn-success text-white">pemasukan lain</a>
+                                <a href="{{ route('akundetail.transfer', $akunDetail->id) }}" class="btn btn-primary">transfer</a>
+                            @endif
                         @endcan
                     </div>
                 </div>

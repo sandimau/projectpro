@@ -76,7 +76,29 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         if ($request->dari == null && $request->sampai == null && $request->nota == null && $request->kontak_id == null) {
-            $orders = Order::orderBy('id', 'desc')->paginate(10);
+            $orders = Order::whereNull('marketplace')->orderBy('id', 'desc')->paginate(10);
+        } else {
+            $orders = Order::query()
+                ->when($request->dari && $request->sampai, function ($query) use ($request) {
+                    $query->whereBetween('created_at', [$request->dari, $request->sampai]);
+                })
+                ->when($request->nota, function ($query) use ($request) {
+                    $query->where('nota', 'LIKE', '%' . $request->nota . '%');
+                })
+                ->when($request->kontak_id, function ($query) use ($request) {
+                    $query->where('kontak_id', $request->kontak_id);
+                })
+                ->orderBy('id', 'desc')
+                ->paginate(10)
+                ->appends(['dari' => $request->dari, 'sampai' => $request->sampai, 'nota' => $request->nota, 'kontak_id' => $request->kontak_id]);
+        }
+        return view('admin.orders.index', compact('orders'));
+    }
+
+    public function marketplace(Request $request)
+    {
+        if ($request->dari == null && $request->sampai == null && $request->nota == null && $request->kontak_id == null) {
+            $orders = Order::whereNotNull('marketplace')->orderBy('id', 'desc')->paginate(10);
         } else {
             $orders = Order::query()
                 ->when($request->dari && $request->sampai, function ($query) use ($request) {

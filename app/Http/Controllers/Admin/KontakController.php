@@ -38,6 +38,7 @@ class KontakController extends Controller
             'alamat' => $request->alamat,
             'supplier' => $request->supplier,
             'konsumen' => $request->konsumen,
+            'marketplace' => $request->marketplace,
             'perusahaan' => $request->perusahaan,
             'ar_id' => $request->ar_id,
         ]);
@@ -60,6 +61,7 @@ class KontakController extends Controller
             'alamat' => $request->alamat,
             'supplier' => $request->supplier,
             'konsumen' => $request->konsumen,
+            'marketplace' => $request->marketplace,
             'perusahaan' => $request->perusahaan,
             'ar_id' => $request->ar_id,
         ]);
