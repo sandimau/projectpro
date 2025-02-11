@@ -35,7 +35,7 @@ class AkunDetail extends Model
     {
         return self::selectRaw('SUM(saldo) as saldo')
             ->whereHas('akun_kategori', function($q) {
-                $q->whereIn('id', [101, 102, 103]);
+                $q->whereIn('id', [1, 8]);
             })
             ->first()
             ->saldo ?? 0;
@@ -45,7 +45,7 @@ class AkunDetail extends Model
     {
         return self::selectRaw('SUM(saldo) as saldo')
             ->whereHas('akun_kategori', function($q) {
-                $q->whereIn('id', [101, 102, 103]);
+                $q->whereIn('id', [5]);
             })
             ->first()
             ->saldo ?? 0;

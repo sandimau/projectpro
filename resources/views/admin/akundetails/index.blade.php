@@ -10,11 +10,11 @@
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h5 class="card-title">Kas</h5>
-                        <h6 class="card-subtitle mb-2 text-muted">Manage your kas here.</h6>
+                        <h5 class="card-title">Akun</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">Manage your akun here.</h6>
                     </div>
                     @can('akun_kategori_create')
-                        <a href="{{ route('akunDetails.create') }}" class="btn btn-primary ">Add kas</a>
+                        <a href="{{ route('akunDetails.create') }}" class="btn btn-primary ">Add akun</a>
                     @endcan
                 </div>
             </div>

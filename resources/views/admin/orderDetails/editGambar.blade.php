@@ -23,8 +23,7 @@
                     <label for="formFile" class="form-label">gambar</label>
                     <input class="form-control" type="file" id="formFile" name="gambar">
                 </div>
-                <img style="height: 400px" src="{{ asset('uploads/gambar/' . $detail->gambar) }}" alt=""
-                    srcset="">
+                <img style="height: 600px; cursor: pointer" src="{{ asset('uploads/order/' . $detail->gambar) }}">
                 <div class="form-group">
                     <button class="btn btn-primary mt-4" type="submit">
                         save
