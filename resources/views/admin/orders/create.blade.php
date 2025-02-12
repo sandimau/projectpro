@@ -264,7 +264,7 @@
                         })
                 })
             },
-            getResultValue: result => result.nama + ' - ' + result.perusahaan,
+            getResultValue: result => result.perusahaan ? result.nama + ' - ' + result.perusahaan : result.nama,
             onSubmit: result => {
                 let kontak = document.getElementById('kontakId');
                 kontak.value = result.id;

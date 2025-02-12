@@ -213,6 +213,15 @@
                         {{ __('Neraca') }}
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->is('laporan*') ? 'active' : '' }}"
+                        href="{{ route('laporan.labarugi') }}">
+                        <svg class="nav-icon">
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-cash') }}"></use>
+                        </svg>
+                        {{ __('Laba Rugi') }}
+                    </a>
+                </li>
             @endcan
         </ul>
     </li>

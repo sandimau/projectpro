@@ -218,6 +218,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
 
             // laporan
             Route::get('/neraca', 'LaporanController@neraca')->name('laporan.neraca');
+            Route::get('/labarugi', 'LaporanController@labarugi')->name('laporan.labarugi');
 
             // hutang
             Route::get('/hutang', 'HutangController@index')->name('hutang.index');

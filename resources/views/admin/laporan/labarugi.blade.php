@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title')
-    Neraca
+    Laba Rugi
 @endsection
 
 @section('content')
@@ -9,9 +9,15 @@
         <div class="card">
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h5 class="card-title">Neraca</h5>
-                    </div>
+                    <form action="{{ route('laporan.labarugi') }}" method="get" class="d-flex gap-2 align-items-center">
+                        <label for="bulan" class="form-label mb-0">Bulan</label>
+                        <select name="bulan" id="bulan" class="form-control">
+                            @foreach ($bulan as $key => $value)
+                                <option value="{{ $key }}" {{ $key == (request('bulan') ?? date('Y-m')) ? 'selected' : '' }}>{{ $value }}</option>
+                            @endforeach
+                        </select>
+                        <button type="submit" class="btn btn-primary">Filter</button>
+                    </form>
                 </div>
             </div>
             <div class="card-body">
@@ -29,39 +35,39 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td>Kas</td>
-                                <td>{{ number_format($kas, 0, ',', '.') }}</td>
+                                <td>omzet</td>
+                                <td>{{ number_format($omzet, 0, ',', '.') }}</td>
                                 <td>0</td>
                             </tr>
                             <tr>
-                                <td>Stok</td>
-                                <td>{{ number_format($stok, 0, ',', '.') }}</td>
+                                <td>modal penjualan</td>
                                 <td>0</td>
+                                <td>{{ number_format(abs($hpp), 0, ',', '.') }}</td>
                             </tr>
                             <tr>
-                                <td>Order</td>
-                                <td>{{ number_format($total_order, 0, ',', '.') }}</td>
+                                <td>opname</td>
                                 <td>0</td>
+                                <td>{{ number_format($opname, 0, ',', '.') }}</td>
                             </tr>
                             <tr>
-                                <td>Piutang</td>
-                                <td>{{ number_format($total_piutang, 0, ',', '.') }}</td>
+                                <td>operasional</td>
                                 <td>0</td>
+                                <td>{{ number_format($beban, 0, ',', '.') }}</td>
                             </tr>
                             <tr>
-                                <td>Hutang</td>
+                                <td>gaji</td>
                                 <td>0</td>
-                                <td>{{ number_format($total_hutang, 0, ',', '.') }}</td>
+                                <td>{{ number_format($gaji, 0, ',', '.') }}</td>
                             </tr>
                             <tr>
-                                <td>Modal</td>
+                                <td>tunjangan</td>
                                 <td>0</td>
-                                <td>{{ number_format(abs($modal), 0, ',', '.') }}</td>
+                                <td>{{ number_format($tunjangan, 0, ',', '.') }}</td>
                             </tr>
                             <tr class="table-success">
-                                <td>Laba</td>
+                                <td>saldo</td>
                                 <td>0</td>
-                                <td>{{ number_format($kas + $stok + $total_order + $total_piutang - $total_hutang - abs($modal), 0, ',', '.') }}</td>
+                                <td>{{ number_format($omzet - abs($hpp) - $opname - $beban - $gaji - $tunjangan, 0, ',', '.') }}</td>
                             </tr>
                         </tbody>
                     </table>
