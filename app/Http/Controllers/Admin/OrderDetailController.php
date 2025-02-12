@@ -155,6 +155,7 @@ class OrderDetailController extends Controller
             //update status produksi
             $detail->update([
                 'produksi_id' => $request->produksi_id,
+                'hpp' => $detail->produk->hpp,
             ]);
         });
 
