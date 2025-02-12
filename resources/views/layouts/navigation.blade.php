@@ -111,15 +111,25 @@
                     </a>
                 </li>
             @endcan
-            <li class="nav-item">
-                <a class="nav-link {{ request()->is('belanjas*') ? 'active' : '' }}"
-                    href="{{ route('belanja.index') }}">
-                    <svg class="nav-icon">
-                        <use xlink:href="{{ asset('icons/coreui.svg#cil-cash') }}"></use>
-                    </svg>
-                    Belanja
-                </a>
-            </li>
+            @can('keuangan')
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->is('belanjas*') ? 'active' : '' }}"
+                        href="{{ route('belanja.index') }}">
+                        <svg class="nav-icon">
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-cash') }}"></use>
+                        </svg>
+                        Belanja
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->is('hutang*') ? 'active' : '' }}" href="{{ route('hutang.index') }}">
+                        <svg class="nav-icon">
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-cash') }}"></use>
+                        </svg>
+                        Hutang/Piutang
+                    </a>
+                </li>
+            @endcan
         </ul>
     </li>
 
@@ -333,7 +343,8 @@
             </li>
 
             <li class="nav-item">
-                <a class="nav-link {{ request()->is('speks*') ? 'active' : '' }}" href="{{ route('speks.index') }}">
+                <a class="nav-link {{ request()->is('speks*') ? 'active' : '' }}"
+                    href="{{ route('speks.index') }}">
                     <svg class="nav-icon">
                         <use xlink:href="{{ asset('icons/coreui.svg#cil-room') }}"></use>
                     </svg>

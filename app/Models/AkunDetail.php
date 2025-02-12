@@ -51,4 +51,11 @@ class AkunDetail extends Model
             ->saldo ?? 0;
     }
 
+    public function scopeKas($query)
+    {
+        return $query->whereHas('akun_kategori', function($q) {
+            $q->whereIn('id', [1]);
+        });
+    }
+
 }

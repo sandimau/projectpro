@@ -316,33 +316,17 @@
             let idProduk = document.getElementById('kontakId');
             idProduk.value = null;
         }
-
-        function clearProduk() {
-            let btn = document.getElementById("closeBrgProduk");
-            btn.style.display = "none";
-            let auto = document.querySelector(".autocomplete-input.produk");
-            auto.value = null;
-            let idProduk = document.getElementById('produkId');
-            idProduk.value = null;
-
-            //set harga
-            let harga = document.getElementById("harga");
-            harga.value = null;
-        }
     </script>
     <style>
-        #autocomplete,
-        #autocompleteProduk {
+        #autocomplete{
             max-width: 600px;
         }
 
-        #closeBrg,
-        #closeBrgProduk {
+        #closeBrg{
             position: relative;
         }
 
-        #closeBrg button,
-        #closeBrgProduk button {
+        #closeBrg button{
             position: absolute;
             right: -15px;
             top: -40px;
