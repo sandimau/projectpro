@@ -64,9 +64,6 @@ class Order extends Model
             $q->where(function($subq) {
                 $subq->whereNull('marketplace')
                     ->whereRaw('total > bayar');
-            })->orWhere(function($subq) {
-                $subq->whereNotNull('marketplace')
-                    ->whereRaw('(SELECT SUM(jumlah) FROM pembayarans WHERE order_id = orders.id) < total');
             });
         });
         $query->orderBy('id','desc');
