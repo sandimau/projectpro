@@ -604,6 +604,8 @@ class MarketplaceController extends Controller
                         $skuParts = explode('_', $sku);
                         $paket = $skuParts[1];
                         $sku = $skuParts[0]; // Mengambil bagian pertama dari SKU
+                    } else {
+                        $paket = 1;
                     }
 
                     // //////// sampe sini hapusnya
