@@ -12,13 +12,13 @@
         <div class="card-body printableArea">
             <div class="row">
                 <div class="col-sm-12 col-lg-6">
-                    <img style="height: 80px" src="{{ url('uploads/logo/' . $sistems['logo']) }}" alt="" srcset="">
+                    <img style="height: 80px" src="{{ url('uploads/logo/' . $sistems['Logo']) }}" alt="" srcset="">
                 </div>
                 <div class="col-sm-12 col-lg-6">
                     <address class="mt-4">
                         <h3 class="test"><b>Kantor </b></h3>
                         <p class="text-blue test">
-                            {{ $sistems['alamat'] }}
+                            {{ $sistems['Alamat'] }}
                         </p>
                     </address>
                 </div>
@@ -87,7 +87,7 @@
                         <div class="col-lg-5 col-sm-6">
                             <p style="font-size: 13px" class="text-center">pembayaran bisa dilakukan
                                 melalui transfer ke rekening berikut: <br>
-                                {{ $sistems['rekening'] }}
+                                {{ $sistems['Rekening'] }}
                             </p>
                         </div>
                         <div class="col-lg-4 col-sm-12">
@@ -99,7 +99,7 @@
                                 </div>
                                 <div class="test">
                                     <div>{{ number_format($order->total, 0, ',', '.') }}</div>
-                                    <div>{{ number_format($order->pembayaran, 0, ',', '.') }}</div>
+                                    <div>{{ number_format($order->pembayaran->sum('jumlah'), 0, ',', '.') }}</div>
                                     <div style="font-weight: 600">{{ number_format($order->kekurangan, 0, ',', '.') }}
                                     </div>
                                 </div>
