@@ -25,9 +25,9 @@
 <body>
     <div class="sidebar sidebar-dark sidebar-fixed" id="sidebar">
         <div class="sidebar-brand d-none d-md-flex">
-            @if (session()->has('logo'))
+            @if (session()->has('Logo'))
                 <img style="height:50px"
-                    src="{{ url('uploads/logo/' . session('logo')) }}"
+                    src="{{ url('uploads/Logo/' . session('Logo')) }}"
                     alt="" srcset="">
             @endif
         </div>

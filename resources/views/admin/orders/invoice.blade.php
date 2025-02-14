@@ -12,7 +12,7 @@
         <div class="card-body printableArea">
             <div class="row">
                 <div class="col-sm-12 col-lg-6">
-                    <img style="height: 80px" src="{{ url('uploads/logo/' . $sistems['Logo']) }}" alt="" srcset="">
+                    <img style="height: 80px" src="{{ url('uploads/Logo/' . $sistems['Logo']) }}" alt="" srcset="">
                 </div>
                 <div class="col-sm-12 col-lg-6">
                     <address class="mt-4">
