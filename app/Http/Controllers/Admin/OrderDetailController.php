@@ -228,7 +228,7 @@ class OrderDetailController extends Controller
         }
 
         if ($orderDetail->gambar) {
-            unlink("uploads/gambar/" . $orderDetail->gambar);
+            unlink("uploads/order/" . $orderDetail->gambar);
         }
 
         $orderDetail->update([
