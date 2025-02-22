@@ -35,7 +35,9 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td>omzet</td>
+                                <td>
+                                    <a href="{{ url('admin/labakotor') }}?bulan={{ request('bulan') ?? date('Y-m') }}">omzet</a>
+                                </td>
                                 <td>{{ number_format($omzet, 0, ',', '.') }}</td>
                                 <td>0</td>
                             </tr>
@@ -45,7 +47,9 @@
                                 <td>{{ number_format(abs($hpp), 0, ',', '.') }}</td>
                             </tr>
                             <tr>
-                                <td>opname</td>
+                                <td>
+                                    <a href="{{ url('admin/opnames') }}?bulan={{ request('bulan') ?? date('Y-m') }}">opname</a>
+                                </td>
                                 <td>0</td>
                                 <td>{{ number_format($opname, 0, ',', '.') }}</td>
                             </tr>

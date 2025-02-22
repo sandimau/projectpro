@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ProdukKategoriController;
 use App\Http\Controllers\ProdukController;
+use App\Http\Controllers\Admin\LaporanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -128,6 +129,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::get('/produk/{produk}/produkStok', 'ProdukStokController@index')->name('produkStok.index');
             Route::get('/produk/{produk}/produk/create', 'ProdukStokController@create')->name('produkStok.create');
             Route::post('/produkStok', 'ProdukStokController@store')->name('produkStok.store');
+            Route::get('/opnames', 'ProdukStokController@opname')->name('opnames.index');
 
             // kontak
             Route::resource('kontaks', 'KontakController');
@@ -219,6 +221,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             // laporan
             Route::get('/neraca', 'LaporanController@neraca')->name('laporan.neraca');
             Route::get('/labarugi', 'LaporanController@labarugi')->name('laporan.labarugi');
+            Route::get('/labakotor', 'LaporanController@labakotor')->name('laporan.labakotor');
+            Route::get('/labakotordetail', 'LaporanController@labakotordetail')->name('laporan.labakotordetail');
 
             // hutang
             Route::get('/hutang', 'HutangController@index')->name('hutang.index');

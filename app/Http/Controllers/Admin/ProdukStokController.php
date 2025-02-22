@@ -47,4 +47,41 @@ class ProdukStokController extends Controller
 
         return redirect()->route('produkStok.index', $request->produk_id)->withSuccess(__('Produk Stok berhasil diupdate'));
     }
+
+    public function opname(Request $request)
+    {
+        if ($request->dari == null && $request->sampai == null  && $request->produk_id == null) {
+            $produkStoks = ProdukStok::where('kode', 'opn')->orderBy('id', 'desc')->paginate(10);
+        } else {
+            $produkStoks = ProdukStok::query()
+                ->when($request->dari && $request->sampai, function ($query) use ($request) {
+                    $query->whereBetween('created_at', [$request->dari, $request->sampai]);
+                })
+                ->when($request->produk_id, function ($query) use ($request) {
+                    $query->where('produk_id', $request->produk_id);
+                })
+                ->where('kode', 'opn')
+                ->orderBy('id', 'desc')
+                ->paginate(10)
+                ->appends(['dari' => $request->dari, 'sampai' => $request->sampai, 'produk_id' => $request->produk_id]);
+        }
+
+        $dari = null;
+        $sampai = null;
+
+        if ($request->bulan) {
+            $dari = $request->bulan . '-01';
+            $sampai = date('Y-m-t', strtotime($request->bulan));
+            $produkStoks = ProdukStok::query()
+                ->when($dari && $sampai, function ($query) use ($dari, $sampai) {
+                    $query->whereBetween('created_at', [$dari, $sampai]);
+                })
+                ->where('kode', 'opn')
+                ->orderBy('id', 'desc')
+                ->paginate(10)
+                ->appends(['dari' => $request->dari, 'sampai' => $request->sampai]);
+        }
+
+        return view('admin.produkStoks.opname', compact('produkStoks','dari','sampai'));
+    }
 }

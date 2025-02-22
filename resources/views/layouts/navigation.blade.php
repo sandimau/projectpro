@@ -67,6 +67,17 @@
                     </a>
                 </li>
             @endcan
+            @can('opname_access')
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->is('opnames*') ? 'active' : '' }}"
+                        href="{{ route('opnames.index') }}">
+                        <svg class="nav-icon">
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
+                        </svg>
+                        {{ __('Opname') }}
+                    </a>
+                </li>
+            @endcan
         </ul>
     </li>
 

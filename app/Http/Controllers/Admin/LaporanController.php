@@ -11,7 +11,7 @@ use App\Models\Penggajian;
 use App\Models\ProdukStok;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-
+use Illuminate\Http\Request;
 class LaporanController extends Controller
 {
     public function neraca()
@@ -107,5 +107,133 @@ class LaporanController extends Controller
         }
 
         return view('admin.laporan.labarugi', compact('omzet', 'hpp', 'opname', 'beban', 'gaji', 'tunjangan', 'bulan'));
+    }
+
+    public function labaKotor(Request $request)
+    {
+        $bulan = $request->bulan ?? date('Y-m');
+        $pilihan_parts = explode('-', $bulan);
+        $thn = $pilihan_parts[0];
+        $bln = $pilihan_parts[1];
+        $view_type = $request->view_type ?? 'kategori';
+
+        if ($view_type == 'kategori') {
+            // Get data per kategori
+            $data = DB::table('order_details as od')
+                ->join('orders as o', 'o.id', '=', 'od.order_id')
+                ->join('produks as p', 'p.id', '=', 'od.produk_id')
+                ->join('produk_models as pm', 'pm.id', '=', 'p.produk_model_id')
+                ->join('produk_kategoris as pk', 'pk.id', '=', 'pm.kategori_id')
+                ->join('produk_kategori_utamas as pku', 'pku.id', '=', 'pk.kategori_utama_id')
+                ->where('od.produksi_id', '<>', 4)
+                ->whereYear('o.created_at', $thn)
+                ->whereMonth('o.created_at', $bln)
+                ->select(
+                    'pku.nama as kategori_utama',
+                    'pk.nama as kategori',
+                    DB::raw('SUM(od.jumlah * od.harga) as omzet'),
+                    DB::raw('SUM(od.hpp * od.jumlah) as hpp'),
+                    DB::raw('COALESCE((
+                        SELECT SUM(ps.hpp * COALESCE(ps.tambah,0) - ps.hpp * COALESCE(ps.kurang,0))
+                        FROM produk_stoks ps
+                        JOIN produks p2 ON p2.id = ps.produk_id
+                        JOIN produk_models pm2 ON pm2.id = p2.produk_model_id
+                        JOIN produk_kategoris pk2 ON pk2.id = pm2.kategori_id
+                        WHERE ps.kode = "opn"
+                        AND pk2.id = pk.id
+                        AND YEAR(ps.created_at) = ' . $thn . '
+                        AND MONTH(ps.created_at) = ' . $bln . '
+                    ), 0) as opname'),
+                    DB::raw('(
+                        SUM(od.jumlah * od.harga) -
+                        SUM(od.hpp * od.jumlah) +
+                        COALESCE((
+                            SELECT SUM(ps.hpp * COALESCE(ps.tambah,0) - ps.hpp * COALESCE(ps.kurang,0))
+                            FROM produk_stoks ps
+                            JOIN produks p2 ON p2.id = ps.produk_id
+                            JOIN produk_models pm2 ON pm2.id = p2.produk_model_id
+                            JOIN produk_kategoris pk2 ON pk2.id = pm2.kategori_id
+                            WHERE ps.kode = "opn"
+                            AND pk2.id = pk.id
+                            AND YEAR(ps.created_at) = ' . $thn . '
+                            AND MONTH(ps.created_at) = ' . $bln . '
+                        ), 0)
+                    ) as laba_kotor'),
+                    DB::raw('CASE
+                        WHEN SUM(od.jumlah * od.harga) > 0
+                        THEN ((SUM(od.jumlah * od.harga) - SUM(od.hpp * od.jumlah)) / SUM(od.jumlah * od.harga)) * 100
+                        ELSE 0
+                    END as persen')
+                )
+                ->groupBy('pku.nama', 'pk.nama')
+                ->orderBy('pku.nama')
+                ->orderBy('pk.nama')
+                ->get();
+        } else {
+            // Get data per produk
+            $data = DB::table('order_details as od')
+                ->join('orders as o', 'o.id', '=', 'od.order_id')
+                ->join('produks as p', 'p.id', '=', 'od.produk_id')
+                ->join('produk_models as pm', 'pm.id', '=', 'p.produk_model_id')
+                ->join('produk_kategoris as pk', 'pk.id', '=', 'pm.kategori_id')
+                ->join('produk_kategori_utamas as pku', 'pku.id', '=', 'pk.kategori_utama_id')
+                ->where('od.produksi_id', '<>', 4)
+                ->whereYear('o.created_at', $thn)
+                ->whereMonth('o.created_at', $bln)
+                ->select(
+                    'pku.nama as kategori_utama',
+                    'pk.nama as kategori',
+                    'p.nama as produk',
+                    DB::raw('SUM(od.jumlah * od.harga) as omzet'),
+                    DB::raw('SUM(od.hpp * od.jumlah) as hpp'),
+                    DB::raw('COALESCE((
+                        SELECT sum(hpp * COALESCE(tambah,0) - hpp * COALESCE(kurang,0))
+                        FROM produk_stoks ps
+                        WHERE ps.kode = "opn"
+                        AND ps.produk_id = p.id
+                        AND YEAR(ps.created_at) = ' . $thn . '
+                        AND MONTH(ps.created_at) = ' . $bln . '
+                    ), 0) as opname'),
+                    DB::raw('(
+                        SUM(od.jumlah * od.harga) -
+                        SUM(od.hpp * od.jumlah) +
+                        COALESCE((
+                            SELECT sum(hpp * COALESCE(tambah,0) - hpp * COALESCE(kurang,0))
+                            FROM produk_stoks ps
+                            WHERE ps.kode = "opn"
+                            AND ps.produk_id = p.id
+                            AND YEAR(ps.created_at) = ' . $thn . '
+                            AND MONTH(ps.created_at) = ' . $bln . '
+                        ), 0)
+                    ) as laba_kotor'),
+                    DB::raw('CASE
+                        WHEN SUM(od.jumlah * od.harga) > 0
+                        THEN ((SUM(od.jumlah * od.harga) - SUM(od.hpp * od.jumlah)) / SUM(od.jumlah * od.harga)) * 100
+                        ELSE 0
+                    END as persen')
+                )
+                ->groupBy('pku.nama', 'pk.nama', 'p.nama', 'p.id')
+                ->orderBy('pku.nama')
+                ->orderBy('pk.nama')
+                ->orderBy('p.nama')
+                ->get();
+        }
+
+        // Generate months for dropdown
+        $bulanList = [];
+        $start_date = now()->startOfYear();
+        $end_date = now();
+
+        while ($start_date <= $end_date) {
+            $key = $start_date->format('Y-m');
+            $bulanList[$key] = $start_date->format('F Y');
+            $start_date->addMonth();
+        }
+
+        return view('admin.laporan.labakotor', [
+            'data' => $data,
+            'bulan' => $bulanList,
+            'view_type' => $view_type
+        ]);
     }
 }
