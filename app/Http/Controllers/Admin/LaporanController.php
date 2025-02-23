@@ -12,6 +12,8 @@ use App\Models\ProdukStok;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use DateTime;
+
 class LaporanController extends Controller
 {
     public function neraca()
@@ -131,6 +133,7 @@ class LaporanController extends Controller
                 ->select(
                     'pku.nama as kategori_utama',
                     'pk.nama as kategori',
+                    'pk.id as kategori_id',
                     DB::raw('SUM(od.jumlah * od.harga) as omzet'),
                     DB::raw('SUM(od.hpp * od.jumlah) as hpp'),
                     DB::raw('COALESCE((
@@ -234,6 +237,272 @@ class LaporanController extends Controller
             'data' => $data,
             'bulan' => $bulanList,
             'view_type' => $view_type
+        ]);
+    }
+
+    public function labakotordetail(Request $request)
+    {
+        $bulan = $request->bulan ?? date('Y-m');
+        $pilihan_parts = explode('-', $bulan);
+        $thn = $pilihan_parts[0];
+        $bln = $pilihan_parts[1];
+        $kategori_id = $request->kategori;
+
+        // Validate kategori_id is present
+        if (!$kategori_id) {
+            return redirect()->route('laporan.labakotor')
+                ->with('error', 'Kategori harus dipilih');
+        }
+
+        // Base query starting from products to show all products
+        $query = DB::table('produks as p')
+            ->join('produk_models as pm', 'pm.id', '=', 'p.produk_model_id')
+            ->join('produk_kategoris as pk', 'pk.id', '=', 'pm.kategori_id')
+            ->join('produk_kategori_utamas as pku', 'pku.id', '=', 'pk.kategori_utama_id')
+            ->leftJoin('order_details as od', 'od.produk_id', '=', 'p.id')
+            ->leftJoin('orders as o', function($join) use ($thn, $bln) {
+                $join->on('o.id', '=', 'od.order_id')
+                    ->whereYear('o.created_at', '=', $thn)
+                    ->whereMonth('o.created_at', '=', $bln);
+            })
+            ->where('pk.id', $kategori_id)
+            ->where(function($query) {
+                $query->where('od.produksi_id', '<>', 4)
+                    ->orWhereNull('od.produksi_id');
+            });
+
+        $data = $query->select(
+            'pku.nama as kategori_utama',
+            'pk.nama as kategori',
+            'p.nama as produk',
+            'p.id as produk_id',
+            DB::raw('COALESCE(SUM(CASE WHEN o.id IS NOT NULL THEN od.jumlah * od.harga ELSE 0 END), 0) as omzet'),
+            DB::raw('COALESCE(SUM(CASE WHEN o.id IS NOT NULL THEN od.hpp * od.jumlah ELSE 0 END), 0) as hpp'),
+            DB::raw('COALESCE((
+                SELECT sum(hpp * COALESCE(tambah,0) - hpp * COALESCE(kurang,0))
+                FROM produk_stoks ps
+                WHERE ps.kode = "opn"
+                AND ps.produk_id = p.id
+                AND YEAR(ps.created_at) = ' . $thn . '
+                AND MONTH(ps.created_at) = ' . $bln . '
+            ), 0) as opname')
+        )
+        ->addSelect(
+            DB::raw('(
+                COALESCE(SUM(CASE WHEN o.id IS NOT NULL THEN od.jumlah * od.harga ELSE 0 END), 0) -
+                COALESCE(SUM(CASE WHEN o.id IS NOT NULL THEN od.hpp * od.jumlah ELSE 0 END), 0) +
+                COALESCE((
+                    SELECT sum(hpp * COALESCE(tambah,0) - hpp * COALESCE(kurang,0))
+                    FROM produk_stoks ps
+                    WHERE ps.kode = "opn"
+                    AND ps.produk_id = p.id
+                    AND YEAR(ps.created_at) = ' . $thn . '
+                    AND MONTH(ps.created_at) = ' . $bln . '
+                ), 0)
+            ) as laba_kotor'),
+            DB::raw('CASE
+                WHEN COALESCE(SUM(CASE WHEN o.id IS NOT NULL THEN od.jumlah * od.harga ELSE 0 END), 0) > 0
+                THEN ((COALESCE(SUM(CASE WHEN o.id IS NOT NULL THEN od.jumlah * od.harga ELSE 0 END), 0) -
+                      COALESCE(SUM(CASE WHEN o.id IS NOT NULL THEN od.hpp * od.jumlah ELSE 0 END), 0)) /
+                      COALESCE(SUM(CASE WHEN o.id IS NOT NULL THEN od.jumlah * od.harga ELSE 0 END), 0)) * 100
+                ELSE 0
+            END as persen')
+        )
+        ->groupBy('pku.nama', 'pk.nama', 'p.nama', 'p.id')
+        ->orderBy('pku.nama')
+        ->orderBy('pk.nama')
+        ->orderBy('p.nama')
+        ->get();
+
+        // Generate months for dropdown
+        $bulanList = [];
+        $start_date = now()->startOfYear();
+        $end_date = now();
+
+        while ($start_date <= $end_date) {
+            $key = $start_date->format('Y-m');
+            $bulanList[$key] = $start_date->format('F Y');
+            $start_date->addMonth();
+        }
+
+        return view('admin.laporan.labakotordetail', [
+            'data' => $data,
+            'bulan' => $bulanList,
+            'view_type' => 'produk',
+            'selected_kategori' => $kategori_id,
+            'selected_bulan' => $bulan
+        ]);
+    }
+
+    public function tunjangan(Request $request)
+    {
+        $dari = null;
+        $sampai = null;
+
+        if ($request->bulan) {
+            $dari = $request->bulan . '-01';
+            $sampai = date('Y-m-t', strtotime($request->bulan));
+            $tunjangans = Tunjangan::query()
+                ->when($dari && $sampai, function ($query) use ($dari, $sampai) {
+                    $query->whereBetween('created_at', [$dari, $sampai]);
+                })
+                ->orderBy('id', 'desc')
+                ->paginate(10)
+                ->appends(['dari' => $request->dari, 'sampai' => $request->sampai]);
+        } else {
+            $tunjangans = Tunjangan::orderBy('id', 'desc')->paginate(10);
+        }
+
+        return view('admin.laporan.tunjangan', compact('tunjangans','dari','sampai'));
+    }
+
+    public function penggajian(Request $request)
+    {
+        $dari = null;
+        $sampai = null;
+
+        if ($request->bulan) {
+            $dari = $request->bulan . '-01';
+            $sampai = date('Y-m-t', strtotime($request->bulan));
+            $penggajians = Penggajian::query()
+                ->when($dari && $sampai, function ($query) use ($dari, $sampai) {
+                    $query->whereBetween('created_at', [$dari, $sampai]);
+                })
+                ->orderBy('id', 'desc')
+                ->paginate(10)
+                ->appends(['dari' => $request->dari, 'sampai' => $request->sampai]);
+        } else {
+            $penggajians = Penggajian::orderBy('id', 'desc')->paginate(10);
+        }
+
+        return view('admin.laporan.penggajian', compact('penggajians','dari','sampai'));
+    }
+
+    public function operasional(Request $request)
+    {
+        $bulan = $request->bulan ?? date('Y-m');
+        $pilihan_parts = explode('-', $bulan);
+        $thn = $pilihan_parts[0];
+        $bln = $pilihan_parts[1];
+        $view_type = $request->view_type ?? 'kategori';
+
+        if ($view_type == 'kategori') {
+            // Get data per kategori
+            $data = DB::table('belanja_details as bd')
+                ->join('belanjas as b', 'b.id', '=', 'bd.belanja_id')
+                ->join('produks as p', 'p.id', '=', 'bd.produk_id')
+                ->join('produk_models as pm', 'pm.id', '=', 'p.produk_model_id')
+                ->join('produk_kategoris as pk', 'pk.id', '=', 'pm.kategori_id')
+                ->join('produk_kategori_utamas as pku', 'pku.id', '=', 'pk.kategori_utama_id')
+                ->whereYear('b.created_at', $thn)
+                ->whereMonth('b.created_at', $bln)
+                ->select(
+                    'pku.nama as kategori_utama',
+                    'pk.nama as kategori',
+                    'pk.id as kategori_id',
+                    DB::raw('SUM(bd.jumlah * bd.harga) as total_belanja')
+                )
+                ->groupBy('pku.nama', 'pk.nama', 'pk.id')
+                ->orderBy('pku.nama')
+                ->orderBy('pk.nama')
+                ->get();
+        } else {
+            // Get data per produk
+            $data = DB::table('belanja_details as bd')
+                ->join('belanjas as b', 'b.id', '=', 'bd.belanja_id')
+                ->join('produks as p', 'p.id', '=', 'bd.produk_id')
+                ->join('produk_models as pm', 'pm.id', '=', 'p.produk_model_id')
+                ->join('produk_kategoris as pk', 'pk.id', '=', 'pm.kategori_id')
+                ->join('produk_kategori_utamas as pku', 'pku.id', '=', 'pk.kategori_utama_id')
+                ->whereYear('b.created_at', $thn)
+                ->whereMonth('b.created_at', $bln)
+                ->select(
+                    'pku.nama as kategori_utama',
+                    'pk.nama as kategori',
+                    'p.nama as produk',
+                    DB::raw('SUM(bd.jumlah * bd.harga) as total_belanja')
+                )
+                ->groupBy('pku.nama', 'pk.nama', 'p.nama', 'p.id')
+                ->orderBy('pku.nama')
+                ->orderBy('pk.nama')
+                ->orderBy('p.nama')
+                ->get();
+        }
+
+        // Generate months for dropdown
+        $bulanList = [];
+        $start_date = now()->startOfYear();
+        $end_date = now();
+
+        while ($start_date <= $end_date) {
+            $key = $start_date->format('Y-m');
+            $bulanList[$key] = $start_date->format('F Y');
+            $start_date->addMonth();
+        }
+
+        return view('admin.laporan.operasional', [
+            'data' => $data,
+            'bulan' => $bulanList,
+            'view_type' => $view_type
+        ]);
+    }
+
+    public function operasionaldetail(Request $request)
+    {
+        $bulan = $request->bulan ?? date('Y-m');
+        $pilihan_parts = explode('-', $bulan);
+        $thn = $pilihan_parts[0];
+        $bln = $pilihan_parts[1];
+        $kategori_id = $request->kategori;
+
+        // Validate kategori_id is present
+        if (!$kategori_id) {
+            return redirect()->route('laporan.operasional')
+                ->with('error', 'Kategori harus dipilih');
+        }
+
+        // Base query starting from products to show all products
+        $query = DB::table('produks as p')
+            ->join('produk_models as pm', 'pm.id', '=', 'p.produk_model_id')
+            ->join('produk_kategoris as pk', 'pk.id', '=', 'pm.kategori_id')
+            ->join('produk_kategori_utamas as pku', 'pku.id', '=', 'pk.kategori_utama_id')
+            ->leftJoin('belanja_details as bd', 'bd.produk_id', '=', 'p.id')
+            ->leftJoin('belanjas as b', function($join) use ($thn, $bln) {
+                $join->on('b.id', '=', 'bd.belanja_id')
+                    ->whereYear('b.created_at', '=', $thn)
+                    ->whereMonth('b.created_at', '=', $bln);
+            })
+            ->where('pk.id', $kategori_id);
+
+        $data = $query->select(
+            'pku.nama as kategori_utama',
+            'pk.nama as kategori',
+            'p.nama as produk',
+            'p.id as produk_id',
+            DB::raw('COALESCE(SUM(CASE WHEN b.id IS NOT NULL THEN bd.jumlah * bd.harga ELSE 0 END), 0) as total_belanja')
+        )
+        ->groupBy('pku.nama', 'pk.nama', 'p.nama', 'p.id')
+        ->orderBy('pku.nama')
+        ->orderBy('pk.nama')
+        ->orderBy('p.nama')
+        ->get();
+
+        // Generate months for dropdown
+        $bulanList = [];
+        $start_date = now()->startOfYear();
+        $end_date = now();
+
+        while ($start_date <= $end_date) {
+            $key = $start_date->format('Y-m');
+            $bulanList[$key] = $start_date->format('F Y');
+            $start_date->addMonth();
+        }
+
+        return view('admin.laporan.operasionaldetail', [
+            'data' => $data,
+            'bulan' => $bulanList,
+            'selected_kategori' => $kategori_id,
+            'selected_bulan' => $bulan
         ]);
     }
 }

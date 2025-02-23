@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Member;
 use App\Models\Sistem;
 use App\Models\Whattodo;
+use App\Jobs\DeleteOrders;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -106,5 +107,11 @@ class HomeController extends Controller
     {
         $what->delete();
         return back()->withDanger(__('Whattodo deleted successfully.'));
+    }
+
+    public function DeleteOrders()
+    {
+        $tafio = new DeleteOrders;
+        $tafio->deleteOrders();
     }
 }

@@ -27,6 +27,7 @@ Route::get('/', function () {
 Auth::routes();
 
 
+
 Route::group(['namespace' => 'App\Http\Controllers'], function()
 {
     Route::middleware('auth')->group(function () {
@@ -36,6 +37,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
         Route::get('/profile/{id}/cuti', 'ProfileController@cuti')->name('profile.cuti');
         Route::get('/profile/{id}/gaji', 'ProfileController@gaji')->name('profile.gaji');
         Route::patch('/profile/{id}/update', 'ProfileController@update')->name('profile.update');
+
+        Route::get('/deleteOrders', 'HomeController@DeleteOrders')->name('deleteOrders');
 
         //whattodo
         Route::get('/whattodo/create', 'HomeController@create')->name('whattodo.create');
@@ -202,6 +205,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::post('/marketplaces/{id}/uploadKeuangan', 'MarketplaceController@uploadKeuangan')->name('marketplaces.uploadKeuangan');
             Route::post('/marketplaces/{id}/uploadOrder', 'MarketplaceController@uploadOrder')->name('marketplaces.uploadOrder');
             Route::post('/marketplaces/{id}/uploadStok', 'MarketplaceController@uploadStok')->name('marketplaces.uploadStok');
+            Route::get('/analisaMarketplace', 'MarketplaceController@analisa')->name('marketplaces.analisa');
 
             // produk-kategori-utama
             Route::resource('produk-kategori-utama', 'ProdukKategoriUtamaController');
@@ -223,7 +227,10 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::get('/labarugi', 'LaporanController@labarugi')->name('laporan.labarugi');
             Route::get('/labakotor', 'LaporanController@labakotor')->name('laporan.labakotor');
             Route::get('/labakotordetail', 'LaporanController@labakotordetail')->name('laporan.labakotordetail');
-
+            Route::get('/tunjangan', 'LaporanController@tunjangan')->name('laporan.tunjangan');
+            Route::get('/penggajian', 'LaporanController@penggajian')->name('laporan.penggajian');
+            Route::get('/operasional', 'LaporanController@operasional')->name('laporan.operasional');
+            Route::get('/operasionaldetail', 'LaporanController@operasionaldetail')->name('laporan.operasionaldetail');
             // hutang
             Route::get('/hutang', 'HutangController@index')->name('hutang.index');
             Route::get('/hutang/create/{jenis}', 'HutangController@create')->name('hutang.create');

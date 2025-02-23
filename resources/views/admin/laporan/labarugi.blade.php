@@ -54,17 +54,23 @@
                                 <td>{{ number_format($opname, 0, ',', '.') }}</td>
                             </tr>
                             <tr>
-                                <td>operasional</td>
+                                <td>
+                                    <a href="{{ url('admin/operasional') }}?bulan={{ request('bulan') ?? date('Y-m') }}">operasional</a>
+                                </td>
                                 <td>0</td>
                                 <td>{{ number_format($beban, 0, ',', '.') }}</td>
                             </tr>
                             <tr>
-                                <td>gaji</td>
+                                <td>
+                                    <a href="{{ url('admin/penggajian') }}?bulan={{ request('bulan') ?? date('Y-m') }}">penggajian</a>
+                                </td>
                                 <td>0</td>
                                 <td>{{ number_format($gaji, 0, ',', '.') }}</td>
                             </tr>
                             <tr>
-                                <td>tunjangan</td>
+                                <td>
+                                    <a href="{{ url('admin/tunjangan') }}?bulan={{ request('bulan') ?? date('Y-m') }}">tunjangan</a>
+                                </td>
                                 <td>0</td>
                                 <td>{{ number_format($tunjangan, 0, ',', '.') }}</td>
                             </tr>
