@@ -67,8 +67,8 @@ class HomeController extends Controller
             $whattodos = collect(); // Return empty collection if no records found
         }
         $sistems = Sistem::get()->pluck('isi', 'nama');
-        if (isset($sistems['logo'])) {
-            $request->session()->put('logo', $sistems['logo']);
+        if (isset($sistems['Logo'])) {
+            $request->session()->put('Logo', $sistems['Logo']);
         }
         return view('admin.whattodos.home', compact('whattodos'));
     }
