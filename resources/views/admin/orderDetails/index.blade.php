@@ -19,7 +19,7 @@
                     <div class="card-header">
                         <div class="d-flex justify-content-between align-details-center">
                             <div>
-                                <h5 class="card-title">{{ $order->kontak->nama }} - {{ $order->konsumen_detail }}</h5>
+                                <h5 class="card-title">{{ $order->nota }} | {{ $order->kontak->nama }} - {{ $order->konsumen_detail }}</h5>
                             </div>
                         </div>
                     </div>
@@ -121,11 +121,30 @@
                                             </td>
                                             <td>
                                                 @if ($detail->gambar)
-                                                    <a href="{{ route('orderDetail.editGambar', $detail->id) }}">
+                                                    <a href="#" data-bs-toggle="modal" data-bs-target="#imageModal{{ $detail->id }}">
                                                         <img style="height: 60px"
                                                             src="{{ asset('uploads/order/' . $detail->gambar) }}"
                                                             alt="" srcset="">
                                                     </a>
+
+                                                    <!-- Modal -->
+                                                    <div class="modal fade" id="imageModal{{ $detail->id }}" tabindex="-1" aria-labelledby="imageModalLabel{{ $detail->id }}" aria-hidden="true">
+                                                        <div class="modal-dialog modal-lg">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title" id="imageModalLabel{{ $detail->id }}">Gambar Order</h5>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                </div>
+                                                                <div class="modal-body text-center">
+                                                                    <img class="img-fluid" style="width: 100%;" src="{{ asset('uploads/order/' . $detail->gambar) }}" alt="">
+                                                                </div>
+                                                                <div class="modal-footer">
+                                                                    <a href="{{ route('orderDetail.editGambar', $detail->id) }}" class="btn btn-primary">Edit Gambar</a>
+                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 @else
                                                     <a href="{{ route('orderDetail.gambar', $detail->id) }}"
                                                         class="btn btn-success text-white"><i

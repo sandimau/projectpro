@@ -221,7 +221,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::get('/produk/{produk}/stok', 'ProdukController@stok')->name('produk.stok');
             Route::get('/aset', 'ProdukController@aset')->name('produk.aset');
             Route::get('/aset/{kategori}', 'ProdukController@asetDetail')->name('produk.asetDetail');
-
+            Route::get('/produk/omzet', 'ProdukController@omzet')->name('produk.omzet');
             // laporan
             Route::get('/neraca', 'LaporanController@neraca')->name('laporan.neraca');
             Route::get('/labarugi', 'LaporanController@labarugi')->name('laporan.labarugi');

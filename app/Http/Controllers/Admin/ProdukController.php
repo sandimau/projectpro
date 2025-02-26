@@ -113,4 +113,91 @@ class ProdukController extends Controller
 
         return view('admin.produks.asetDetail', compact('asets', 'kategori'));
     }
+
+    public function omzet(Request $request)
+    {
+        // Get selected year, default to current year if not specified
+        $selectedYear = $request->input('year', date('Y'));
+
+        // Get all available years for the dropdown
+        $years = DB::table('orders')
+            ->select(DB::raw('DISTINCT YEAR(created_at) as year'))
+            ->orderBy('year', 'desc')
+            ->pluck('year');
+
+        $asets = DB::table('produk_last_stoks as t')
+            ->join(
+                DB::raw('(SELECT produk_id FROM produk_last_stoks GROUP BY produk_id) as subquery'),
+                't.produk_id',
+                '=',
+                'subquery.produk_id'
+            )
+            ->join('produks as p', 'p.id', '=', 't.produk_id')
+            ->join('produk_models as pm', 'pm.id', '=', 'p.produk_model_id')
+            ->join('produk_kategoris as k', 'k.id', '=', 'pm.kategori_id')
+            ->join('produk_kategori_utamas as ku', 'ku.id', '=', 'k.kategori_utama_id')
+            ->select(
+                'k.id as kategori_id',
+                'ku.nama as namaKategoriUtama',
+                'k.nama as namaKategori',
+                DB::raw('SUM(t.saldo * pm.harga) as nilai_aset')
+            )
+            ->groupBy('k.id', 'ku.nama', 'k.nama')
+            ->orderBy('ku.nama')
+            ->orderBy('k.nama')
+            ->get();
+
+        // Get categories first
+        $categories = DB::table('produk_kategoris as k')
+            ->join('produk_kategori_utamas as ku', 'ku.id', '=', 'k.kategori_utama_id')
+            ->select(
+                'k.id as kategori_id',
+                'ku.nama as namaKategoriUtama',
+                'k.nama as namaKategori'
+            )
+            ->where('ku.jual', 1)
+            ->orderBy('ku.nama')
+            ->orderBy('k.nama')
+            ->get();
+
+        // Get omzet data for the selected year
+        $omzetData = DB::table('order_details as od')
+            ->join('orders as o', 'o.id', '=', 'od.order_id')
+            ->join('produks as p', 'p.id', '=', 'od.produk_id')
+            ->join('produk_models as pm', 'pm.id', '=', 'p.produk_model_id')
+            ->join('produk_kategoris as k', 'k.id', '=', 'pm.kategori_id')
+            ->join('produk_kategori_utamas as ku', 'ku.id', '=', 'k.kategori_utama_id')
+            ->whereYear('o.created_at', $selectedYear)
+            ->select(
+                'k.id as kategori_id',
+                'ku.nama as namaKategoriUtama',
+                'k.nama as namaKategori',
+                DB::raw('MONTH(o.created_at) as bulan'),
+                DB::raw('SUM(od.jumlah * od.harga) as omzet')
+            )
+            ->groupBy('k.id', 'ku.nama', 'k.nama', DB::raw('MONTH(o.created_at)'))
+            ->get();
+
+        // Create complete dataset with all months
+        $omzet = collect();
+        foreach ($categories as $category) {
+            for ($month = 1; $month <= 12; $month++) {
+                $monthlyData = $omzetData
+                    ->where('kategori_id', $category->kategori_id)
+                    ->where('bulan', $month)
+                    ->first();
+
+                $omzet->push((object)[
+                    'kategori_id' => $category->kategori_id,
+                    'namaKategoriUtama' => $category->namaKategoriUtama,
+                    'namaKategori' => $category->namaKategori,
+                    'bulan' => $month,
+                    'tahun' => $selectedYear,
+                    'omzet' => $monthlyData ? $monthlyData->omzet : 0
+                ]);
+            }
+        }
+
+        return view('admin.produks.omzet', compact('omzet', 'asets', 'years', 'selectedYear'));
+    }
 }

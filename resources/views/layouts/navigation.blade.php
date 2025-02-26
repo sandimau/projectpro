@@ -76,17 +76,6 @@
                     </a>
                 </li>
             @endcan
-            @can('opname_access')
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->is('opnames*') ? 'active' : '' }}"
-                        href="{{ route('opnames.index') }}">
-                        <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
-                        </svg>
-                        {{ __('Opname') }}
-                    </a>
-                </li>
-            @endcan
         </ul>
     </li>
 
@@ -308,6 +297,15 @@
                             <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
                         </svg>
                         {{ __('Aset') }}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->is('produk*') ? 'active' : '' }}"
+                        href="{{ route('produk.omzet') }}">
+                        <svg class="nav-icon">
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
+                        </svg>
+                        {{ __('Produk Omzet') }}
                     </a>
                 </li>
             @endcan
