@@ -26,10 +26,16 @@ class BukuBesar extends Model
 
             $terakhir = $model->where('akun_detail_id', $model->akun_detail_id)->latest('id')->first()->saldo ?? 0 ;
             $model->saldo = $terakhir + $model->debet - $model->kredit;
+            $model->user_id = auth()->user()->id;
 
             $akunDetail = AkunDetail::find($model->akun_detail_id);
             $akunDetail->update(['saldo' => $model->saldo]);
 
         });
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

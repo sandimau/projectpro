@@ -5,7 +5,7 @@
 @endsection
 
 @section('content')
-<div class="container">
+<div class="container-fluid">
     <div class="card">
         <div class="card-header">
             <h4>Aset Produk</h4>

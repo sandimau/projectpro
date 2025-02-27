@@ -5,7 +5,7 @@
 @endsection
 
 @section('content')
-<div class="container">
+<div class="container-fluid">
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h4>Aset dan Omzet Produk</h4>
@@ -58,7 +58,7 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <a href="{{ route('produk.asetDetail', $kategoriId) }}">
+                                    <a href="{{ route('produk.omzetDetail', $kategoriId) }}">
                                         {{ $firstData->namaKategori }}
                                     </a>
                                 </td>

@@ -222,6 +222,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::get('/aset', 'ProdukController@aset')->name('produk.aset');
             Route::get('/aset/{kategori}', 'ProdukController@asetDetail')->name('produk.asetDetail');
             Route::get('/produk/omzet', 'ProdukController@omzet')->name('produk.omzet');
+            Route::get('/produk/omzet/{kategori}', 'ProdukController@omzetDetail')->name('produk.omzetDetail');
+
             // laporan
             Route::get('/neraca', 'LaporanController@neraca')->name('laporan.neraca');
             Route::get('/labarugi', 'LaporanController@labarugi')->name('laporan.labarugi');
