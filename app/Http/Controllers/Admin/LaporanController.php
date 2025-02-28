@@ -477,11 +477,12 @@ class LaporanController extends Controller
         $data = $query->select(
             'pku.nama as kategori_utama',
             'pk.nama as kategori',
-            'p.nama as produk',
+            DB::raw('CONCAT(COALESCE(pm.nama, ""), " ", COALESCE(p.nama, "")) as produk'),
             'p.id as produk_id',
             DB::raw('COALESCE(SUM(CASE WHEN b.id IS NOT NULL THEN bd.jumlah * bd.harga ELSE 0 END), 0) as total_belanja')
         )
-        ->groupBy('pku.nama', 'pk.nama', 'p.nama', 'p.id')
+        ->groupBy('pku.nama', 'pk.nama', 'p.nama', 'p.id', 'pm.nama')
+        ->having('total_belanja', '>', 0)
         ->orderBy('pku.nama')
         ->orderBy('pk.nama')
         ->orderBy('p.nama')
