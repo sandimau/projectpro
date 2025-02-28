@@ -316,20 +316,37 @@
             let idProduk = document.getElementById('kontakId');
             idProduk.value = null;
         }
+
+        function clearProduk() {
+            let btn = document.getElementById("closeBrgProduk");
+            btn.style.display = "none";
+            let auto = document.querySelector(".produk");
+            auto.value = null;
+            let idProduk = document.getElementById('produkId');
+            idProduk.value = null;
+        }
     </script>
     <style>
-        #autocomplete{
+        #autocomplete,
+        #autocompleteProduk {
             max-width: 600px;
         }
 
-        #closeBrg{
+        #closeBrg,
+        #closeBrgProduk {
             position: relative;
         }
 
-        #closeBrg button{
+        #closeBrg button,
+        #closeBrgProduk button {
             position: absolute;
             right: -15px;
             top: -40px;
+        }
+
+        .autocomplete-input {
+            width: 600px !important;
+            margin-right: 10px;
         }
 
         .btnClose {
