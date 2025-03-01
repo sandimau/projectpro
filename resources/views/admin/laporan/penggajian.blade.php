@@ -36,6 +36,9 @@
                                     tanggal
                                 </th>
                                 <th>
+                                    pegawai
+                                </th>
+                                <th>
                                     gapok
                                 </th>
                                 <th>
@@ -62,6 +65,7 @@
                             @foreach ($penggajians as $item)
                                 <tr>
                                     <td>{{ date('d-m-Y', strtotime($item->created_at)) }}</td>
+                                    <td>{{ $item->member->nama_lengkap }}</td>
                                     <td>{{ number_format($item->pokok) }}</td>
                                     <td>{{ $item->jam_lembur }}</td>
                                     <td>{{ number_format($item->lembur) }}</td>
