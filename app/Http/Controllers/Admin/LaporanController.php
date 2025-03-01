@@ -85,6 +85,7 @@ class LaporanController extends Controller
             ->join('produk_kategori_utamas', 'produk_kategori_utamas.id', '=', 'kategori_utama_id')
             ->whereYear('belanjas.created_at', $thn)
             ->whereMonth('belanjas.created_at', $bln)
+            ->whereNull('produk_models.stok')
             ->first()->total;
 
         $gaji = Penggajian::selectRaw('sum(total+kasbon) as total_gaji')
@@ -396,6 +397,7 @@ class LaporanController extends Controller
                 ->join('produk_kategori_utamas as pku', 'pku.id', '=', 'pk.kategori_utama_id')
                 ->whereYear('b.created_at', $thn)
                 ->whereMonth('b.created_at', $bln)
+                ->whereNull('pm.stok')
                 ->select(
                     'pku.nama as kategori_utama',
                     'pk.nama as kategori',
@@ -416,10 +418,12 @@ class LaporanController extends Controller
                 ->join('produk_kategori_utamas as pku', 'pku.id', '=', 'pk.kategori_utama_id')
                 ->whereYear('b.created_at', $thn)
                 ->whereMonth('b.created_at', $bln)
+                ->whereNull('pm.stok')
                 ->select(
                     'pku.nama as kategori_utama',
                     'pk.nama as kategori',
                     'p.nama as produk',
+                    'p.id as produk_id',
                     DB::raw('SUM(bd.jumlah * bd.harga) as total_belanja')
                 )
                 ->groupBy('pku.nama', 'pk.nama', 'p.nama', 'p.id')
