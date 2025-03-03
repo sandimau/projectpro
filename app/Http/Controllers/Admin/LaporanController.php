@@ -64,6 +64,7 @@ class LaporanController extends Controller
             ->selectRaw('sum(jumlah*harga) as total_omzet,sum(hpp * jumlah) as total_hpp')
             ->join('produksis', 'produksi_id', '=', 'produksis.id')
             ->join('orders', 'order_id', '=', 'orders.id')
+            ->where('order_details.harga', '>', 0)
             ->where('produksis.id', '<>', 4)
             ->whereYear('orders.created_at', $thn)
             ->whereMonth('orders.created_at', $bln)
@@ -128,6 +129,7 @@ class LaporanController extends Controller
                 ->join('produk_models as pm', 'pm.id', '=', 'p.produk_model_id')
                 ->join('produk_kategoris as pk', 'pk.id', '=', 'pm.kategori_id')
                 ->join('produk_kategori_utamas as pku', 'pku.id', '=', 'pk.kategori_utama_id')
+                ->where('od.harga', '>', 0)
                 ->where('od.produksi_id', '<>', 4)
                 ->whereYear('o.created_at', $thn)
                 ->whereMonth('o.created_at', $bln)
@@ -181,6 +183,7 @@ class LaporanController extends Controller
                 ->join('produk_models as pm', 'pm.id', '=', 'p.produk_model_id')
                 ->join('produk_kategoris as pk', 'pk.id', '=', 'pm.kategori_id')
                 ->join('produk_kategori_utamas as pku', 'pku.id', '=', 'pk.kategori_utama_id')
+                ->where('od.harga', '>', 0)
                 ->where('od.produksi_id', '<>', 4)
                 ->whereYear('o.created_at', $thn)
                 ->whereMonth('o.created_at', $bln)
@@ -266,6 +269,7 @@ class LaporanController extends Controller
                     ->whereYear('o.created_at', '=', $thn)
                     ->whereMonth('o.created_at', '=', $bln);
             })
+            ->where('od.harga', '>', 0)
             ->where('pk.id', $kategori_id)
             ->where(function($query) {
                 $query->where('od.produksi_id', '<>', 4)
