@@ -35,8 +35,6 @@
                     <table class="table table-striped">
                         <thead>
                             <tr>
-                                <th>Kategori Utama</th>
-                                <th>Kategori</th>
                                 <th>Produk</th>
                                 <th>Omzet</th>
                                 <th>HPP</th>
@@ -51,34 +49,10 @@
                                 $totalHpp = 0;
                                 $totalOpname = 0;
                                 $totalLabaKotor = 0;
-                                $currentKategoriUtama = '';
-                                $currentKategori = '';
                             @endphp
 
                             @foreach($data as $item)
-                                @if($currentKategoriUtama != $item->kategori_utama)
-                                    @if(!$loop->first)
-                                        <tr class="table-secondary">
-                                            <td colspan="3"><strong>Sub Total {{ $currentKategoriUtama }}</strong></td>
-                                            <td><strong>{{ number_format($subTotalOmzet, 2, ',', '.') }}</strong></td>
-                                            <td><strong>{{ number_format($subTotalHpp, 2, ',', '.') }}</strong></td>
-                                            <td><strong>{{ number_format($subTotalOpname, 2, ',', '.') }}</strong></td>
-                                            <td><strong>{{ number_format($subTotalLabaKotor, 2, ',', '.') }}</strong></td>
-                                            <td><strong>{{ $subTotalOmzet > 0 ? number_format(($subTotalLabaKotor/$subTotalOmzet)*100, 2, ',', '.') : 0 }}%</strong></td>
-                                        </tr>
-                                    @endif
-                                    @php
-                                        $currentKategoriUtama = $item->kategori_utama;
-                                        $subTotalOmzet = 0;
-                                        $subTotalHpp = 0;
-                                        $subTotalOpname = 0;
-                                        $subTotalLabaKotor = 0;
-                                    @endphp
-                                @endif
-
                                 <tr>
-                                    <td>{{ $item->kategori_utama }}</td>
-                                    <td>{{ $item->kategori }}</td>
                                     <td>{{ $item->produk }}</td>
                                     <td>{{ number_format($item->omzet, 2, ',', '.') }}</td>
                                     <td>{{ number_format($item->hpp, 2, ',', '.') }}</td>
@@ -92,26 +66,11 @@
                                     $totalHpp += $item->hpp;
                                     $totalOpname += $item->opname;
                                     $totalLabaKotor += $item->laba_kotor;
-                                    $subTotalOmzet += $item->omzet;
-                                    $subTotalHpp += $item->hpp;
-                                    $subTotalOpname += $item->opname;
-                                    $subTotalLabaKotor += $item->laba_kotor;
                                 @endphp
-
-                                @if($loop->last)
-                                    <tr class="table-secondary">
-                                        <td colspan="3"><strong>Sub Total {{ $currentKategoriUtama }}</strong></td>
-                                        <td><strong>{{ number_format($subTotalOmzet, 2, ',', '.') }}</strong></td>
-                                        <td><strong>{{ number_format($subTotalHpp, 2, ',', '.') }}</strong></td>
-                                        <td><strong>{{ number_format($subTotalOpname, 2, ',', '.') }}</strong></td>
-                                        <td><strong>{{ number_format($subTotalLabaKotor, 2, ',', '.') }}</strong></td>
-                                        <td><strong>{{ $subTotalOmzet > 0 ? number_format(($subTotalLabaKotor/$subTotalOmzet)*100, 2, ',', '.') : 0 }}%</strong></td>
-                                    </tr>
-                                @endif
                             @endforeach
 
                             <tr class="table-primary">
-                                <td colspan="3"><strong>Total Keseluruhan</strong></td>
+                                <td><strong>Total Keseluruhan</strong></td>
                                 <td><strong>{{ number_format($totalOmzet, 2, ',', '.') }}</strong></td>
                                 <td><strong>{{ number_format($totalHpp, 2, ',', '.') }}</strong></td>
                                 <td><strong>{{ number_format($totalOpname, 2, ',', '.') }}</strong></td>

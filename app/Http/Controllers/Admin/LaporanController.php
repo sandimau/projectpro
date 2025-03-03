@@ -273,9 +273,7 @@ class LaporanController extends Controller
             });
 
         $data = $query->select(
-            'pku.nama as kategori_utama',
-            'pk.nama as kategori',
-            'p.nama as produk',
+            DB::raw('CONCAT(COALESCE(pm.nama, ""), " ", COALESCE(p.nama, "")) as produk'),
             'p.id as produk_id',
             DB::raw('COALESCE(SUM(CASE WHEN o.id IS NOT NULL THEN od.jumlah * od.harga ELSE 0 END), 0) as omzet'),
             DB::raw('COALESCE(SUM(CASE WHEN o.id IS NOT NULL THEN od.hpp * od.jumlah ELSE 0 END), 0) as hpp'),
@@ -309,9 +307,7 @@ class LaporanController extends Controller
                 ELSE 0
             END as persen')
         )
-        ->groupBy('pku.nama', 'pk.nama', 'p.nama', 'p.id')
-        ->orderBy('pku.nama')
-        ->orderBy('pk.nama')
+        ->groupBy('p.nama', 'p.id')
         ->orderBy('p.nama')
         ->get();
 
