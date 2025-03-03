@@ -7,6 +7,7 @@ use App\Models\Chat;
 use App\Models\Spek;
 use App\Models\Order;
 use App\Models\Member;
+use App\Models\Produk;
 use App\Models\Produksi;
 use App\Models\ProdukStok;
 use App\Models\OrderDetail;
@@ -60,6 +61,9 @@ class OrderDetailController extends Controller
         $dataDetail['deathline'] = $request->deathline;
         $dataDetail['created_at'] = Carbon::now();
 
+        $produk = Produk::find($request->produk_id);
+        $dataDetail['hpp'] = $produk->hpp;
+
         $orderDetail = OrderDetail::create($dataDetail);
 
         $speks = Spek::all();
@@ -69,7 +73,6 @@ class OrderDetailController extends Controller
             if ($request->{$spek->nama}) {
                 $sync[$spek->id] = ['keterangan' => $request->{$spek->nama}];
             }
-
         }
         $orderDetail->spek()->sync($sync);
         return redirect('/admin/order/' . $request->order_id . '/detail')->withSuccess(__('Order Detail created successfully.'));

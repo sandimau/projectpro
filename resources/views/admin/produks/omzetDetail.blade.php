@@ -40,7 +40,7 @@
                             @php
                                 $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $selectedMonth, $selectedYear);
                             @endphp
-                            @for ($i = $daysInMonth; $i >= 1; $i--)
+                            @for ($i = 1; $i <= $daysInMonth; $i++)
                                 <th class="text-center">{{ $i }}</th>
                             @endfor
                         </tr>
@@ -62,7 +62,7 @@
                                 <td class="text-nowrap sticky-col second-col">{{ $product->varian }}</td>
                                 <td class="text-nowrap sticky-col third-col">{{ $product->stok }}</td>
                                 <td class="text-nowrap sticky-col fourth-col">{{ $product->rata_penjualan }}</td>
-                                @for ($i = $daysInMonth; $i >= 1; $i--)
+                                @for ($i = 1; $i <= $daysInMonth; $i++)
                                     @php
                                         $sale = $product->daily_sales[$i] ?? 0;
                                     @endphp

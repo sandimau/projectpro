@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use Gate;
 use Carbon\Carbon;
 use App\Models\Order;
+use App\Models\Produk;
 use App\Models\Produksi;
 use App\Models\BukuBesar;
 use App\Models\AkunDetail;
@@ -415,6 +416,7 @@ class MarketplaceController extends Controller
                         if (!$produk)
                             throw new \Exception('sku: ' . $barang . ', nama: ' . $baris[$marketplace->produk] . ', tidak ada di sistem');
 
+                        $hpp = Produk::find($produk->id);
 
                         /////mulai input orderdetil ke array
                         $orderdetil[] = array(
@@ -422,6 +424,7 @@ class MarketplaceController extends Controller
                             'jumlah' => $baris[$marketplace->jumlah],
                             'tema' => $custom,
                             'harga' => $harga,
+                            'hpp' => $hpp->hpp,
                             'produksi_id' => $produksi_id,
                             'nota' => $nota,
                             'created_at' => $tanggal,
@@ -689,7 +692,7 @@ class MarketplaceController extends Controller
         $thn = $pilihan_parts[0];
         $bln = $pilihan_parts[1];
 
-        $marketplaces = Marketplace::with(['kontak' => function($query) {
+        $marketplaces = Marketplace::with(['kontak' => function ($query) {
             $query->whereNotNull('marketplace');
         }])->get();
 

@@ -183,6 +183,10 @@ class OrderController extends Controller
         $dataDetail['keterangan'] = $request->keterangan;
         $dataDetail['produksi_id'] = $produksi->id;
         $dataDetail['deathline'] = $request->deathline;
+
+        $produk = Produk::find($request->produk_id);
+        $dataDetail['hpp'] = $produk->hpp;
+
         $orderDetail = OrderDetail::create($dataDetail);
 
         $speks = Spek::all();
