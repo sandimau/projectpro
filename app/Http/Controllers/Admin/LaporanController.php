@@ -41,6 +41,12 @@ class LaporanController extends Controller
             $total_order += $item->kekurangan;
         }
 
+        $orderMP = Order::whereNotNull('marketplace')->where('bayar','=',0)->get();
+        $total_orderMP = 0;
+        foreach ($orderMP as $item) {
+            $total_orderMP += $item->kekurangan;
+        }
+
         $produk = Produk::all();
 
         $stok = 0;
@@ -48,7 +54,7 @@ class LaporanController extends Controller
             $stok += ProdukStok::lastStok($item->id) * $item->produkModel->harga;
         }
 
-        return view('admin.laporan.neraca', compact('kas', 'modal', 'total_piutang', 'total_hutang', 'stok', 'total_order'));
+        return view('admin.laporan.neraca', compact('kas', 'modal', 'total_piutang', 'total_hutang', 'stok', 'total_order','total_orderMP'));
     }
 
     public function labarugi()

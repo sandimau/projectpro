@@ -44,6 +44,11 @@
                                 <td>0</td>
                             </tr>
                             <tr>
+                                <td>Piutang Mp</td>
+                                <td>{{ number_format($total_orderMP, 0, ',', '.') }}</td>
+                                <td>0</td>
+                            </tr>
+                            <tr>
                                 <td>Piutang</td>
                                 <td>{{ number_format($total_piutang, 0, ',', '.') }}</td>
                                 <td>0</td>
@@ -61,7 +66,7 @@
                             <tr class="table-success">
                                 <td>Laba</td>
                                 <td>0</td>
-                                <td>{{ number_format($kas + $stok + $total_order + $total_piutang - $total_hutang - abs($modal), 0, ',', '.') }}</td>
+                                <td>{{ number_format($kas + $stok + $total_order + $total_orderMP + $total_piutang - $total_hutang - abs($modal), 0, ',', '.') }}</td>
                             </tr>
                         </tbody>
                     </table>
