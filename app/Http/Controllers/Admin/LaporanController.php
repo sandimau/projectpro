@@ -41,7 +41,13 @@ class LaporanController extends Controller
             $total_order += $item->kekurangan;
         }
 
-        $orderMP = Order::whereNotNull('marketplace')->where('bayar','=',0)->get();
+        $orderMP = Order::whereNotNull('marketplace')
+            ->where('bayar', '=', 0)
+            ->whereHas('orderDetail', function($query) {
+                $query->where('produksi_id', '<>', 4);
+            })
+            ->with('orderDetail')
+            ->get();
         $total_orderMP = 0;
         foreach ($orderMP as $item) {
             $total_orderMP += $item->kekurangan;
