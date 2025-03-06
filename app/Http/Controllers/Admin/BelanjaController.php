@@ -2,18 +2,19 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
-use App\Models\AkunDetail;
-use App\Models\Belanja;
-use App\Models\BelanjaDetail;
-use App\Models\BukuBesar;
+use Gate;
+use App\Models\Hutang;
 use App\Models\Kontak;
 use App\Models\Produk;
+use App\Models\Belanja;
+use App\Models\BukuBesar;
+use App\Models\AkunDetail;
 use App\Models\ProdukStok;
-use Gate;
 use Illuminate\Http\Request;
+use App\Models\BelanjaDetail;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
 use Symfony\Component\HttpFoundation\Response;
 
 class BelanjaController extends Controller
@@ -55,8 +56,8 @@ class BelanjaController extends Controller
         $request->validate([
             'kontak_id' => 'required',
             'tanggal_beli' => 'required',
-            'pembayaran' => 'equal:total|required',
         ]);
+
 
         DB::transaction(function () use ($request) {
             //insert into belanja table
@@ -84,6 +85,15 @@ class BelanjaController extends Controller
                         'kode' => 'blj',
                     ]);
                 }
+            } else {
+                $supplier = Kontak::where('id', $request->kontak_id)->first();
+                Hutang::create([
+                    'kontak_id' => $request->kontak_id,
+                    'tanggal' => $request->tanggal_beli,
+                    'jumlah' => $request->total,
+                    'keterangan' => 'pembelian ke ' . $supplier->nama,
+                    'jenis' => 'belanja',
+                ]);
             }
 
             if (count($request->barang_beli_id) > 0) {

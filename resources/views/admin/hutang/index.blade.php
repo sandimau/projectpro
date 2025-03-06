@@ -31,6 +31,7 @@
                                     <th>Kontak</th>
                                     <th>Jumlah</th>
                                     <th>Jenis</th>
+                                    <th>Kas</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
@@ -41,6 +42,14 @@
                                         <td>{{ $hutang->kontak->nama }}</td>
                                         <td>Rp {{ number_format($hutang->jumlah, 0, ',', '.') }}</td>
                                         <td>{{ $hutang->jenis }}</td>
+                                        <td>
+                                            @if($hutang->akun_detail)
+                                                <a href="{{ route('akundetail.bukubesar', ['akunDetail' => $hutang->akun_detail_id]) }}">
+                                                    {{ $hutang->akun_detail->nama }}
+                                                </a>
+                                            @else
+                                            @endif
+                                        </td>
                                         <td>
                                             @if ($hutang->sisa <= 0)
                                                 <a href="{{ route('hutang.detail', $hutang) }}" class="btn btn-sm btn-success">

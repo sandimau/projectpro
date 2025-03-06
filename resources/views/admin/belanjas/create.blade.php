@@ -136,8 +136,8 @@
                                         <b><span>Pembayaran</span></b> <br>
                                     </td>
                                     <td class="text-right">
-                                        <input id="pembayaran" name="pembayaran" class="form-control text-right {{ $errors->has('pembayaran') ? 'is-invalid' : '' }}"
-                                            type="number" />
+                                        <input id="pembayaran" name="pembayaran" onchange="updatePembayaran()" class="form-control text-right {{ $errors->has('pembayaran') ? 'is-invalid' : '' }}"
+                                            type="number" value="0" />
                                         @if ($errors->has('pembayaran'))
                                             <div class="invalid-feedback">
                                                 {{ $errors->first('pembayaran') }}
@@ -154,7 +154,7 @@
                                         <b><span>kas</span></b> <br>
                                     </td>
                                     <td>
-                                        <div class="form-group mb-3">
+                                        <div class="form-group mb-3" id="kasContainer" style="display:none;">
                                             <select
                                                 class="form-select {{ $errors->has('akun_detail_id') ? 'is-invalid' : '' }}"
                                                 name="akun_detail_id" id="akun_detail_id">
@@ -340,10 +340,19 @@
                 }
             }
             let total = document.getElementById('total');
-            let pembayaran = document.getElementById('pembayaran');
+            // let pembayaran = document.getElementById('pembayaran');
             let diskon = document.getElementById('diskon');
             total.value = sum.reduce((a, b) => a + b, 0) - diskon.value;
-            pembayaran.value = sum.reduce((a, b) => a + b, 0) - diskon.value;
+            // pembayaran.value = sum.reduce((a, b) => a + b, 0) - diskon.value;
+        }
+
+        function updatePembayaran() {
+            let pembayaran = document.getElementById('pembayaran');
+            if (pembayaran.value > 0) {
+                document.getElementById('kasContainer').style.display = 'block';
+            } else {
+                document.getElementById('kasContainer').style.display = 'none';
+            }
         }
     </script>
     <style>
