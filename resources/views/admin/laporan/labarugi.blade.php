@@ -47,6 +47,11 @@
                                 <td>{{ number_format(abs($hpp), 0, ',', '.') }}</td>
                             </tr>
                             <tr>
+                                <td>potongan marketplace</td>
+                                <td>0</td>
+                                <td>{{ number_format($total_potonganMP, 0, ',', '.') }}</td>
+                            </tr>
+                            <tr>
                                 <td>
                                     <a href="{{ url('admin/opnames') }}?bulan={{ request('bulan') ?? date('Y-m') }}">opname</a>
                                 </td>

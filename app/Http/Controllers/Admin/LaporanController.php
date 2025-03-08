@@ -43,7 +43,7 @@ class LaporanController extends Controller
 
         $orderMP = Order::whereNotNull('marketplace')
             ->where('bayar', '=', 0)
-            ->whereHas('orderDetail', function($query) {
+            ->whereHas('orderDetail', function ($query) {
                 $query->where('produksi_id', '<>', 4);
             })
             ->with('orderDetail')
@@ -60,7 +60,7 @@ class LaporanController extends Controller
             $stok += ProdukStok::lastStok($item->id) * $item->produkModel->harga;
         }
 
-        return view('admin.laporan.neraca', compact('kas', 'modal', 'total_piutang', 'total_hutang', 'stok', 'total_order','total_orderMP'));
+        return view('admin.laporan.neraca', compact('kas', 'modal', 'total_piutang', 'total_hutang', 'stok', 'total_order', 'total_orderMP'));
     }
 
     public function labarugi()
@@ -101,6 +101,19 @@ class LaporanController extends Controller
             ->whereNull('produk_models.stok')
             ->first()->total;
 
+        $potonganMP = Order::select('id', 'total', 'bayar', DB::raw('(total - bayar) AS sisa_pembayaran'))
+            ->whereRaw('(total - bayar) > 0')
+            ->whereNotNull('marketplace')
+            ->where('bayar', '>', 0)
+            ->whereYear('created_at', $thn)
+            ->whereMonth('created_at', $bln)
+            ->get();
+
+        $total_potonganMP = 0;
+        foreach ($potonganMP as $item) {
+            $total_potonganMP += $item->sisa_pembayaran;
+        }
+
         $gaji = Penggajian::selectRaw('sum(total+kasbon) as total_gaji')
             ->whereYear('created_at', $thn)
             ->whereMonth('created_at', $bln)
@@ -122,7 +135,7 @@ class LaporanController extends Controller
             $bulan[$tahun_skr . '-' . str_pad($i, 2, '0', STR_PAD_LEFT)] = date('F', mktime(0, 0, 0, $i, 1)) . ' ' . $tahun_skr;
         }
 
-        return view('admin.laporan.labarugi', compact('omzet', 'hpp', 'opname', 'beban', 'gaji', 'tunjangan', 'bulan'));
+        return view('admin.laporan.labarugi', compact('omzet', 'hpp', 'opname', 'beban', 'gaji', 'tunjangan', 'bulan', 'total_potonganMP'));
     }
 
     public function labaKotor(Request $request)
@@ -276,14 +289,14 @@ class LaporanController extends Controller
             ->join('produk_kategoris as pk', 'pk.id', '=', 'pm.kategori_id')
             ->join('produk_kategori_utamas as pku', 'pku.id', '=', 'pk.kategori_utama_id')
             ->leftJoin('order_details as od', 'od.produk_id', '=', 'p.id')
-            ->leftJoin('orders as o', function($join) use ($thn, $bln) {
+            ->leftJoin('orders as o', function ($join) use ($thn, $bln) {
                 $join->on('o.id', '=', 'od.order_id')
                     ->whereYear('o.created_at', '=', $thn)
                     ->whereMonth('o.created_at', '=', $bln);
             })
             ->where('od.harga', '>', 0)
             ->where('pk.id', $kategori_id)
-            ->where(function($query) {
+            ->where(function ($query) {
                 $query->where('od.produksi_id', '<>', 4)
                     ->orWhereNull('od.produksi_id');
             });
@@ -302,8 +315,8 @@ class LaporanController extends Controller
                 AND MONTH(ps.created_at) = ' . $bln . '
             ), 0) as opname')
         )
-        ->addSelect(
-            DB::raw('(
+            ->addSelect(
+                DB::raw('(
                 COALESCE(SUM(CASE WHEN o.id IS NOT NULL THEN od.jumlah * od.harga ELSE 0 END), 0) -
                 COALESCE(SUM(CASE WHEN o.id IS NOT NULL THEN od.hpp * od.jumlah ELSE 0 END), 0) +
                 COALESCE((
@@ -315,17 +328,17 @@ class LaporanController extends Controller
                     AND MONTH(ps.created_at) = ' . $bln . '
                 ), 0)
             ) as laba_kotor'),
-            DB::raw('CASE
+                DB::raw('CASE
                 WHEN COALESCE(SUM(CASE WHEN o.id IS NOT NULL THEN od.jumlah * od.harga ELSE 0 END), 0) > 0
                 THEN ((COALESCE(SUM(CASE WHEN o.id IS NOT NULL THEN od.jumlah * od.harga ELSE 0 END), 0) -
                       COALESCE(SUM(CASE WHEN o.id IS NOT NULL THEN od.hpp * od.jumlah ELSE 0 END), 0)) /
                       COALESCE(SUM(CASE WHEN o.id IS NOT NULL THEN od.jumlah * od.harga ELSE 0 END), 0)) * 100
                 ELSE 0
             END as persen')
-        )
-        ->groupBy('p.nama', 'p.id')
-        ->orderBy('p.nama')
-        ->get();
+            )
+            ->groupBy('p.nama', 'p.id')
+            ->orderBy('p.nama')
+            ->get();
 
         // Generate months for dropdown
         $bulanList = [];
@@ -366,7 +379,7 @@ class LaporanController extends Controller
             $tunjangans = Tunjangan::orderBy('id', 'desc')->paginate(10);
         }
 
-        return view('admin.laporan.tunjangan', compact('tunjangans','dari','sampai'));
+        return view('admin.laporan.tunjangan', compact('tunjangans', 'dari', 'sampai'));
     }
 
     public function penggajian(Request $request)
@@ -388,7 +401,7 @@ class LaporanController extends Controller
             $penggajians = Penggajian::orderBy('id', 'desc')->paginate(10);
         }
 
-        return view('admin.laporan.penggajian', compact('penggajians','dari','sampai'));
+        return view('admin.laporan.penggajian', compact('penggajians', 'dari', 'sampai'));
     }
 
     public function operasional(Request $request)
@@ -483,7 +496,7 @@ class LaporanController extends Controller
             ->join('produk_kategoris as pk', 'pk.id', '=', 'pm.kategori_id')
             ->join('produk_kategori_utamas as pku', 'pku.id', '=', 'pk.kategori_utama_id')
             ->leftJoin('belanja_details as bd', 'bd.produk_id', '=', 'p.id')
-            ->leftJoin('belanjas as b', function($join) use ($thn, $bln) {
+            ->leftJoin('belanjas as b', function ($join) use ($thn, $bln) {
                 $join->on('b.id', '=', 'bd.belanja_id')
                     ->whereYear('b.created_at', '=', $thn)
                     ->whereMonth('b.created_at', '=', $bln);
@@ -497,12 +510,12 @@ class LaporanController extends Controller
             'p.id as produk_id',
             DB::raw('COALESCE(SUM(CASE WHEN b.id IS NOT NULL THEN bd.jumlah * bd.harga ELSE 0 END), 0) as total_belanja')
         )
-        ->groupBy('pku.nama', 'pk.nama', 'p.nama', 'p.id', 'pm.nama')
-        ->having('total_belanja', '>', 0)
-        ->orderBy('pku.nama')
-        ->orderBy('pk.nama')
-        ->orderBy('p.nama')
-        ->get();
+            ->groupBy('pku.nama', 'pk.nama', 'p.nama', 'p.id', 'pm.nama')
+            ->having('total_belanja', '>', 0)
+            ->orderBy('pku.nama')
+            ->orderBy('pk.nama')
+            ->orderBy('p.nama')
+            ->get();
 
         // Generate months for dropdown
         $bulanList = [];
