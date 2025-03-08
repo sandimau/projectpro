@@ -13,13 +13,16 @@
             <div class="card-header">
                 <div class="row">
                     <div class="col-lg-6">
-                        <h5 class="card-title"><a href="{{ route('akunDetails.index') }}">Kas {{ $akunDetail->nama }}</a> > Buku Besar</h5>
+                        <h5 class="card-title"><a href="{{ route('akunDetails.index') }}">Kas {{ $akunDetail->nama }}</a> >
+                            Buku Besar</h5>
                     </div>
                     <div style="text-align: right" class="col-lg-6">
                         @can('akun_kategori_create')
                             @if ($akunDetail->akun_kategori_id == 1)
-                                <a href="{{ route('akundetail.transferLain', $akunDetail->id) }}" class="btn btn-success text-white">pemasukan lain</a>
-                                <a href="{{ route('akundetail.transfer', $akunDetail->id) }}" class="btn btn-primary">transfer</a>
+                                <a href="{{ route('akundetail.transferLain', $akunDetail->id) }}"
+                                    class="btn btn-success text-white">pemasukan lain</a>
+                                <a href="{{ route('akundetail.transfer', $akunDetail->id) }}"
+                                    class="btn btn-primary">transfer</a>
                             @endif
                         @endcan
                     </div>
@@ -43,7 +46,24 @@
                             @foreach ($bukubesars as $bukubesar)
                                 <tr>
                                     <td>{{ $bukubesar->created_at }}</td>
-                                    <td>{{ $bukubesar->ket }}</td>
+                                    @if ($bukubesar->detail_id)
+                                        @if ($bukubesar->kode == 'blj')
+                                            <td><a
+                                                    href="{{ route('belanja.detail', $bukubesar->detail_id) }}">{{ $bukubesar->ket }}</a>
+                                            </td>
+                                        @endif
+                                        @if ($bukubesar->kode == 'byr')
+                                            <td><a
+                                                    href="{{ url('admin/order/' . $bukubesar->detail_id . '/detail') }}">{{ $bukubesar->ket }}</a>
+                                            </td>
+                                        @endif
+
+                                        @if ($bukubesar->kode == 'trf')
+                                            <td>{{ $bukubesar->ket}}</td>
+                                        @endif
+                                    @else
+                                        <td>{{ $bukubesar->ket}}</td>
+                                    @endif
                                     <td>{{ number_format($bukubesar->debet, 0, ',', '.') }}</td>
                                     <td>{{ number_format($bukubesar->kredit, 0, ',', '.') }}</td>
                                     <td>{{ number_format($bukubesar->saldo, 0, ',', '.') }}</td>
