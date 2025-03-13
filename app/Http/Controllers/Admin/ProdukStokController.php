@@ -33,6 +33,7 @@ class ProdukStokController extends Controller
             'tambah' => 'required',
             'kurang' => 'required',
             'keterangan' => 'required',
+            'tanggal' => 'required',
         ]);
 
         ProdukStok::create([
@@ -82,6 +83,6 @@ class ProdukStokController extends Controller
                 ->appends(['dari' => $request->dari, 'sampai' => $request->sampai]);
         }
 
-        return view('admin.produkStoks.opname', compact('produkStoks','dari','sampai'));
+        return view('admin.produkStoks.opname', compact('produkStoks', 'dari', 'sampai'));
     }
 }
