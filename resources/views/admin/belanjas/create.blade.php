@@ -69,28 +69,29 @@
                                     <tr>
                                         <td>
                                             <div id="autocomplete{{ $i }}" class="autocomplete">
-                                                <input id="hasilInput{{ $i }}" class="autocomplete-input" value="{{ old('hasilInput.'.$i) }}" />
+                                                <input id="hasilInput{{ $i }}" class="autocomplete-input"
+                                                    value="{{ old('hasilInput.' . $i) }}" />
                                                 <ul class="autocomplete-result-list"></ul>
                                             </div>
-                                            <input type="hidden" name="barang_beli_id[]"
-                                                id="dataBarang{{ $i }}" value="{{ old('barang_beli_id.'.$i) }}">
+                                            <input type="hidden" name="barang_beli_id[]" id="dataBarang{{ $i }}"
+                                                value="{{ old('barang_beli_id.' . $i) }}">
                                             <span id="closeBarang{{ $i }}"></span>
                                         </td>
                                         <td>
                                             <input id="ket{{ $i }}" name="keterangan[]" class="form-control"
-                                                type="text" value="{{ old('keterangan.'.$i) }}" />
+                                                type="text" value="{{ old('keterangan.' . $i) }}" />
                                         </td>
                                         <td>
                                             <input id="satuan{{ $i }}" readonly class="form-control"
-                                                type="text" value="{{ old('satuan.'.$i) }}" />
+                                                type="text" value="{{ old('satuan.' . $i) }}" />
                                         </td>
                                         <td>
                                             <input id="jumlah{{ $i }}" name="jumlah[]" step=".01"
-                                                class="form-control" type="number" value="{{ old('jumlah.'.$i) }}" />
+                                                class="form-control" type="number" value="{{ old('jumlah.' . $i) }}" />
                                         </td>
                                         <td>
                                             <input id="harga{{ $i }}" name="harga[]" class="form-control"
-                                                step=".01" type="number" value="{{ old('harga.'.$i) }}" />
+                                                step=".01" type="number" value="{{ old('harga.' . $i) }}" />
                                         </td>
                                         <td>
                                             <input id="subtotal{{ $i }}" readonly
@@ -136,7 +137,8 @@
                                         <b><span>Pembayaran</span></b> <br>
                                     </td>
                                     <td class="text-right">
-                                        <input id="pembayaran" name="pembayaran" onchange="updatePembayaran()" class="form-control text-right {{ $errors->has('pembayaran') ? 'is-invalid' : '' }}"
+                                        <input id="pembayaran" name="pembayaran" onchange="updatePembayaran()"
+                                            class="form-control text-right {{ $errors->has('pembayaran') ? 'is-invalid' : '' }}"
                                             type="number" value="0" />
                                         @if ($errors->has('pembayaran'))
                                             <div class="invalid-feedback">
@@ -187,8 +189,8 @@
 @endsection
 
 @push('after-scripts')
-    <script src="https://unpkg.com/@trevoreyre/autocomplete-js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/@trevoreyre/autocomplete-js/dist/style.css" />
+    <script src="{{ asset('js/autocomplete.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ asset('js/autocomplete.css') }}">
     <script>
         new Autocomplete('#autocomplete', {
             search: input => {
@@ -243,7 +245,8 @@
                             })
                     })
                 },
-                getResultValue: result => result.varian ? result.kategori + ' - ' + result.nama + ' - ' + result.varian : result.kategori + ' - ' + result.nama,
+                getResultValue: result => result.varian ? result.kategori + ' - ' + result.nama + ' - ' + result
+                    .varian : result.kategori + ' - ' + result.nama,
                 onSubmit: result => {
                     //insert id barang
                     let dataBarang = document.getElementById('dataBarang' + i);

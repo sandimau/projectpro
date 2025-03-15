@@ -59,7 +59,8 @@
                                 <tr data-entry-id="{{ $belanja->id }}">
                                     <td>{{ date('d-m-Y', strtotime($belanja->created_at)) }}</td>
                                     <td>{{ $belanja->kontak->nama }}</td>
-                                    <td><a href="{{ route('belanja.detail', $belanja->id) }}">{{ $belanja->produk }}</a></td>
+                                    <td><a href="{{ route('belanja.detail', $belanja->id) }}">{{ $belanja->produk }}</a>
+                                    </td>
                                     <td>{{ $belanja->nota }}</td>
                                     <td>{{ number_format($belanja->total, 0, ',', '.') }}</td>
                                 </tr>
@@ -72,8 +73,8 @@
     </div>
 @endsection
 @push('after-scripts')
-    <script src="https://unpkg.com/@trevoreyre/autocomplete-js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/@trevoreyre/autocomplete-js/dist/style.css" />
+    <script src="{{ asset('js/autocomplete.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ asset('js/autocomplete.css') }}">
     <script>
         new Autocomplete('#autocomplete', {
             search: input => {
