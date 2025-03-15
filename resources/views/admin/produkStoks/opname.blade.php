@@ -70,8 +70,8 @@
 @endsection
 
 @push('after-scripts')
-    <script src="https://unpkg.com/@trevoreyre/autocomplete-js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/@trevoreyre/autocomplete-js/dist/style.css" />
+    <script src="{{ asset('js/autocomplete.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ asset('js/autocomplete.css') }}">
     <script>
         new Autocomplete('#autocomplete', {
             search: input => {
