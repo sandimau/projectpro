@@ -396,10 +396,15 @@ class MarketplaceController extends Controller
 
                         //////jika sku depannya ada CUSTOM_ , hapus tulisan itu, sisain sku nya
                         if (strpos($barang, 'CUSTOM_') !== false) {
-                            $produksi_id = $awal_id;
                             $barang = str_replace('CUSTOM_', "", $barang);
                             $orderCustom = true;
                             $custom = $tema;
+
+                            if ($status == $marketplace->batal) {
+                                $produksi_id = $batal_id;
+                            } else {
+                                $produksi_id = $awal_id;
+                            }
                         }
 
                         $paket = 1;
