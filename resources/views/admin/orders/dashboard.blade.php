@@ -31,6 +31,7 @@
                                     data-bs-toggle="tab" data-bs-target="#{{ $item->nama }}" type="button" role="tab"
                                     aria-controls="{{ $item->nama }}" aria-selected="false">
                                     {{ $item->nama }}
+                                    <span class="badge bg-success rounded-pill">{{ $item->orderDetail()->count() }}</span>
                                 </button>
                             </li>
                         @endif
