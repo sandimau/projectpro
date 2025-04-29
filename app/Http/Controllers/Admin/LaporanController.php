@@ -46,7 +46,8 @@ class LaporanController extends Controller
             ->whereHas('orderDetail', function ($query) {
                 $query->where('produksi_id', '<>', 4);
             })
-            ->with('orderDetail')
+            ->whereYear('created_at', date('Y'))
+            ->whereMonth('created_at', date('m'))
             ->get();
         $total_orderMP = 0;
         foreach ($orderMP as $item) {
