@@ -12,7 +12,8 @@
         <div class="card-body printableArea">
             <div class="row">
                 <div class="col-sm-12 col-lg-6">
-                    <img style="height: 80px" src="{{ url('uploads/Logo/' . $sistems['Logo']) }}" alt="" srcset="">
+                    <img style="height: 80px" src="{{ url('uploads/Logo/' . $sistems['Logo']) }}" alt=""
+                        srcset="">
                 </div>
                 <div class="col-sm-12 col-lg-6">
                     <address class="mt-4">
@@ -93,11 +94,19 @@
                         <div class="col-lg-4 col-sm-12">
                             <div class="d-flex justify-content-between">
                                 <div class="test">
-                                    <div style="font-weight: 600">Total :</div>
+                                    @if ($order->ongkir > 0)
+                                        <div>Ongkir :</div>
+                                        <div style="font-weight: 600">Total + Ongkir :</div>
+                                    @else
+                                        <div style="font-weight: 600">Total:</div>
+                                    @endif
                                     <div>sudah dibayar :</div>
                                     <div style="font-weight: 600">kekurangan :</div>
                                 </div>
                                 <div class="test">
+                                    @if ($order->ongkir > 0)
+                                        <div>{{ number_format($order->ongkir, 0, ',', '.') }}</div>
+                                    @endif
                                     <div>{{ number_format($order->total, 0, ',', '.') }}</div>
                                     <div>{{ number_format($order->pembayaran->sum('jumlah'), 0, ',', '.') }}</div>
                                     <div style="font-weight: 600">{{ number_format($order->kekurangan, 0, ',', '.') }}

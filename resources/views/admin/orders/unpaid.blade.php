@@ -48,6 +48,7 @@
                                 <th>total tagihan</th>
                                 <th>dp</th>
                                 <th>kekurangan</th>
+                                <th>ongkir</th>
                                 <th>order</th>
                                 <th>action</th>
                             </tr>
@@ -63,6 +64,7 @@
                                     <td>{{ number_format($item->total, 0, ',', '.') }}</td>
                                     <td>{{ number_format($item->bayar, 0, ',', '.') }}</td>
                                     <td>{{ number_format($item->kekurangan, 0, ',', '.') }}</td>
+                                    <td>{{ number_format($item->ongkir, 0, ',', '.') }}</td>
                                     <td>{{ $item->listproduk }}</td>
                                     <td>
                                         <a href="{{ route('order.bayar', $item->id) }}"
