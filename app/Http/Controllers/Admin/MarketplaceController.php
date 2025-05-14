@@ -214,7 +214,6 @@ class MarketplaceController extends Controller
                             'jumlah' => 1,
                             'keterangan' => $baris[3],
                         ]);
-
                     }
 
                     //proses update order sudah dibayar
@@ -770,9 +769,9 @@ class MarketplaceController extends Controller
                 ->whereYear('belanjas.created_at', $tahun_skr)
                 ->whereMonth('belanjas.created_at', $i)
                 ->whereIn('belanja_details.produk_id', $produkIklan)
-                ->groupBy('belanja_details.id')
-                ->get()
-                ->pluck('potongan', 'kontak_id');
+                ->groupBy('belanjas.kontak_id')
+                ->get();
+            $iklan = $iklan->pluck('potongan', 'kontak_id');
 
             $data[$bulan] = [
                 'nama' => $bulan_nama,
@@ -782,6 +781,7 @@ class MarketplaceController extends Controller
                 'hpp' => $hpp,
                 'iklan' => $iklan
             ];
+
         }
 
         return view('admin.marketplaces.analisa', compact('marketplaces', 'data'));
