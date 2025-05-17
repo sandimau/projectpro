@@ -109,7 +109,7 @@
                                     @endif
                                     <div>{{ number_format($order->total, 0, ',', '.') }}</div>
                                     <div>{{ number_format($order->pembayaran->sum('jumlah'), 0, ',', '.') }}</div>
-                                    <div style="font-weight: 600">{{ number_format($order->kekurangan, 0, ',', '.') }}
+                                    <div style="font-weight: 600">{{ number_format($order->kekurangan + $order->ongkir, 0, ',', '.') }}
                                     </div>
                                 </div>
                             </div>
