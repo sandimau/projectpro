@@ -45,7 +45,7 @@ class Order extends Model
 
     public function getKekuranganAttribute()
     {
-        return $this->total - $this->bayar - $this->ongkir;
+        return $this->total - $this->bayar;
     }
 
     public function kontak()
