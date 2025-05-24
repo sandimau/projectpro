@@ -7,6 +7,7 @@ use App\Models\Kategori;
 use App\Models\ProdukStok;
 use App\Models\ProdukModel;
 use Illuminate\Http\Request;
+use App\Models\BelanjaDetail;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 
@@ -256,5 +257,11 @@ class ProdukController extends Controller
         }
 
         return view('admin.produks.omzetDetail', compact('products', 'kategori', 'years', 'selectedYear', 'selectedMonth'));
+    }
+
+    public function belanja(Produk $produk)
+    {
+        $belanjas = BelanjaDetail::where('produk_id', $produk->id)->orderBy('id', 'desc')->limit(30)->get();
+        return view('admin.produks.belanja', compact('belanjas', 'produk'));
     }
 }
