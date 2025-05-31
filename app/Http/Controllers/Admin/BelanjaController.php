@@ -23,22 +23,27 @@ class BelanjaController extends Controller
     {
         abort_if(Gate::denies('belanja_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        if ($request->dari == null && $request->sampai == null && $request->nota == null && $request->kontak_id == null) {
+        if ($request->dari == null && $request->sampai == null && $request->nota == null && $request->kontak_id == null && $request->produk_id == null) {
             $belanjas = Belanja::orderBy('id', 'desc')->paginate(10);
         } else {
             $belanjas = Belanja::query()
                 ->when($request->dari && $request->sampai, function ($query) use ($request) {
-                    $query->whereBetween('created_at', [$request->dari, $request->sampai]);
+                    $query->whereBetween('belanjas.created_at', [$request->dari, $request->sampai]);
                 })
                 ->when($request->nota, function ($query) use ($request) {
-                    $query->where('nota', 'LIKE', '%' . $request->nota . '%');
+                    $query->where('belanjas.nota', 'LIKE', '%' . $request->nota . '%');
                 })
                 ->when($request->kontak_id, function ($query) use ($request) {
-                    $query->where('kontak_id', $request->kontak_id);
+                    $query->where('belanjas.kontak_id', $request->kontak_id);
                 })
-                ->orderBy('id', 'desc')
+                ->when($request->produk_id, function ($query) use ($request) {
+                    $query->whereHas('belanjaDetail', function ($query) use ($request) {
+                        $query->where('produk_id', $request->produk_id);
+                    });
+                })
+                ->orderBy('belanjas.id', 'desc')
                 ->paginate(10)
-                ->appends(['dari' => $request->dari, 'sampai' => $request->sampai, 'nota' => $request->nota, 'kontak_id' => $request->kontak_id]);
+                ->appends(['dari' => $request->dari, 'sampai' => $request->sampai, 'nota' => $request->nota, 'kontak_id' => $request->kontak_id, 'produk_id' => $request->produk_id]);
         }
 
         return view('admin.belanjas.index', compact('belanjas'));
