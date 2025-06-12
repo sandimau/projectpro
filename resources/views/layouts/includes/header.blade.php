@@ -15,6 +15,11 @@
         </a>
         @auth
         <ul class="header-nav ms-auto">
+            <li class="nav-item">
+                <div class="nav-link py-0">
+                    {{ date('d-m-Y') }}
+                </div>
+            </li>
             <li class="nav-item dropdown ms-auto">
                 <a class="nav-link py-0" data-coreui-toggle="dropdown" href="#" role="button" aria-haspopup="true"
                     aria-expanded="false">
