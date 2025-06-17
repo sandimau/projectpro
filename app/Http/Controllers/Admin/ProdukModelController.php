@@ -89,6 +89,7 @@ class ProdukModelController extends Controller
         $validated['jual'] = $kategori->kategoriUtama->jual;
         $validated['beli'] = $kategori->kategoriUtama->beli;
         $validated['stok'] = $kategori->kategoriUtama->stok;
+        $validated['produksi'] = $kategori->kategoriUtama->produksi;
         $validated['gambar'] = $gambar;
 
         $produkModel = ProdukModel::create($validated);

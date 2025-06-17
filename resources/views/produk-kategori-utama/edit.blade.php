@@ -25,6 +25,7 @@
                         </div>
 
                         <div class="mb-3">
+                            <input type="hidden" name="jual" value="0">
                             <div class="form-check">
                                 <input type="checkbox" class="form-check-input" id="jual" name="jual" value="1" {{ old('jual', $produkKategoriUtama->jual) ? 'checked' : '' }}>
                                 <label class="form-check-label" for="jual">Jual</label>
@@ -32,6 +33,7 @@
                         </div>
 
                         <div class="mb-3">
+                            <input type="hidden" name="beli" value="0">
                             <div class="form-check">
                                 <input type="checkbox" class="form-check-input" id="beli" name="beli" value="1" {{ old('beli', $produkKategoriUtama->beli) ? 'checked' : '' }}>
                                 <label class="form-check-label" for="beli">Beli</label>
@@ -39,9 +41,18 @@
                         </div>
 
                         <div class="mb-3">
+                            <input type="hidden" name="stok" value="0">
                             <div class="form-check">
                                 <input type="checkbox" class="form-check-input" id="stok" name="stok" value="1" {{ old('stok', $produkKategoriUtama->stok) ? 'checked' : '' }}>
                                 <label class="form-check-label" for="stok">Stok</label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <input type="hidden" name="produksi" value="0">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="produksi" name="produksi" value="1" {{ old('produksi', $produkKategoriUtama->produksi) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="produksi">Produksi</label>
                             </div>
                         </div>
 

@@ -9,11 +9,12 @@ class ProdukKategoriUtama extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nama', 'jual', 'beli', 'stok'];
+    protected $fillable = ['nama', 'jual', 'beli', 'stok', 'produksi'];
 
     protected $casts = [
         'jual' => 'boolean',
         'beli' => 'boolean',
         'stok' => 'boolean',
+        'produksi' => 'boolean',
     ];
 }

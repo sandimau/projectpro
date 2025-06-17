@@ -45,6 +45,7 @@ class ProdukStok extends Model
             }
 
             $model->hpp = $model->produk->hpp ?? 0;
+            $model->user_id = auth()->user()->id;
 
         });
     }

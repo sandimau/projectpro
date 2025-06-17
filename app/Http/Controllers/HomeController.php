@@ -27,18 +27,7 @@ class HomeController extends Controller
      */
     public function index(Request $request)
     {
-        // $tglGaji = $CI->Tglbackup_model->ambil_gaji();
-        $gaji = Whattodo::where('nama','gaji')->first();
-        if (!$gaji) {
-            Whattodo::create([
-                'nama' => 'gaji',
-                'isi' => date('d')
-            ]);
-            $tglGaji = date('d');
-        } else {
-            $tglGaji = $gaji->isi;
-        }
-
+        $tglGaji = Whattodo::where('nama','gaji')->first()->isi;
         $tgl_skr = date('d');
         if ($tglGaji != $tgl_skr) {
             if ($tglGaji < $tgl_skr) {
@@ -62,20 +51,24 @@ class HomeController extends Controller
             ]);
         }
 
+        $member = Member::where('user_id', auth()->id())->first();
+        if ($member) {
+            $whatMember = Whattodo::where('member_id', $member->id)
+                ->where('nama', 'tugas')
+                ->get();
+        }
+
         $whattodos = Whattodo::where('nama','!=','gaji')->get();
-        if ($whattodos->isEmpty()) {
-            $whattodos = collect(); // Return empty collection if no records found
-        }
         $sistems = Sistem::get()->pluck('isi', 'nama');
-        if (isset($sistems['Logo'])) {
-            $request->session()->put('Logo', $sistems['Logo']);
-        }
-        return view('admin.whattodos.home', compact('whattodos'));
+        $whatMember = $whatMember ?? collect(); // Initialize if not set
+        return view('admin.whattodos.home', compact('whattodos', 'whatMember'));
     }
 
     public function create()
     {
-        return view('admin.whattodos.create');
+        $id = request()->get('member_id');
+        $member = Member::find($id);
+        return view('admin.whattodos.create', compact('member'));
     }
 
     public function store(Request $request)
@@ -86,7 +79,8 @@ class HomeController extends Controller
 
         Whattodo::create([
             'isi' => $request->isi,
-            'nama' => 'tugas'
+            'nama' => 'tugas',
+            'member_id' => $request->member_id
         ]);
 
         return redirect('/whattodo')->withSuccess(__('Whattodo created successfully.'));

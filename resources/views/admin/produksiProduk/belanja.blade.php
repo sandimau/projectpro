@@ -9,13 +9,13 @@
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h5 class="card-title">tambah belanja</h5>
+                    <h5 class="card-title">tambah belanja bahan</h5>
                 </div>
-                <a href="{{ route('belanja.index') }}" class="btn btn-success ">back</a>
+                <a href="{{ route('produksi.show', $produksi->id) }}" class="btn btn-success ">back</a>
             </div>
         </div>
         <div class="card-body">
-            <form method="POST" action="{{ route('belanja.store') }}" enctype="multipart/form-data">
+            <form method="POST" action="{{ route('produksi.belanjaStore', $produksi->id) }}" enctype="multipart/form-data">
                 @csrf
                 <div class="form-group mb-3">
                     <label for="nama" class="mb-2">Supplier</label>
@@ -160,7 +160,9 @@
                                             <select
                                                 class="form-select {{ $errors->has('akun_detail_id') ? 'is-invalid' : '' }}"
                                                 name="akun_detail_id" id="akun_detail_id">
+                                                <option value="">pilih kas</option>
                                                 @foreach ($kas as $id => $entry)
+
                                                     <option value="{{ $id }}"
                                                         {{ old('akun_detail_id') == $id ? 'selected' : '' }}>
                                                         {{ $entry }}</option>

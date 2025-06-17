@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use App\Models\ProdukKategoriUtama;
+use App\Models\ProdukKategori;
+use App\Models\ProdukModel;
 use App\Http\Controllers\Controller;
 
 class ProdukKategoriUtamaController extends Controller
@@ -26,6 +28,7 @@ class ProdukKategoriUtamaController extends Controller
             'jual' => 'nullable|boolean',
             'beli' => 'nullable|boolean',
             'stok' => 'nullable|boolean',
+            'produksi' => 'nullable|boolean',
         ]);
 
         ProdukKategoriUtama::create($request->all());
@@ -46,9 +49,19 @@ class ProdukKategoriUtamaController extends Controller
             'jual' => 'nullable|boolean',
             'beli' => 'nullable|boolean',
             'stok' => 'nullable|boolean',
+            'produksi' => 'nullable|boolean',
         ]);
 
         $produkKategoriUtama->update($request->all());
+
+        // Update semua produk model yang berelasi dengan kategori utama ini
+        $kategoriIds = ProdukKategori::where('kategori_utama_id', $produkKategoriUtama->id)->pluck('id');
+        ProdukModel::whereIn('kategori_id', $kategoriIds)->update([
+            'jual' => $request->jual,
+            'beli' => $request->beli,
+            'stok' => $request->stok,
+            'produksi' => $request->produksi
+        ]);
 
         return redirect()->route('produk-kategori-utama.index')
             ->with('success', 'Kategori Utama berhasil diperbarui');

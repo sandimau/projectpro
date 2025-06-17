@@ -96,7 +96,7 @@
                                             {{ $member->tgl_gajian }}
                                         @endcan
                                     </td>
-                                    <td><a href="{{ route('whattodo.create', $member->id) }}"
+                                    <td><a href="{{ route('whattodo.create', ['member_id' => $member->id]) }}"
                                             class="btn btn-info btn-sm me-1 text-white"><i class='bx bxs-add-to-queue'></i>
                                             add</a></a></td>
                                 </tr>

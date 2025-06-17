@@ -52,4 +52,8 @@ class Belanja extends Model
             return implode(', ', $yy);
         }
     }
+
+    public function produksi() {
+        return $this->belongsToMany(ProduksiProduk::class, 'produk_produksi_belanja', 'belanja_id', 'produksi_id');
+    }
 }

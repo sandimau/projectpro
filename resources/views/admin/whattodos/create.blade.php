@@ -27,6 +27,7 @@
                         </div>
                     @endif
                 </div>
+                <input type="hidden" name="member_id" value="{{ $member->id ?? '' }}">
                 <div class="form-group">
                     <button class="btn btn-primary mt-4" type="submit">
                         save

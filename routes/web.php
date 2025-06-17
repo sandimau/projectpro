@@ -176,6 +176,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::get('/supplier/api', 'OrderController@apiSupplier')->name('order.supplier');
             Route::get('/produk/api', 'OrderController@apiProduk')->name('order.produk');
             Route::get('/produkBeli/api', 'OrderController@apiProdukBeli')->name('order.produkBeli');
+            Route::get('/produkProduksi/api', 'OrderController@apiProdukProduksi')->name('order.produkProduksi');
+            Route::get('/produkStok/api', 'OrderController@apiProdukStok')->name('order.produkStok');
             Route::get('/order/dashboard', 'OrderController@dashboard')->name('order.dashboard');
             Route::get('/order/{order}/edit', 'OrderController@edit')->name('order.edit');
             Route::patch('/order/{order}/update', 'OrderController@update')->name('order.update');
@@ -234,6 +236,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::get('/penggajian', 'LaporanController@penggajian')->name('laporan.penggajian');
             Route::get('/operasional', 'LaporanController@operasional')->name('laporan.operasional');
             Route::get('/operasionaldetail', 'LaporanController@operasionaldetail')->name('laporan.operasionaldetail');
+
             // hutang
             Route::get('/hutang', 'HutangController@index')->name('hutang.index');
             Route::get('/hutang/create/{jenis}', 'HutangController@create')->name('hutang.create');
@@ -241,6 +244,23 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::get('/hutang/{hutang}/detail', 'HutangController@detail')->name('hutang.detail');
             Route::get('/hutang/{hutang}/bayar', 'HutangController@bayar')->name('hutang.bayar');
             Route::post('/hutang/bayar', 'HutangController@bayarStore')->name('hutang.bayarStore');
+
+            // produksis
+            Route::get('/produksi', 'ProduksiProdukController@index')->name('produksi.index');
+            Route::get('/produksi/create', 'ProduksiProdukController@create')->name('produksi.create');
+            Route::post('/produksi', 'ProduksiProdukController@store')->name('produksi.store');
+            Route::get('/produksi/{produksi}', 'ProduksiProdukController@show')->name('produksi.show');
+            Route::post('/produksi/{produksi}/chat', 'ProduksiProdukController@storeChat')->name('produksi.chatStore');
+            Route::get('/produksi/{produksi}/edit', 'ProduksiProdukController@edit')->name('produksi.edit');
+            Route::patch('/produksi/{produksi}/update', 'ProduksiProdukController@update')->name('produksi.update');
+            Route::get('/produksi/{produksi}/selesai', 'ProduksiProdukController@selesai')->name('produksi.selesai');
+            Route::post('/produksi/{produksi}/selesaiStore', 'ProduksiProdukController@selesaiStore')->name('produksi.selesaiStore');
+            Route::get('/produksi/{produksi}/belanja', 'ProduksiProdukController@belanja')->name('produksi.belanja');
+            Route::post('/produksi/{produksi}/belanja', 'ProduksiProdukController@belanjaStore')->name('produksi.belanjaStore');
+            Route::delete('/produksi/{produksi}/belanja/{belanja}', 'ProduksiProdukController@belanjaDestroy')->name('produksi.belanjaDestroy');
+            Route::get('/produksi/{produksi}/ambilBahan', 'ProduksiProdukController@ambilBahan')->name('produksi.ambilBahan');
+            Route::post('/produksi/{produksi}/ambilBahan', 'ProduksiProdukController@ambilBahanStore')->name('produksi.ambilBahanStore');
+            Route::delete('/produksi/{produksi}/ambilBahan/{bahan}', 'ProduksiProdukController@ambilBahanDestroy')->name('produksi.ambilBahanDestroy');
         });
     });
 });

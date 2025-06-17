@@ -18,6 +18,7 @@ class ProdukModel extends Model
         'jual',
         'beli',
         'stok',
+        'produksi',
         'gambar',
         'kategori_id',
         'kontak_id'

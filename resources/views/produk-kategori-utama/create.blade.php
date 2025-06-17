@@ -43,6 +43,13 @@
                         </div>
                     </div>
 
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="produksi" name="produksi" value="1" {{ old('produksi') ? 'checked' : '' }}>
+                            <label class="form-check-label" for="produksi">produksi</label>
+                        </div>
+                    </div>
+
                     <div class="d-flex justify-content-between">
                         <a href="{{ route('produk-kategori-utama.index') }}" class="btn btn-secondary">Kembali</a>
                         <button type="submit" class="btn btn-primary">Simpan</button>

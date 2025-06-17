@@ -43,6 +43,9 @@
                                     @if ($kategori->stok)
                                         <li>✓ Stok</li>
                                     @endif
+                                    @if ($kategori->produksi)
+                                        <li>✓ Produksi</li>
+                                    @endif
                                 </ul>
                             </td>
                             <td>

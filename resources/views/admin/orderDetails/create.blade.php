@@ -81,7 +81,7 @@
                 <div class="form-group mb-3">
                     <label for="deathline">Deathline</label>
                     <input class="form-control {{ $errors->has('deathline') ? 'is-invalid' : '' }}" type="date"
-                        name="deathline" id="deathline" value="{{ old('keterangan', '') }}">
+                        name="deathline" id="deathline" value="{{ old('deathline', $order->deathline ?? date('Y-m-d')) }}">
                     @if ($errors->has('deathline'))
                         <div class="invalid-feedback">
                             {{ $errors->first('deathline') }}
