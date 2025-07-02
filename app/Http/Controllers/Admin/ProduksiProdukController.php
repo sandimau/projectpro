@@ -20,7 +20,7 @@ class ProduksiProdukController extends Controller
 {
     public function index()
     {
-        $produksis = ProduksiProduk::all();
+        $produksis = ProduksiProduk::orderBy('id', 'desc')->get();
         return view('admin.produksiProduk.index', compact('produksis'));
     }
 
@@ -221,7 +221,7 @@ class ProduksiProdukController extends Controller
         $hpp = floor($produksi->biaya / $request->hasil);
 
         $produksi->update([
-            'status' => 'finish',
+            'status' => $request->hasil >= $produksi->target ? 'finish' : $produksi->status,
             'hasil' => $request->hasil,
             'hpp' => $hpp,
         ]);

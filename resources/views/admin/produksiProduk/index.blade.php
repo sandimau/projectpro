@@ -51,7 +51,7 @@
                                     @foreach ($produksis->where('status', '!=', 'finish') as $produksi)
                                         <tr>
                                             <td>{{ $produksi->created_at }}</td>
-                                            <td><a href="{{ route('produksi.show', $produksi->id) }}">{{ $produksi->produk->namaLengkap }}</a></td>
+                                            <td><a href="{{ route('produksi.show', $produksi->id) }}">{{ $produksi->produk->namaLengkap??'-' }}</a></td>
                                             <td>{{ $produksi->target }}</td>
                                             <td>{{ $produksi->biaya }}</td>
                                             <td>{{ $produksi->keterangan }}</td>
