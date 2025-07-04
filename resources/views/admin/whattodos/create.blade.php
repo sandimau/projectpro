@@ -28,6 +28,7 @@
                     @endif
                 </div>
                 <input type="hidden" name="member_id" value="{{ $member->id ?? '' }}">
+                <input type="hidden" name="user_id" value="{{ auth()->user()->id ?? '' }}">
                 <div class="form-group">
                     <button class="btn btn-primary mt-4" type="submit">
                         save

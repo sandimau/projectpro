@@ -218,21 +218,22 @@ class ProduksiProdukController extends Controller
             'hasil' => 'required',
         ]);
 
-        $hpp = floor($produksi->biaya / $request->hasil);
+        $hasilTotal = $request->hasil + ($produksi->hasil ?? 0);
+        $hpp = floor($produksi->biaya / $hasilTotal);
 
         $produksi->update([
-            'status' => $request->hasil >= $produksi->target ? 'finish' : $produksi->status,
-            'hasil' => $request->hasil,
+            'status' => $hasilTotal >= $produksi->target ? 'finish' : $produksi->status,
+            'hasil' => $hasilTotal,
             'hpp' => $hpp,
         ]);
 
         $produk = $produksi->produk;
         ///////////////////hitung hpp
-        $total = $produk->lastStok()->first()->pivot->saldo ?? 0;
-        if ($total > 0)
-            $hpp = (($total * $produk->hpp) + ($produksi->hpp * $produksi->hasil)) / ($produksi->hasil + $total);
-        else
-            $hpp = $produksi->hpp;
+        // $total = $produk->lastStok()->first()->pivot->saldo ?? 0;
+        // if ($total > 0)
+        //     $hpp = (($total * $produk->hpp) + ($produksi->hpp * $produksi->hasil)) / ($produksi->hasil + $total);
+        // else
+        //     $hpp = $produksi->hpp;
         $produk->update(['hpp' => $hpp]);
 
         ProdukStok::create([

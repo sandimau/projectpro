@@ -80,7 +80,8 @@ class HomeController extends Controller
         Whattodo::create([
             'isi' => $request->isi,
             'nama' => 'tugas',
-            'member_id' => $request->member_id
+            'member_id' => $request->member_id,
+            'user_id' => $request->user_id
         ]);
 
         return redirect('/whattodo')->withSuccess(__('Whattodo created successfully.'));
