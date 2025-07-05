@@ -60,55 +60,57 @@
                                                         $nominal = '';
                                                         $order = $detail->order;
 
-                                                        $total = $order->total;
-                                                        if ($total < 1000000) {
-                                                            $warna = 'black';
-                                                            if ($total == 0) {
-                                                                $nominal = 0;
+                                                        if ($order) {
+                                                            $total = $order->total;
+                                                            if ($total < 1000000) {
+                                                                $warna = 'black';
+                                                                if ($total == 0) {
+                                                                    $nominal = 0;
+                                                                } else {
+                                                                    $nominal = floor($total / 1000) . 'rb';
+                                                                }
                                                             } else {
-                                                                $nominal = floor($total / 1000) . 'rb';
-                                                            }
-                                                        } else {
-                                                            if ($total <= 5000000) {
-                                                                $warna = 'green';
-                                                            } elseif ($total <= 10000000) {
-                                                                $warna = '#FAA814';
-                                                            } else {
-                                                                $warna = '#D93007';
+                                                                if ($total <= 5000000) {
+                                                                    $warna = 'green';
+                                                                } elseif ($total <= 10000000) {
+                                                                    $warna = '#FAA814';
+                                                                } else {
+                                                                    $warna = '#D93007';
+                                                                }
+
+                                                                $nominal = round($total, -5) / 1000000 . 'jt';
                                                             }
 
-                                                            $nominal = round($total, -5) / 1000000 . 'jt';
+                                                            $konsumen = $order->kontak;
+                                                            $konsumen_detail = $order->konsumen_detail;
+                                                            $model_ar = $konsumen->ar ?? null;
+                                                            $kode = $model_ar ? $model_ar->kode : '';
+                                                            $test = $model_ar ? $model_ar->warna : '';
+                                                            $tampilan .=
+                                                                "<a class='popup d-flex'  href='" .
+                                                                url('admin/order/' . $detail->order_id . '/detail') .
+                                                                "' ><p style='font-weight:600' class='text-default'>";
+
+                                                            $tampilan .=
+                                                                " <span class='label label-rounded' style='background-color: " .
+                                                                $test .
+                                                                "'> " .
+                                                                $kode .
+                                                                '  </span>';
+
+                                                            $tampilan .=
+                                                                " <span class='label label-rounded mr-1' style='background-color: " .
+                                                                $warna .
+                                                                "'> " .
+                                                                $nominal .
+                                                                '  </span> ';
+
+                                                            $tampilan .=
+                                                                $konsumen->nama .
+                                                                ' <span style="color:#222222">' .
+                                                                $konsumen_detail .
+                                                                '</span></p>';
                                                         }
-
-                                                        $konsumen = $order->kontak;
-                                                        $konsumen_detail = $order->konsumen_detail;
-                                                        $model_ar = $konsumen->ar ?? null;
-                                                        $kode = $model_ar ? $model_ar->kode : '';
-                                                        $test = $model_ar ? $model_ar->warna : '';
-                                                        $tampilan .=
-                                                            "<a class='popup d-flex'  href='" .
-                                                            url('admin/order/' . $detail->order_id . '/detail') .
-                                                            "' ><p style='font-weight:600' class='text-default'>";
-
-                                                        $tampilan .=
-                                                            " <span class='label label-rounded' style='background-color: " .
-                                                            $test .
-                                                            "'> " .
-                                                            $kode .
-                                                            '  </span>';
-
-                                                        $tampilan .=
-                                                            " <span class='label label-rounded mr-1' style='background-color: " .
-                                                            $warna .
-                                                            "'> " .
-                                                            $nominal .
-                                                            '  </span> ';
-
-                                                        $tampilan .=
-                                                            $konsumen->nama .
-                                                            ' <span style="color:#222222">' .
-                                                            $konsumen_detail .
-                                                            '</span></p>';
                                                     }
 
                                                     $proses = '';
