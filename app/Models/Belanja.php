@@ -53,7 +53,68 @@ class Belanja extends Model
         }
     }
 
-    public function produksi() {
+    public function produksi()
+    {
         return $this->belongsToMany(ProduksiProduk::class, 'produk_produksi_belanja', 'belanja_id', 'produksi_id');
+    }
+
+    public function po()
+    {
+        return $this->belongsToMany(Po::class, 'produk_po_belanja', 'belanja_id', 'po_id');
+    }
+
+    public function relasiHutang()
+    {
+        return $this->hasOne(Hutang::class, 'kontak_id', 'kontak_id')
+            ->where('jenis', 'belanja')
+            ->where('jumlah', $this->total)
+            ->where('tanggal', $this->tanggal_beli)
+            ->with('details');
+    }
+
+    public function getHutangAttribute()
+    {
+        $hutang = $this->relasiHutang;
+        if ($hutang && $hutang->sisa > 0) {
+            return $hutang->sisa;
+        }
+        return 0;
+    }
+
+    public function getStatusHutangAttribute()
+    {
+        $hutang = $this->relasiHutang;
+        if ($hutang && $hutang->sisa > 0) {
+            return 'belum_lunas';
+        }
+        return 'lunas';
+    }
+
+    public function getTotalBayarAttribute()
+    {
+        $hutang = $this->relasiHutang;
+        if ($hutang) {
+            return $hutang->total_bayar;
+        }
+        return 0;
+    }
+
+    public function getSisaHutangAttribute()
+    {
+        $hutang = $this->relasiHutang;
+        if ($hutang) {
+            return $hutang->sisa;
+        }
+        return 0;
+    }
+
+    public function getPersentaseBayarAttribute()
+    {
+        $totalBayar = $this->total_bayar;
+        $totalAwal = $this->total;
+        if ($totalAwal > 0) {
+            return ($totalBayar / $totalAwal) * 100;
+        }
+        return 0;
     }
 }

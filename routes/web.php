@@ -261,6 +261,25 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::get('/produksi/{produksi}/ambilBahan', 'ProduksiProdukController@ambilBahan')->name('produksi.ambilBahan');
             Route::post('/produksi/{produksi}/ambilBahan', 'ProduksiProdukController@ambilBahanStore')->name('produksi.ambilBahanStore');
             Route::delete('/produksi/{produksi}/ambilBahan/{bahan}', 'ProduksiProdukController@ambilBahanDestroy')->name('produksi.ambilBahanDestroy');
+
+            // po
+            Route::get('/po', 'POController@index')->name('po.index');
+            Route::get('/po/create', 'POController@create')->name('po.create');
+            Route::post('/po', 'POController@store')->name('po.store');
+            Route::get('/po/{po}/edit', 'POController@edit')->name('po.edit');
+            Route::patch('/po/{po}/update', 'POController@update')->name('po.update');
+            Route::get('/po/{po}/show', 'POController@show')->name('po.show');
+            Route::patch('/po/{po}/selesaiStore', 'POController@selesaiStore')->name('po.selesaiStore');
+            Route::patch('/po/{po}/selesai', 'POController@selesai')->name('po.selesai');
+            Route::get('/po/{po}/detail/{detail}/edit', 'POController@detailEdit')->name('po.detail.edit');
+            Route::patch('/po/{po}/detail/{detail}/update', 'POController@detailUpdate')->name('po.detail.update');
+            Route::delete('/po/{po}/detail/{detail}/destroy', 'POController@detailDestroy')->name('po.detail.destroy');
+            Route::get('/po/{po}/detail/create', 'POController@detailCreate')->name('po.detail.create');
+            Route::post('/po/{po}/detail/store', 'POController@detailStore')->name('po.detail.store');
+            Route::get('/po/{po}/deposit', 'POController@deposit')->name('po.deposit');
+            Route::post('/po/{po}/deposit/store', 'POController@depositStore')->name('po.deposit.store');
+            Route::get('/po/{po}/belanja/create', 'POController@belanjaCreate')->name('po.belanja.create');
+            Route::post('/po/{po}/belanja/store', 'POController@belanjaStore')->name('po.belanja.store');
         });
     });
 });

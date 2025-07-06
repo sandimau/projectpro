@@ -58,4 +58,9 @@ class AkunDetail extends Model
         });
     }
 
+    public function buku_besars()
+    {
+        return $this->hasMany(BukuBesar::class);
+    }
+
 }

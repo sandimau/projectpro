@@ -189,6 +189,15 @@
                         {{ __('Produksi') }}
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->is('po*') ? 'active' : '' }}"
+                        href="{{ route('po.index') }}">
+                        <svg class="nav-icon">
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-basket') }}"></use>
+                        </svg>
+                        {{ __('PO') }}
+                    </a>
+                </li>
             @endcan
         </ul>
     </li>

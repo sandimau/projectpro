@@ -61,6 +61,9 @@
                                         @if ($bukubesar->kode == 'trf')
                                             <td>{{ $bukubesar->ket}}</td>
                                         @endif
+                                        @if ($bukubesar->kode == 'dpst')
+                                            <td>{{ $bukubesar->ket}}</td>
+                                        @endif
                                     @else
                                         <td>{{ $bukubesar->ket}}</td>
                                     @endif

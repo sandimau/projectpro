@@ -49,7 +49,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-4 text-end">
                                 @can('order_detail_create')
                                     <a href="{{ route('orderDetail.add', $order->id) }}"
                                         class="btn btn-success rounded-pill text-white">

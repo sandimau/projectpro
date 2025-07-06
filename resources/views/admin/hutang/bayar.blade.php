@@ -43,7 +43,7 @@
 
 
                                         <div class="form-group mb-3">
-                                            @if ($hutang->jenis == 'hutang')
+                                            @if ($hutang->jenis == 'hutang' || $hutang->jenis == 'belanja')
                                                 <label for="akun_detail_id" class="mb-2">Keluar dari Kas</label>
                                             @else
                                                 <label for="akun_detail_id" class="mb-2">Masuk ke Kas</label>

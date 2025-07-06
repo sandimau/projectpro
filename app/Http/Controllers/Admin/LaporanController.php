@@ -22,7 +22,7 @@ class LaporanController extends Controller
         $modal = AkunDetail::modal();
 
         $piutang = Hutang::with('details')->where('jenis', '=', 'piutang')->get();
-        $hutang = Hutang::with('details')->where('jenis', '=', 'hutang')->get();
+        $hutang = Hutang::with('details')->whereIn('jenis', ['hutang', 'belanja'])->get();
 
         $total_piutang = 0;
         $total_hutang = 0;

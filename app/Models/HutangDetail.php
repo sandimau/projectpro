@@ -11,7 +11,8 @@ class HutangDetail extends Model
         'akun_detail_id',
         'tanggal',
         'jumlah',
-        'keterangan'
+        'keterangan',
+        'user_id'
     ];
 
     protected $casts = [
@@ -26,5 +27,10 @@ class HutangDetail extends Model
     public function akun_detail()
     {
         return $this->belongsTo(AkunDetail::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }
