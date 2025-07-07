@@ -511,10 +511,10 @@ class MarketplaceController extends Controller
 
                             ProdukStok::create([
                                 'produk_id' => $produk_id,
-                                'tambah' => 0,
-                                'kurang' => $stokx,
+                                'tambah' => $stokx,
+                                'kurang' => 0,
                                 'keterangan' => 'upload ' . $config->nama,
-                                'kode' => 'jual'
+                                'kode' => 'batal'
                             ]);
                         }
                     }
