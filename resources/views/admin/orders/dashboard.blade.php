@@ -51,6 +51,11 @@
                                                 $order_id = 0;
 
                                                 foreach ($item->orderDetail()->get() as $detail) {
+                                                    // Filter: skip jika order_id tidak ada atau null
+                                                    if (!$detail->order_id) {
+                                                        continue;
+                                                    }
+
                                                     if ($order_id != $detail->order_id) {
                                                         if ($order_id != 0) {
                                                             $tampilan .= '<div class=pull-right></div></a>';
