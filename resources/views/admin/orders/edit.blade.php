@@ -17,6 +17,18 @@
             <form method="POST" action="{{ route('order.update', [$order->id]) }}" enctype="multipart/form-data">
                 @method('patch')
                 @csrf
+
+                <div class="form-group mb-3">
+                    <label for="nota">Nota</label>
+                    <input class="form-control {{ $errors->has('nota') ? 'is-invalid' : '' }}" type="text"
+                        name="nota" id="nota"
+                        value="{{ old('nota', $order->nota) }}">
+                    @if ($errors->has('nota'))
+                        <div class="invalid-feedback">
+                            {{ $errors->first('nota') }}
+                        </div>
+                    @endif
+                </div>
                 <div class="form-group mb-3">
                     <label for="konsumen_detail">konsumen_detail</label>
                     <input class="form-control {{ $errors->has('konsumen_detail') ? 'is-invalid' : '' }}" type="text"

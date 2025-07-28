@@ -29,18 +29,6 @@
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Satuan</label>
-                <select class="form-control @error('satuan') is-invalid @enderror" name="satuan">
-                    @foreach ($satuan as $item)
-                        <option value="{{ $item }}" {{ old('satuan') == $item ? 'selected' : '' }}>{{ $item }}</option>
-                    @endforeach
-                </select>
-                @error('satuan')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
-
-            <div class="mb-3">
                 <label class="form-label">Deskripsi</label>
                 <textarea class="form-control" name="deskripsi">{{ old('deskripsi') }}</textarea>
             </div>
