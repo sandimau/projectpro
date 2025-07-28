@@ -78,6 +78,7 @@ class MarketplaceController extends Controller
     public function edit(Marketplace $marketplace)
     {
         abort_if(Gate::denies('marketplace_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $marketplace->load('produk.produkModel.kategori');
         $kasMarketplace = AkunDetail::with('akun_kategori')
             ->whereHas('akun_kategori', function ($q) {
                 $q->where('nama', 'marketplace');
@@ -209,7 +210,7 @@ class MarketplaceController extends Controller
 
                         BelanjaDetail::create([
                             'belanja_id' => $belanja->id,
-                            'produk_id' => 66,
+                            'produk_id' => $config->iklan,
                             'harga' => abs($baris[6]),
                             'jumlah' => 1,
                             'keterangan' => $baris[3],

@@ -31,6 +31,7 @@
                                 <th scope="col">kas marketplace</th>
                                 <th scope="col">kas penarikan</th>
                                 <th scope="col">konsumen</th>
+                                <th scope="col">produk Iklan</th>
                                 @can('marketplace_edit')
                                     <th scope="col">actions</th>
                                 @endcan
@@ -46,6 +47,7 @@
                                     <td>{{ $marketplace->kas->nama }}</td>
                                     <td>{{ $marketplace->kasPenarikan->nama }}</td>
                                     <td>{{ $marketplace->kontak->nama }}</td>
+                                    <td>{{ $marketplace->produk->namaLengkap ?? '-' }}</td>
                                     @can('marketplace_edit')
                                         <td>
                                             <div class="d-flex">

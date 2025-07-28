@@ -33,4 +33,9 @@ class Marketplace extends Model
     {
         return $this->belongsTo(AkunDetail::class, 'penarikan_id');
     }
+
+    public function produk()
+    {
+        return $this->belongsTo(Produk::class, 'iklan');
+    }
 }
