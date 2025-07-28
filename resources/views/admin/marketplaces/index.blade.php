@@ -51,8 +51,13 @@
                                             <div class="d-flex">
                                                 <a href="{{ route('marketplaces.edit', $marketplace->id) }}"
                                                     class="btn btn-info btn-sm me-1"><i class='bx bxs-edit'></i> Edit</a>
-                                                <a href="{{ route('marketplaces.destroy', $marketplace->id) }}"
-                                                    class="btn btn-danger btn-sm me-1"><i class='bx bxs-trash'></i> Delete</a>
+                                                <form action="{{ route('marketplaces.destroy', $marketplace->id) }}" method="post">
+                                                    {{ csrf_field() }}
+                                                    {{ method_field('delete') }}
+                                                    <button type="submit" onclick="return confirm('Are you sure?')"
+                                                        class="btn btn-danger btn-sm"><i class='bx bxs-trash'></i>
+                                                        delete</button>
+                                                </form>
                                             </div>
                                         </td>
                                     @endcan
