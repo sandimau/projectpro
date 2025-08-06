@@ -14,22 +14,26 @@
         <div class="card">
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
-                    <form action="{{ route('order.unpaid') }}" method="get" class="d-flex gap-2 align-items-center">
-                        <label for="nota" class="form-label mb-0">Nota</label>
-                        <input type="text" name="nota" class="form-control">
-                        <label for="nota" class="form-label mb-0">Konsumen</label>
-                        <div id="autocomplete" class="autocomplete">
-                            <input class="autocomplete-input {{ $errors->has('kontak_id') ? 'is-invalid' : '' }}"
-                                placeholder="cari kontak" aria-label="cari kontak">
-                            <span id="closeBrg"></span>
-                            <ul class="autocomplete-result-list"></ul>
-                            <input type="hidden" id="kontakId" name="kontak_id">
+                    <form action="{{ route('order.unpaid') }}" method="get" class="d-flex gap-2 align-items-center flex-wrap">
+                        <div class="d-flex gap-2 align-items-center">
+                            <label for="nota" class="form-label mb-0">Nota</label>
+                            <input type="text" name="nota" class="form-control">
+                            <label for="nota" class="form-label mb-0">Konsumen</label>
+                            <div id="autocomplete" class="autocomplete">
+                                <input class="autocomplete-input {{ $errors->has('kontak_id') ? 'is-invalid' : '' }}"
+                                    placeholder="cari kontak" aria-label="cari kontak">
+                                <span id="closeBrg"></span>
+                                <ul class="autocomplete-result-list"></ul>
+                                <input type="hidden" id="kontakId" name="kontak_id">
+                            </div>
                         </div>
-                        <label for="tanggal" class="form-label mb-0">Dari</label>
-                        <input type="date" name="dari" class="form-control">
-                        <label for="tanggal" class="form-label mb-0">Sampai</label>
-                        <input type="date" name="sampai" class="form-control">
-                        <button type="submit" class="btn btn-primary">Filter</button>
+                        <div class="d-flex gap-2 align-items-center">
+                            <label for="tanggal" class="form-label mb-0">Dari</label>
+                            <input type="date" name="dari" class="form-control">
+                            <label for="tanggal" class="form-label mb-0">Sampai</label>
+                            <input type="date" name="sampai" class="form-control">
+                            <button type="submit" class="btn btn-primary">Filter</button>
+                        </div>
                     </form>
                 </div>
             </div>

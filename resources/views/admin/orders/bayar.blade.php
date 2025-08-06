@@ -72,7 +72,7 @@
                 <div class="form-group mb-3">
                     <label for="tanggal">tanggal</label>
                     <input class="form-control {{ $errors->has('tanggal') ? 'is-invalid' : '' }}" type="date"
-                        name="tanggal" id="tanggal" value="{{ old('tanggal', '') }}">
+                        name="tanggal" id="tanggal" value="{{ old('tanggal', date('Y-m-d')) }}">
                     @if ($errors->has('tanggal'))
                         <div class="invalid-feedback">
                             {{ $errors->first('tanggal') }}
