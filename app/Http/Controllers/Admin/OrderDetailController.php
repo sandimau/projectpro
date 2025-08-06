@@ -126,8 +126,8 @@ class OrderDetailController extends Controller
                 $awal = Produksi::find($detail->produksi_id)->grup;
                 $perubahan = Produksi::find($request->produksi_id)->grup;
 
-                if ($detail->order->username) {
-                    $username = '('.$detail->order->username.')';
+                if ($detail->order->konsumen_detail) {
+                    $username = '('.$detail->order->konsumen_detail.')';
                 } else {
                     $username = '';
                 }

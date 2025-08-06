@@ -460,18 +460,32 @@ class MarketplaceController extends Controller
 
                         $hpp = Produk::find($produk->id);
 
-                        /////mulai input orderdetil ke array
-                        $orderdetil[] = array(
-                            'produk_id' => $produk->id,
-                            'jumlah' => $baris[$marketplace->jumlah],
-                            'tema' => $custom,
-                            'harga' => $harga,
-                            'hpp' => $hpp->hpp,
-                            'produksi_id' => $produksi_id,
-                            'nota' => $nota,
-                            'created_at' => $tanggal,
-                            'deathline' => $deathline
-                        );
+                        if ($orderCustom && $marketplace->marketplace == 'tiktok') {
+                            $orderdetil[] = array(
+                                'produk_id' => $produk->id,
+                                'jumlah' => $jumlah,
+                                'tema' => $custom,
+                                'harga' => $harga / $jumlah,
+                                'hpp' => $hpp->hpp,
+                                'produksi_id' => $produksi_id,
+                                'nota' => $nota,
+                                'created_at' => $tanggal,
+                                'deathline' => $deathline
+                            );
+                        } else {
+                            /////mulai input orderdetil ke array
+                            $orderdetil[] = array(
+                                'produk_id' => $produk->id,
+                                'jumlah' => $baris[$marketplace->jumlah],
+                                'tema' => $custom,
+                                'harga' => $harga,
+                                'hpp' => $hpp->hpp,
+                                'produksi_id' => $produksi_id,
+                                'nota' => $nota,
+                                'created_at' => $tanggal,
+                                'deathline' => $deathline
+                            );
+                        }
 
                         ///////////////////kalo ordernya ga batal, dan produknya ada stoknya, input brapa yg terjual
                         if ($status != $marketplace->batal and $produk->stok == 1 and !$orderCustom)
