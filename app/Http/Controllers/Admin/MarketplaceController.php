@@ -291,6 +291,7 @@ class MarketplaceController extends Controller
         $request->validate([
             'order' => 'required|mimes:csv',
         ]);
+
         try {
             DB::transaction(function () use ($request, $id) {
 
@@ -378,7 +379,7 @@ class MarketplaceController extends Controller
 
                     if ($input) {
 
-                        $tanggal = $baris[$marketplace->tanggal];
+                        $tanggal = trim($baris[$marketplace->tanggal]);
                         $tanggal = Carbon::createFromFormat($marketplace->formatTanggal, $tanggal)->toDateTimeString();
                         $nama = $baris[$marketplace->nama];
                         $tema = $baris[$marketplace->tema];
@@ -403,15 +404,25 @@ class MarketplaceController extends Controller
                                 $awal = false;
                             }
 
+                            if ($marketplace->marketplace == 'tiktok') {
+                                $ongkir = $baris[$marketplace->ongkir];
+                                $deathline = Carbon::parse($tanggal)->addDays(3);
+                            }
+
+                            if ($marketplace->marketplace == 'shopee') {
+                                $ongkir = str_replace(".", "", $baris[$marketplace->ongkir]);
+                                $deathline = $baris[$marketplace->deathline];
+                            }
+
                             $order[] = array(
                                 'kontak_id' => $id_shopee,
                                 'total' => $total,
                                 'nota' => $nota,
                                 'created_at' => $tanggal,
                                 'konsumen_detail' => $nama,
-                                'deathline' => $baris[8],
+                                'deathline' => $deathline,
                                 'marketplace' => 1,
-                                'ongkir' => $total - str_replace(".", "", $baris[21])
+                                'ongkir' => $ongkir
                             );
                         }
                         ////jika sku NON_PRODUK, skip penginputan
@@ -459,7 +470,7 @@ class MarketplaceController extends Controller
                             'produksi_id' => $produksi_id,
                             'nota' => $nota,
                             'created_at' => $tanggal,
-                            'deathline' => $baris[8]
+                            'deathline' => $deathline
                         );
 
                         ///////////////////kalo ordernya ga batal, dan produknya ada stoknya, input brapa yg terjual
@@ -782,7 +793,6 @@ class MarketplaceController extends Controller
                 'hpp' => $hpp,
                 'iklan' => $iklan
             ];
-
         }
 
         return view('admin.marketplaces.analisa', compact('marketplaces', 'data'));

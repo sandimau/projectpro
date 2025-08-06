@@ -29,6 +29,7 @@
                         <option value="{{ null }}">pilih marketplace</option>
                         <option value="tokopedia">tokopedia</option>
                         <option value="shopee">shopee</option>
+                        <option value="tiktok">tiktok</option>
                     </select>
                     @if ($errors->has('marketplace'))
                         <div class="invalid-feedback">
