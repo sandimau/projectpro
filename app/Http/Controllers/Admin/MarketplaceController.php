@@ -778,6 +778,7 @@ class MarketplaceController extends Controller
                 ->selectRaw('sum(order_details.hpp*order_details.jumlah) as hpp, orders.kontak_id')
                 ->whereYear('orders.created_at', $tahun_skr)
                 ->whereMonth('orders.created_at', $i)
+                ->where('orders.bayar', '>', 0)
                 ->groupBy('orders.kontak_id')
                 ->get()
                 ->pluck('hpp', 'kontak_id');
