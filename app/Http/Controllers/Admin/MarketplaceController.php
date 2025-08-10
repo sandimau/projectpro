@@ -291,7 +291,6 @@ class MarketplaceController extends Controller
         $request->validate([
             'order' => 'required|mimes:csv',
         ]);
-
         try {
             DB::transaction(function () use ($request, $id) {
 
@@ -379,7 +378,7 @@ class MarketplaceController extends Controller
 
                     if ($input) {
 
-                        $tanggal = trim($baris[$marketplace->tanggal]);
+                        $tanggal = $baris[$marketplace->tanggal];
                         $tanggal = Carbon::createFromFormat($marketplace->formatTanggal, $tanggal)->toDateTimeString();
                         $nama = $baris[$marketplace->nama];
                         $tema = $baris[$marketplace->tema];
@@ -404,15 +403,8 @@ class MarketplaceController extends Controller
                                 $awal = false;
                             }
 
-                            if ($marketplace->marketplace == 'tiktok') {
-                                $ongkir = $baris[$marketplace->ongkir];
-                                $deathline = Carbon::parse($tanggal)->addDays(3);
-                            }
-
-                            if ($marketplace->marketplace == 'shopee') {
-                                $ongkir = str_replace(".", "", $baris[$marketplace->ongkir]);
-                                $deathline = $baris[$marketplace->deathline];
-                            }
+                            $ongkir = str_replace(".", "", $baris[$marketplace->ongkir]);
+                            $deathline = $baris[$marketplace->deathline];
 
                             $order[] = array(
                                 'kontak_id' => $id_shopee,
@@ -460,32 +452,18 @@ class MarketplaceController extends Controller
 
                         $hpp = Produk::find($produk->id);
 
-                        if ($orderCustom && $marketplace->marketplace == 'tiktok') {
-                            $orderdetil[] = array(
-                                'produk_id' => $produk->id,
-                                'jumlah' => $jumlah,
-                                'tema' => $custom,
-                                'harga' => $harga / $jumlah,
-                                'hpp' => $hpp->hpp,
-                                'produksi_id' => $produksi_id,
-                                'nota' => $nota,
-                                'created_at' => $tanggal,
-                                'deathline' => $deathline
-                            );
-                        } else {
-                            /////mulai input orderdetil ke array
-                            $orderdetil[] = array(
-                                'produk_id' => $produk->id,
-                                'jumlah' => $baris[$marketplace->jumlah],
-                                'tema' => $custom,
-                                'harga' => $harga,
-                                'hpp' => $hpp->hpp,
-                                'produksi_id' => $produksi_id,
-                                'nota' => $nota,
-                                'created_at' => $tanggal,
-                                'deathline' => $deathline
-                            );
-                        }
+                        /////mulai input orderdetil ke array
+                        $orderdetil[] = array(
+                            'produk_id' => $produk->id,
+                            'jumlah' => $baris[$marketplace->jumlah],
+                            'tema' => $custom,
+                            'harga' => $harga,
+                            'hpp' => $hpp->hpp,
+                            'produksi_id' => $produksi_id,
+                            'nota' => $nota,
+                            'created_at' => $tanggal,
+                            'deathline' => $deathline
+                        );
 
                         ///////////////////kalo ordernya ga batal, dan produknya ada stoknya, input brapa yg terjual
                         if ($status != $marketplace->batal and $produk->stok == 1 and !$orderCustom)
