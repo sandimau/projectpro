@@ -206,6 +206,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::resource('marketplaces', 'MarketplaceController');
             Route::post('/marketplaces/{id}/uploadKeuangan', 'MarketplaceController@uploadKeuangan')->name('marketplaces.uploadKeuangan');
             Route::post('/marketplaces/{id}/uploadOrder', 'MarketplaceController@uploadOrder')->name('marketplaces.uploadOrder');
+            Route::post('/marketplaces/{id}/uploadOrderTiktok', 'MarketplaceController@uploadOrderTiktok')->name('marketplaces.uploadOrderTiktok');
             Route::post('/marketplaces/{id}/uploadStok', 'MarketplaceController@uploadStok')->name('marketplaces.uploadStok');
             Route::get('/analisaMarketplace', 'MarketplaceController@analisa')->name('marketplaces.analisa');
 

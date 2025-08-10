@@ -14,7 +14,18 @@
         </div>
 
         <div class="card-body">
-            <form method="POST" action="{{ route('marketplaces.uploadOrder', $marketplace->id) }}"
+
+            @php
+                if ($marketplace->marketplace == 'tiktok') {
+                    $order = route('marketplaces.uploadOrderTiktok', $marketplace->id);
+                    $keuangan = $stok = '';
+                } else {
+                    $order = route('marketplaces.uploadOrder', $marketplace->id);
+                    $keuangan = route('marketplaces.uploadKeuangan', $marketplace->id);
+                    $stok = route('marketplaces.uploadStok', $marketplace->id);
+                }
+            @endphp
+            <form method="POST" action="{{ $order }}"
                 enctype="multipart/form-data">
                 @csrf
                 <div class="form-group mb-3">
@@ -60,7 +71,7 @@
         </div>
 
         <div class="card-body">
-            <form method="POST" action="{{ route('marketplaces.uploadKeuangan', $marketplace->id) }}"
+            <form method="POST" action="{{ $keuangan }}"
                 enctype="multipart/form-data">
                 @csrf
                 <div class="form-group mb-3">
@@ -117,7 +128,7 @@
             <b>Upload Stok</b>
         </div>
         <div class="card-body">
-            <form method="POST" action="{{ route('marketplaces.uploadStok', $marketplace->id) }}" enctype="multipart/form-data">
+            <form method="POST" action="{{ $stok }}" enctype="multipart/form-data">
                 @csrf
                 <div class="form-group mb-3">
                     <label class="required" for="stok">file harus berformat .csv</label>

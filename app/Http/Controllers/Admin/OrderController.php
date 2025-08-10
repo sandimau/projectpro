@@ -158,7 +158,7 @@ class OrderController extends Controller
     public function marketplace(Request $request)
     {
         if ($request->dari == null && $request->sampai == null && $request->nota == null && $request->kontak_id == null && $request->produk_id == null) {
-            $orders = Order::whereNotNull('marketplace')->orderBy('id', 'desc')->paginate(10);
+            $orders = Order::whereNotNull('marketplace')->orderBy('created_at', 'desc')->paginate(10);
         } else {
             $orders = Order::query()
                 ->leftJoin('order_details', 'orders.id', '=', 'order_details.order_id')
@@ -178,7 +178,7 @@ class OrderController extends Controller
                 ->select('orders.*')
                 ->where('kontaks.marketplace', 1)
                 ->distinct()
-                ->orderBy('orders.id', 'desc')
+                ->orderBy('orders.created_at', 'desc')
                 ->paginate(10)
                 ->appends(['dari' => $request->dari, 'sampai' => $request->sampai, 'nota' => $request->nota, 'kontak_id' => $request->kontak_id, 'produk_id' => $request->produk_id]);
         }
