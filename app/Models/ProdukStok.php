@@ -28,7 +28,7 @@ class ProdukStok extends Model
         ProdukStok::saving(function ($model) {
 
             $terakhir = ($model->where('produk_id', $model->produk_id)->latest('id')->first()->saldo) ?? 0;
-            $model->saldo = $terakhir + $model->tambah - $model->kurang;
+            $model->saldo = (int)$terakhir + (int)$model->tambah - (int)$model->kurang;
 
             $dataProduk = Produk::find($model->produk_id);
 
