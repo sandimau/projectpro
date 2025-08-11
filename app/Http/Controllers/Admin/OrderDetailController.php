@@ -142,7 +142,7 @@ class OrderDetailController extends Controller
                         'produk_id' => $detail->produk->id,
                     ]);
                 }
-                if ($awal == 'selesai' and $perubahan == 'batal') {
+                if ($awal == 'selesai' || $awal == 'produksi' && $perubahan == 'batal') {
                     //tambah stok
                     ProdukStok::create([
                         'tambah' => $detail->jumlah,
