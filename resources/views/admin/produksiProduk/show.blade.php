@@ -164,7 +164,6 @@
                 </div>
             </div>
 
-
             <div class="col-lg-6">
                 <div class="card mt-4">
                     <div class="card-body">
@@ -244,6 +243,42 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12 mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h4 class="mb-0">hasil produksi</h4>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Keterangan</th>
+                            <th>kode</th>
+                            <th>hpp</th>
+                            <th>tambah</th>
+                            <th>kurang</th>
+                            <th>saldo</th>
+                            <th>user</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($produksi->hasilStok as $stok)
+                            <tr>
+                                <td>{{ $stok->created_at->format('d-m-Y') }}</td>
+                                <td>{{ $stok->keterangan }}</td>
+                                <td>{{ $stok->kode }}</td>
+                                <td>{{ $stok->hpp }}</td>
+                                <td>{{ $stok->tambah }}</td>
+                                <td>{{ $stok->kurang }}</td>
+                                <td>{{ $stok->saldo }}</td>
+                                <td>{{ $stok->user ? $stok->user->name : null }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
 

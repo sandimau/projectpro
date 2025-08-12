@@ -238,7 +238,7 @@ class ProduksiProdukController extends Controller
 
         ProdukStok::create([
             'produk_id' => $produk->id,
-            'tambah' => $produksi->hasil,
+            'tambah' => $request->hasil,
             'kurang' => 0,
             'keterangan' => 'hasil produksi',
             'kode' => 'hasilProduksi',

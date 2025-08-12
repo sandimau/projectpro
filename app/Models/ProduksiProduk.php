@@ -50,4 +50,9 @@ class ProduksiProduk extends Model
     {
         return $this->hasMany(ProduksiBahan::class, 'produksi_id');
     }
+
+    public function hasilStok()
+    {
+        return $this->hasMany(ProdukStok::class, 'detail_id', 'id')->where('kode', 'hasilProduksi')->orderBy('id', 'desc');
+    }
 }
