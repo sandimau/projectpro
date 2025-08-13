@@ -30,6 +30,14 @@
                         </div>
 
                         <div class="mb-3">
+                            <label class="form-label">HPP (Harga Pokok Penjualan)</label>
+                            <input type="number" step="0.01" class="form-control @error('hpp') is-invalid @enderror" name="hpp" value="{{ old('hpp', $produk->hpp) }}">
+                            @error('hpp')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
                             <button type="submit" class="btn btn-primary">Update</button>
                             <a href="{{ route('produkModel.show', ['produkModel' => $produkModel->id, 'kategori_id' => $produkModel->kategori_id]) }}" class="btn btn-secondary">Kembali</a>
                         </div>
