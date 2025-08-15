@@ -8,6 +8,15 @@
     <header class="header mb-4">
         <div class="container-fluid">
             <h5 class="card-title">Arsip Orders</h5>
+            <div class="mt-2">
+                @role('super')
+                    <form action="{{ route('order.hapusCancel') }}" method="POST"
+                        onsubmit="return confirm('Yakin hapus semua order yang di cancel?')">
+                        @csrf
+                        <button type="submit" class="btn btn-danger">Hapus Order Cancel</button>
+                    </form>
+                @endrole
+            </div>
         </div>
     </header>
     <div class="bg-light rounded">
@@ -99,8 +108,8 @@
 @endsection
 
 @push('after-scripts')
-<script src="{{ asset('js/autocomplete.min.js') }}"></script>
-<link rel="stylesheet" href="{{ asset('js/autocomplete.css') }}">
+    <script src="{{ asset('js/autocomplete.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ asset('js/autocomplete.css') }}">
     <script>
         new Autocomplete('#autocomplete', {
             search: input => {
@@ -145,7 +154,8 @@
                         })
                 })
             },
-            getResultValue: result => result.varian ? result.kategori + ' - ' + result.nama + ' - ' + result.varian : result.kategori + ' - ' + result.nama,
+            getResultValue: result => result.varian ? result.kategori + ' - ' + result.nama + ' - ' + result
+                .varian : result.kategori + ' - ' + result.nama,
             onSubmit: result => {
                 let idProduk = document.getElementById('produkId');
                 idProduk.value = result.id;

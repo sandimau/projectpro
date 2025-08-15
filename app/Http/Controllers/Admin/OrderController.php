@@ -374,4 +374,13 @@ class OrderController extends Controller
         $years = Order::omzetBulan(date('Y'))->get();
         return view('admin.orders.omzetBulan', compact('years'));
     }
+
+    public function hapusCancel()
+    {
+        Order::where('total', 0)
+            ->where('marketplace', 1)
+            ->where('created_at', '<=', now()->subDay())
+            ->delete();
+        return redirect()->back()->withSuccess(__('Order canceled telah dihapus.'));
+    }
 }
