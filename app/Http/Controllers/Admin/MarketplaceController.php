@@ -853,7 +853,7 @@ class MarketplaceController extends Controller
                 $awal_id = Produksi::ambilFlow('Persiapan');
 
                 //////ambil nota terakhir yg udah terinput
-                $terakhir = Order::where('kontak_id', $id_shopee)->latest('id')->first();
+                $terakhir = Order::where('kontak_id', $id_shopee)->latest('created_at')->first();
 
                 // Proses data dari bawah ke atas (reverse array), skip header
                 $data_rows = array_slice($all_rows, $header); // ambil data setelah header
@@ -1056,22 +1056,55 @@ class MarketplaceController extends Controller
                     $order = array_reverse($order);
                     $orderdetil = array_reverse($orderdetil);
 
-                    DB::table('orders')->insert($order);
-                    DB::table('order_details')->insert($orderdetil);
+                    // Filter order yang belum ada di database untuk menghindari duplikat
+                    $order_filtered = [];
+                    $orderdetil_filtered = [];
 
-                    ////ambil orderdetil yg pertama akan diinput (sekarang adalah yang terakhir dalam array)
-                    $orderdetil_awal = DB::table('order_details')->where('nota', $nota_awal)->orderBy('id', 'desc')->first()->id;
+                    foreach ($order as $order_item) {
+                        // Cek apakah order dengan nota dan kontak_id ini sudah ada
+                        $existing_order = DB::table('orders')
+                            ->where('nota', $order_item['nota'])
+                            ->where('kontak_id', $order_item['kontak_id'])
+                            ->exists();
 
+                        if (!$existing_order) {
+                            $order_filtered[] = $order_item;
 
-                    //////update order_id ke table order_details (pas pertama input msh kosong)
-                    DB::statement("UPDATE order_details
-                        SET order_id = (
-                            SELECT id
-                            FROM orders
-                            WHERE orders.nota=order_details.nota
-                                and kontak_id=" . $id_shopee . "
-                                limit 1
-                        ) where id>=" . $orderdetil_awal . " and order_details.nota is not Null");
+                            // Ambil order detail yang sesuai dengan nota ini
+                            foreach ($orderdetil as $detail_item) {
+                                if ($detail_item['nota'] == $order_item['nota']) {
+                                    $orderdetil_filtered[] = $detail_item;
+                                }
+                            }
+                        }
+                    }
+
+                    // Insert hanya order yang belum ada di database
+                    if (!empty($order_filtered)) {
+                        DB::table('orders')->insert($order_filtered);
+                    }
+
+                    if (!empty($orderdetil_filtered)) {
+                        DB::table('order_details')->insert($orderdetil_filtered);
+                    }
+
+                    // Update order_id ke table order_details hanya jika ada order detail yang baru diinsert
+                    if (!empty($orderdetil_filtered)) {
+                        ////ambil orderdetil yg pertama akan diinput (sekarang adalah yang terakhir dalam array)
+                        $orderdetil_awal = DB::table('order_details')->where('nota', $nota_awal)->orderBy('id', 'desc')->first();
+
+                        if ($orderdetil_awal) {
+                            //////update order_id ke table order_details (pas pertama input msh kosong)
+                            DB::statement("UPDATE order_details
+                                SET order_id = (
+                                    SELECT id
+                                    FROM orders
+                                    WHERE orders.nota=order_details.nota
+                                        and kontak_id=" . $id_shopee . "
+                                        limit 1
+                                ) where id>=" . $orderdetil_awal->id . " and order_details.nota is not Null");
+                        }
+                    }
 
 
                     //////ngurangi stok yg terjual/////////////////////////////////////////////////////////
