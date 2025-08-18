@@ -968,6 +968,7 @@ class MarketplaceController extends Controller
                             $barang = $skuParts[0]; // Mengambil bagian pertama dari SKU
                             $paket = $skuParts[1]; // Menambahkan paket dengan bagian kedua dari SKU
                             $jumlah = $jumlah * $paket;
+                            $harga = $harga / $jumlah;
                         }
 
                         /////////////////cek, apakah sku udah sesuai dgn produk_id
@@ -980,7 +981,7 @@ class MarketplaceController extends Controller
                         /////mulai input orderdetil ke array
                         $orderdetil[] = array(
                             'produk_id' => $produk->id,
-                            'jumlah' => $baris[$marketplace->jumlah],
+                            'jumlah' => $jumlah,
                             'tema' => $custom,
                             'harga' => $harga,
                             'hpp' => $hpp->hpp,
