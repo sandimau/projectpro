@@ -277,26 +277,31 @@ class ProdukController extends Controller
 
         // Get daily sales data
         foreach ($products as $product) {
-            // Calculate average sales for the last 3 months (exclude cancelled orders)
-            $avgSalesQuery = DB::table('order_details as od')
+            // Calculate average sales per day for current month until today (exclude cancelled orders)
+            $totalSalesQuery = DB::table('order_details as od')
                 ->join('orders as o', 'o.id', '=', 'od.order_id')
                 ->where('od.produk_id', $product->id)
-                ->whereRaw('o.created_at >= DATE_SUB(NOW(), INTERVAL 3 MONTH)')
+                ->whereRaw('YEAR(o.created_at) = YEAR(NOW())')
+                ->whereRaw('MONTH(o.created_at) = MONTH(NOW())')
+                ->whereRaw('DATE(o.created_at) <= CURDATE()') // sampai hari ini
                 ->whereRaw('o.total > 0'); // Only count orders with valid total
 
             // Exclude cancelled production if exists
             if ($batalProduksiId) {
-                $avgSalesQuery->where('od.produksi_id', '!=', $batalProduksiId);
+                $totalSalesQuery->where('od.produksi_id', '!=', $batalProduksiId);
             }
 
-            $avgSales = $avgSalesQuery->avg('od.jumlah');
-            $product->rata_penjualan = round($avgSales ?: 0, 1);
+            $totalSales = $totalSalesQuery->sum('od.jumlah'); // Total penjualan
+            $daysPassedThisMonth = date('j'); // Hari ke berapa dalam bulan ini (1-31)
+            $product->rata_penjualan = $daysPassedThisMonth > 0 ? round($totalSales / $daysPassedThisMonth, 0) : 0;
 
-            // Calculate number of unique orders for this product in the period (for daily average)
+            // Calculate number of unique orders for this product in current month until today
             $orderCountQuery = DB::table('order_details as od')
                 ->join('orders as o', 'o.id', '=', 'od.order_id')
                 ->where('od.produk_id', $product->id)
-                ->whereRaw('o.created_at >= DATE_SUB(NOW(), INTERVAL 3 MONTH)')
+                ->whereRaw('YEAR(o.created_at) = YEAR(NOW())')
+                ->whereRaw('MONTH(o.created_at) = MONTH(NOW())')
+                ->whereRaw('DATE(o.created_at) <= CURDATE()') // sampai hari ini
                 ->whereRaw('o.total > 0');
 
             if ($batalProduksiId) {
@@ -304,8 +309,8 @@ class ProdukController extends Controller
             }
 
             $orderCount = $orderCountQuery->distinct('o.id')->count('o.id');
-            $daysInPeriod = 90; // 3 months approximately
-            $product->rata_order_per_hari = round($orderCount / $daysInPeriod, 2);
+            $daysPassedThisMonth = date('j'); // Hari ke berapa dalam bulan ini (1-31)
+            $product->rata_order_per_hari = $daysPassedThisMonth > 0 ? round($orderCount / $daysPassedThisMonth, 2) : 0;
 
             // Get daily sales for the selected month (exclude cancelled orders)
             $dailySalesQuery = DB::table('order_details as od')
