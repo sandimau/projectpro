@@ -42,7 +42,7 @@ class ProdukModelController extends Controller
             ->leftJoin('produk_last_stoks', 'produks.id', '=', 'produk_last_stoks.produk_id')
             ->leftJoin('belanja_details', function($join) {
                 $join->on('produks.id', '=', 'belanja_details.produk_id')
-                     ->whereRaw('belanja_details.id = (SELECT id FROM belanja_details WHERE produk_id = produks.id LIMIT 1)');
+                     ->whereRaw('belanja_details.id = (SELECT id FROM belanja_details WHERE produk_id = produks.id ORDER BY id DESC LIMIT 1)');
             })
             ->where('produk_models.kategori_id', $kategori->id)
             ->get();

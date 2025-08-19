@@ -8,7 +8,7 @@
 <div class="container-fluid">
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h4>Aset dan Omzet Produk</h4>
+            <h4>Aset dan Omzet Produk {{ $kategori->nama }}</h4>
             <form method="get" class="d-flex align-items-center">
                 <label for="month" class="me-2">Pilih Bulan:</label>
                 <select name="month" id="month" class="form-select me-2" onchange="this.form.submit()">

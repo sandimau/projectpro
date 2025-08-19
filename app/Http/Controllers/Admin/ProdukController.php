@@ -46,7 +46,6 @@ class ProdukController extends Controller
     public function update(Request $request, Produk $produk)
     {
         $request->validate([
-            'nama' => 'required',
             'status' => 'required|in:0,1',
         ]);
 
