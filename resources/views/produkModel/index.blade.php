@@ -73,6 +73,15 @@
                                 <td>
                                     <a href="{{ route('produk.stok', ['produk' => $produk->produk_id]) }}">{{ $produk->lastStok ?? 0 }}</a>
                                 </td>
+                                <td>
+                                    <form action="{{ route('produk.destroy', ['produk' => $produk->produk_id, 'kategori' => $kategori->id]) }}" method="POST" style="display: inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus produk ini?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="fas fa-trash"></i> Hapus
+                                        </button>
+                                    </form>
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>

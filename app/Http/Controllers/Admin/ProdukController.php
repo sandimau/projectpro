@@ -8,6 +8,7 @@ use App\Models\ProdukStok;
 use App\Models\ProdukModel;
 use Illuminate\Http\Request;
 use App\Models\BelanjaDetail;
+use App\Models\ProdukKategori;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 
@@ -55,10 +56,10 @@ class ProdukController extends Controller
         return redirect()->route('produkModel.show', ['produkModel' => $produkModel->id])->with('success', 'Produk berhasil diperbarui');
     }
 
-    public function destroy(Produk $produk)
+    public function destroy(Produk $produk, ProdukKategori $kategori)
     {
         $produk->delete();
-        return redirect()->route('produk.index')->with('success', 'Produk berhasil dihapus');
+        return redirect()->route('produkModel.index', ['kategori_id' => $kategori->id])->with('success', 'Produk berhasil dihapus');
     }
 
     public function stok(Produk $produk)

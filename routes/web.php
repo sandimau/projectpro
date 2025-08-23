@@ -228,6 +228,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::get('/produk/omzet', 'ProdukController@omzet')->name('produk.omzet');
             Route::get('/produk/omzet/{kategori}', 'ProdukController@omzetDetail')->name('produk.omzetDetail');
             Route::get('/produk/{produk}/belanja', 'ProdukController@belanja')->name('produk.belanja');
+            Route::delete('/produk/{produk}/delete/{kategori}', 'ProdukController@destroy')->name('produk.destroy');
 
             // laporan
             Route::get('/neraca', 'LaporanController@neraca')->name('laporan.neraca');
