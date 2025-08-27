@@ -18,7 +18,8 @@
             @php
                 if ($marketplace->marketplace == 'tiktok') {
                     $order = route('marketplaces.uploadOrderTiktok', $marketplace->id);
-                    $keuangan = $stok = '';
+                    $keuangan = route('marketplaces.uploadKeuanganTiktok', $marketplace->id);
+                    $stok = '';
                 } else {
                     $order = route('marketplaces.uploadOrder', $marketplace->id);
                     $keuangan = route('marketplaces.uploadKeuangan', $marketplace->id);

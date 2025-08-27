@@ -209,6 +209,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::post('/marketplaces/{id}/uploadOrder', 'MarketplaceController@uploadOrder')->name('marketplaces.uploadOrder');
             Route::post('/marketplaces/{id}/uploadOrderTiktok', 'MarketplaceController@uploadOrderTiktok')->name('marketplaces.uploadOrderTiktok');
             Route::post('/marketplaces/{id}/uploadStok', 'MarketplaceController@uploadStok')->name('marketplaces.uploadStok');
+            Route::post('/marketplaces/{id}/uploadKeuanganTiktok', 'MarketplaceController@uploadKeuanganTiktok')->name('marketplaces.uploadKeuanganTiktok');
             Route::get('/analisaMarketplace', 'MarketplaceController@analisa')->name('marketplaces.analisa');
 
             // produk-kategori-utama

@@ -286,6 +286,178 @@ class MarketplaceController extends Controller
         }
     }
 
+    public function uploadKeuanganTiktok(Request $request, Marketplace $id)
+    {
+        $request->validate([
+            'keuangan' => 'required|mimes:csv',
+        ]);
+
+        try {
+            DB::transaction(function () use ($request, $id) {
+                $file_excel = fopen(request()->keuangan, "r");
+                $i = 0;
+                $config = $id;
+                $marketplace = DB::table('marketplace_formats')->where('jenis', 'keuangan')->where('marketplace', $config->marketplace)->first();
+
+                $header = $marketplace->barisHeader ?? 1;
+
+                // Get existing orders for this marketplace contact
+                $existingOrders = DB::table('orders')
+                    ->where('kontak_id', $config->kontak_id)
+                    ->get();
+                $orders = $existingOrders->keyBy('nota');
+
+                $keuangan = $order = $iklan = [];
+                $input = false;
+                if ($config->baruKeuangan == 1)
+                    $input = true;
+                else
+                    //////ambil yg terakhir terinput
+                    $terakhir = bukuBesar::where('akun_detail_id', $config->kas_id)->latest()->first();
+
+                while (($baris = fgetcsv($file_excel, 1000, ",")) !== false) {
+
+                    $i++;
+                    array_unshift($baris, $i);
+
+                    if ($i < $header)
+                        continue;
+                    else if ($i == $header) {
+                        if ($baris[1] != $marketplace->kolom1 or $baris[2] != $marketplace->kolom2 or $baris[3] != $marketplace->kolom3)
+                            throw new \Exception('file excel tidak sesuai dengan template');
+                        continue;
+                    }
+
+                    $pattern = '/\.0$/';
+                    $pattern2 = '/\.00$/';
+                    $saldo = $baris[$marketplace->saldo];
+                    $saldo = preg_replace($pattern, '', $saldo);
+                    $saldo = preg_replace($pattern2, '', $saldo);
+                    $saldo = str_replace(",", "", $saldo);
+                    $saldo = $baris[$marketplace->saldo] = str_replace(".", "", $saldo);
+
+                    $tanggal = $baris[$marketplace->tanggal];
+                    $tanggal = $baris[$marketplace->tanggal];
+
+                    $tema = $baris[$marketplace->tema] ?? '';
+                    $harga = $baris[$marketplace->harga];
+                    $harga = preg_replace($pattern, '', $harga);
+                    $harga = preg_replace($pattern2, '', $harga);
+                    $harga = str_replace(",", "", $harga);
+                    $harga = $baris[$marketplace->harga] = str_replace(".", "", $harga);
+
+                    if ($i == $header + 1) {
+                        /////////ambil tanggal dan saldo terakhir di excel yg diupload
+                        $tanggal_terakhir = $tanggal;
+                        $saldo_terakhir = $saldo;
+                        $ket_terakhir = $tema;
+                        $dana_terakhir = $harga;
+                    }
+
+                    ////////jika ketemu dengan tanggal terakhir yg terupload sebelumnya, start mulai input
+
+                    if (!$input and $tanggal == $terakhir->created_at and $saldo == $terakhir->saldo) {
+                        $input = true;
+                        break;
+                    }
+
+                    if (strpos($baris[$marketplace->tema], $marketplace->batal) !== false) {
+                        $keuangan[] = $baris;
+                    }
+
+                    if (strpos($baris[$marketplace->tema], 'Isi Ulang Saldo Iklan/Koin Penjual') !== false) {
+                        $iklan[] = $baris;
+                    }
+
+                    if (strpos($baris[2], 'Order') !== false) {
+                        if (isset($orders[$baris[1]])) {
+                            $order[] = $baris;
+                        }
+                    }
+                }
+
+                if ($input) {
+
+                    foreach (array_reverse($iklan) as $baris) {
+                        $belanja = Belanja::create([
+                            'nota' => $request->nota ? $request->nota : rand(1000000, 100),
+                            'total' => abs($baris[6]),
+                            'kontak_id' => $config->kontak_id,
+                            'akun_detail_id' => $config->kas_id,
+                            'pembayaran' => abs($baris[6]),
+                            'created_at' => $baris[1],
+                        ]);
+
+                        BelanjaDetail::create([
+                            'belanja_id' => $belanja->id,
+                            'produk_id' => $config->iklan,
+                            'harga' => abs($baris[6]),
+                            'jumlah' => 1,
+                            'keterangan' => $baris[3],
+                        ]);
+                    }
+
+                    //proses update order sudah dibayar
+                    foreach ($order as $baris) {
+                        Order::where('nota', $baris[1])->update([
+                            'bayar' => $baris[6]
+                        ]);
+                    }
+                    //////////////////////proses masukin dana yg ditarik
+                    foreach (array_reverse($keuangan) as $baris) {
+
+                        $harga = $baris[$marketplace->harga];
+                        $kredit = abs($harga);
+
+                        $tanggal = $baris[$marketplace->tanggal];
+
+                        BukuBesar::create([
+                            'akun_detail_id' => $config->penarikan_id,
+                            'kode' => 'trf',
+                            'created_at' => $tanggal,
+                            'detail_id' => 123,
+                            'ket' => 'penarikan dari ' . $config->nama,
+                            'debet' => $kredit
+                        ]);
+                    }
+
+
+                    $kredit = $debet = 0;
+                    if ($dana_terakhir < 0)
+                        $kredit = abs($dana_terakhir);
+                    else
+                        $debet = $dana_terakhir;
+
+                    DB::table('buku_besars')->where('akun_detail_id', $config->kas_id)->delete();
+
+                    DB::table('buku_besars')->insert([
+                        'akun_detail_id' => $config->kas_id,
+                        'kode' => 'byr',
+                        'created_at' => $tanggal_terakhir,
+                        'detail_id' => 123,
+                        'ket' => $ket_terakhir,
+                        'debet' => $debet,
+                        'kredit' => $kredit,
+                        'saldo' => $saldo_terakhir
+                    ]);
+
+                    DB::table('akun_details')->where('id', $config->kas_id)->update(['saldo' => $saldo_terakhir]);
+
+                    if ($config->baruKeuangan == 1) {
+                        $config->update(['baruKeuangan' => 0]);
+                    }
+
+
+                    $config->update(['tglUploadKeuangan' => now()]);
+                } else
+                    throw new \Exception('tanggal pengambilan rentangnya kurang panjang');
+            });
+            return redirect()->route('marketplaces.show', $id->id)->withSuccess(__('Upload keuangan berhasil'));
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'Upload keuangan gagal: ' . $e->getMessage()]);
+        }
+    }
+
     public function uploadOrder(Request $request, Marketplace $id)
     {
         $request->validate([
