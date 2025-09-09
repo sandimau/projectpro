@@ -31,10 +31,10 @@ class HomeController extends Controller
         $tgl_skr = date('d');
         if ($tglGaji != $tgl_skr) {
             if ($tglGaji < $tgl_skr) {
-                $members = Member::where('tgl_gajian', $tgl_skr)->get();
+                $members = Member::where('tgl_gajian', $tgl_skr)->where('status', 1)->get();
             }
             if ($tglGaji == "31") {
-                $members = Member::where('tgl_gajian', $tgl_skr)->get();
+                $members = Member::where('tgl_gajian', $tgl_skr)->where('status', 1)->get();
             }
             if (!empty($members)) {
                 foreach ($members as $row) {
