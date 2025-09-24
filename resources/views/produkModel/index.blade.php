@@ -52,9 +52,11 @@
                                 <td>
                                     @if ($produk->gambar)
                                         @if ($showModel)
-                                            <a class="test-popup-link" href="{{ asset('uploads/produk/' . $produk->gambar) }}">
-                                                <img style="height: 60px" src="{{ url('uploads/produk/' . $produk->gambar) }}"
-                                                    alt="" srcset="">
+                                            <a class="test-popup-link"
+                                                href="{{ asset('uploads/produk/' . $produk->gambar) }}">
+                                                <img style="height: 60px"
+                                                    src="{{ url('uploads/produk/' . $produk->gambar) }}" alt=""
+                                                    srcset="">
                                             </a>
                                         @endif
                                     @endif
@@ -69,19 +71,27 @@
                                 <td>{{ $produk->satuan }}</td>
                                 <td>Rp {{ number_format($produk->harga_beli, 0, ',', '.') }}</td>
                                 <td>Rp {{ number_format($produk->harga, 0, ',', '.') }}</td>
-                                <td><a href="{{ route('produk.belanja', ['produk' => $produk->produk_id]) }}">Rp {{ number_format($produk->hpp, 0, ',', '.') }}</a></td>
+                                <td><a href="{{ route('produk.belanja', ['produk' => $produk->produk_id]) }}">Rp
+                                        {{ number_format($produk->hpp, 0, ',', '.') }}</a></td>
                                 <td>
-                                    <a href="{{ route('produk.stok', ['produk' => $produk->produk_id]) }}">{{ $produk->lastStok ?? 0 }}</a>
+                                    <a
+                                        href="{{ route('produk.stok', ['produk' => $produk->produk_id]) }}">{{ $produk->lastStok ?? 0 }}</a>
                                 </td>
-                                <td>
-                                    <form action="{{ route('produk.destroy', ['produk' => $produk->produk_id, 'kategori' => $kategori->id]) }}" method="POST" style="display: inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus produk ini?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm">
-                                            <i class="fas fa-trash"></i> Hapus
-                                        </button>
-                                    </form>
-                                </td>
+                                @role('super')
+                                    <td>
+                                        <form
+                                            action="{{ route('produk.destroy', ['produk' => $produk->produk_id, 'kategori' => $kategori->id]) }}"
+                                            method="POST" style="display: inline;"
+                                            onsubmit="return confirm('Apakah Anda yakin ingin menghapus produk ini?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                <i class="fas fa-trash"></i> Hapus
+                                            </button>
+                                        </form>
+                                    </td>
+                                @endrole
+
                             </tr>
                         @endforeach
                     </tbody>
