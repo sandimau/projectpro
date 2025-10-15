@@ -24,8 +24,15 @@ class OrderController extends Controller
 {
     public function apiKonsumen()
     {
-        $kontak = Kontak::select('nama', 'id', 'perusahaan')->where('konsumen', 1)->where('nama', 'LIKE', '%' . $_GET['q'] . '%')->get();
-        return response()->json($kontak);
+        if (isset($_GET['id'])) {
+            // Get single konsumen by ID
+            $kontak = Kontak::select('nama', 'id', 'perusahaan')->where('id', $_GET['id'])->first();
+            return response()->json($kontak);
+        } else {
+            // Search konsumen by query
+            $kontak = Kontak::select('nama', 'id', 'perusahaan')->where('konsumen', 1)->where('nama', 'LIKE', '%' . $_GET['q'] . '%')->get();
+            return response()->json($kontak);
+        }
     }
 
     public function apiKontak()
@@ -42,18 +49,29 @@ class OrderController extends Controller
 
     public function apiProduk()
     {
-        $produk = Produk::select('produk_models.nama', 'produk_models.harga', 'produks.nama as varian', 'produks.id', 'produk_kategoris.nama as kategori')
-            ->join('produk_models', 'produks.produk_model_id', '=', 'produk_models.id')
-            ->join('produk_kategoris', 'produk_models.kategori_id', '=', 'produk_kategoris.id')
-            ->where('produk_models.jual', 1)
-            ->where('produks.status', 1)
-            ->where(function ($query) {
-                $query->where('produks.nama', 'LIKE', '%' . $_GET['q'] . '%')
-                    ->orWhere('produk_models.nama', 'LIKE', '%' . $_GET['q'] . '%')
-                    ->orWhere('produk_kategoris.nama', 'LIKE', '%' . $_GET['q'] . '%');
-            })
-            ->get();
-        return response()->json($produk);
+        if (isset($_GET['id'])) {
+            // Get single produk by ID
+            $produk = Produk::select('produk_models.nama', 'produk_models.harga', 'produks.nama as varian', 'produks.id', 'produk_kategoris.nama as kategori')
+                ->join('produk_models', 'produks.produk_model_id', '=', 'produk_models.id')
+                ->join('produk_kategoris', 'produk_models.kategori_id', '=', 'produk_kategoris.id')
+                ->where('produks.id', $_GET['id'])
+                ->first();
+            return response()->json($produk);
+        } else {
+            // Search produk by query
+            $produk = Produk::select('produk_models.nama', 'produk_models.harga', 'produks.nama as varian', 'produks.id', 'produk_kategoris.nama as kategori')
+                ->join('produk_models', 'produks.produk_model_id', '=', 'produk_models.id')
+                ->join('produk_kategoris', 'produk_models.kategori_id', '=', 'produk_kategoris.id')
+                ->where('produk_models.jual', 1)
+                ->where('produks.status', 1)
+                ->where(function ($query) {
+                    $query->where('produks.nama', 'LIKE', '%' . $_GET['q'] . '%')
+                        ->orWhere('produk_models.nama', 'LIKE', '%' . $_GET['q'] . '%')
+                        ->orWhere('produk_kategoris.nama', 'LIKE', '%' . $_GET['q'] . '%');
+                })
+                ->get();
+            return response()->json($produk);
+        }
     }
 
     public function apiProdukBeli()
@@ -157,10 +175,11 @@ class OrderController extends Controller
 
     public function marketplace(Request $request)
     {
-        if ($request->dari == null && $request->sampai == null && $request->nota == null && $request->kontak_id == null && $request->produk_id == null) {
+        if ($request->dari == null && $request->sampai == null && $request->nota == null && $request->kontak_id == null && $request->produk_id == null && $request->pembayaran == null) {
             $orders = Order::whereNotNull('marketplace')->orderBy('created_at', 'desc')->paginate(10);
         } else {
-            $orders = Order::query()
+            // Gunakan subquery untuk menghindari masalah pagination dengan JOIN dan DISTINCT
+            $orderIds = Order::query()
                 ->leftJoin('order_details', 'orders.id', '=', 'order_details.order_id')
                 ->leftJoin('kontaks', 'orders.kontak_id', '=', 'kontaks.id')
                 ->when($request->dari && $request->sampai, function ($query) use ($request) {
@@ -175,12 +194,30 @@ class OrderController extends Controller
                 ->when($request->produk_id, function ($query) use ($request) {
                     $query->where('order_details.produk_id', $request->produk_id);
                 })
-                ->select('orders.*')
+                ->when($request->pembayaran == '1', function ($query) use ($request) {
+                    // Jika pembayaran = 1 (sudah dibayar), filter yang bayar >= total
+                    $query->whereRaw('orders.bayar > 0');
+                })
+                ->when($request->pembayaran == '0', function ($query) use ($request) {
+                    // Jika pembayaran = 0 (belum dibayar), filter yang bayar < total
+                    $query->whereRaw('orders.bayar = 0 and orders.total > 0');
+                })
                 ->where('kontaks.marketplace', 1)
                 ->distinct()
-                ->orderBy('orders.created_at', 'desc')
+                ->pluck('orders.id');
+
+            // Query utama untuk pagination
+            $orders = Order::whereIn('id', $orderIds)
+                ->orderBy('created_at', 'desc')
                 ->paginate(10)
-                ->appends(['dari' => $request->dari, 'sampai' => $request->sampai, 'nota' => $request->nota, 'kontak_id' => $request->kontak_id, 'produk_id' => $request->produk_id]);
+                ->appends([
+                    'dari' => $request->dari,
+                    'sampai' => $request->sampai,
+                    'nota' => $request->nota,
+                    'kontak_id' => $request->kontak_id,
+                    'produk_id' => $request->produk_id,
+                    'pembayaran' => $request->pembayaran
+                ]);
         }
         return view('admin.orders.marketplace', compact('orders'));
     }

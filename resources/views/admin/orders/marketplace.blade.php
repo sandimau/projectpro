@@ -26,29 +26,39 @@
                     <form action="{{ route('order.marketplace') }}" method="get">
                         <div class="d-flex gap-2 align-items-center mb-2">
                             <label for="nota" class="form-label mb-0">Nota</label>
-                            <input type="text" name="nota" class="form-control">
+                            <input type="text" name="nota" class="form-control" value="{{ request('nota') }}">
                             <label for="nota" class="form-label mb-0">Konsumen</label>
                             <div id="autocomplete" class="autocomplete">
                                 <input class="autocomplete-input {{ $errors->has('kontak_id') ? 'is-invalid' : '' }}"
                                     placeholder="cari kontak" aria-label="cari kontak">
                                 <span id="closeBrg"></span>
                                 <ul class="autocomplete-result-list"></ul>
-                                <input type="hidden" id="kontakId" name="kontak_id">
+                                <input type="hidden" id="kontakId" name="kontak_id" value="{{ request('kontak_id') }}">
                             </div>
                             <div id="autocompleteProduk" class="autocomplete">
                                 <input class="autocomplete-input produk {{ $errors->has('produk_id') ? 'invalid' : '' }}"
                                     placeholder="cari produk" aria-label="cari produk">
                                 <span id="closeBrgProduk"></span>
                                 <ul class="autocomplete-result-list"></ul>
-                                <input type="hidden" id="produkId" name="produk_id">
+                                <input type="hidden" id="produkId" name="produk_id" value="{{ request('produk_id') }}">
+                            </div>
+                            <label for="pembayaran" class="form-label mb-0">Pembayaran</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="text-muted">Belum</span>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="pembayaranToggle" {{ request('pembayaran') == '1' ? 'checked' : '' }}>
+                                    <input type="hidden" name="pembayaran" value="{{ request('pembayaran') == '1' ? '1' : '0' }}" id="pembayaranValue">
+                                    <label class="form-check-label" for="pembayaranToggle"></label>
+                                </div>
+                                <span class="text-muted">Sudah</span>
                             </div>
                         </div>
                         <div class="d-flex gap-2 align-items-center">
                             <label for="tanggal" class="form-label mb-0">Dari</label>
-                            <input type="date" name="dari" class="form-control">
+                            <input type="date" name="dari" class="form-control" value="{{ request('dari') }}">
                             <label for="tanggal" class="form-label mb-0">Sampai</label>
-                            <input type="date" name="sampai" class="form-control">
-                            <button type="submit" class="btn btn-primary">Filter</button>
+                            <input type="date" name="sampai" class="form-control" value="{{ request('sampai') }}">
+                            <button type="submit" class="btn btn-primary">Cari</button>
                         </div>
                     </form>
                 </div>
@@ -66,8 +76,8 @@
                                 <th>Konsumen</th>
                                 <th>Order</th>
                                 <th>Total</th>
-                                <th>Kekurangan</th>
-                                <th>Status</th>
+                                <th>Bersih</th>
+                                <th>Persentase</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -78,22 +88,12 @@
                                     <td>{{ $order->kontak->nama ?? '' }}</td>
                                     <td><a href="{{ route('order.detail', $order->id) }}">{{ $order->listproduk }}</a></td>
                                     <td>{{ number_format($order->total, 0, ',', '.') }}</td>
-                                    <td>{{ number_format($order->kekurangan, 0, ',', '.') }}</td>
+                                    <td>{{ number_format($order->bayar, 0, ',', '.') }}</td>
                                     <td>
-                                        @if ($order->bayar == 0 && $order->total > 0)
-                                            <a href="{{ route('order.unpaid') }}"
-                                                class="btn rounded-pill btn-danger btn-sm text-white">belum bayar</a>
-                                        @endif
-                                        @if ($order->bayar == 0 && $order->total == 0)
-                                            <a href="{{ route('order.unpaid') }}"
-                                                class="btn rounded-pill btn-danger btn-sm text-white">batal</a>
-                                        @endif
-                                        @if ($order->total > $order->bayar && $order->bayar > 0)
-                                            <a href="{{ route('order.unpaid') }}"
-                                                class="btn rounded-pill btn-warning btn-sm text-white">belum lunas</a>
-                                        @endif
-                                        @if ($order->total == $order->bayar && $order->bayar != 0 && $order->total != 0)
-                                            <button class="btn rounded-pill btn-success btn-sm text-white">lunas</button>
+                                        @if($order->total != 0 && $order->bayar != 0)
+                                            {{ number_format(($order->total - $order->bayar) / $order->total * 100, 2, ',', '.') }}%
+                                        @else
+                                            0%
                                         @endif
                                     </td>
                                 </tr>
@@ -184,6 +184,62 @@
             let idProduk = document.getElementById('produkId');
             idProduk.value = null;
         }
+
+        // Handle pembayaran toggle switch
+        document.getElementById('pembayaranToggle').addEventListener('change', function() {
+            const hiddenInput = document.getElementById('pembayaranValue');
+            if (this.checked) {
+                hiddenInput.value = '1';
+            } else {
+                hiddenInput.value = '0';
+            }
+        });
+
+        // Load selected values after page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load kontak name if kontak_id exists
+            @if(request('kontak_id'))
+                fetch("{{ url('admin/konsumen/api?id=') }}" + "{{ request('kontak_id') }}")
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data && data.nama) {
+                            document.querySelector('#autocomplete .autocomplete-input').value = data.nama;
+                            let btn = document.getElementById("closeBrg");
+                            btn.style.display = "block";
+                            btn.innerHTML = `<button onclick="clearData()" type="button" class="btnClose btn-warning"><i class='bx bx-x-circle' ></i></button>`;
+                        }
+                    })
+                    .catch(error => console.log('Error loading kontak:', error));
+            @endif
+
+            // Load produk name if produk_id exists
+            @if(request('produk_id'))
+                fetch("{{ url('admin/produk/api?id=') }}" + "{{ request('produk_id') }}")
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data) {
+                            const produkName = data.varian ? data.kategori + ' - ' + data.nama + ' - ' + data.varian : data.kategori + ' - ' + data.nama;
+                            document.querySelector('#autocompleteProduk .autocomplete-input').value = produkName;
+                            let btn = document.getElementById("closeBrgProduk");
+                            btn.style.display = "block";
+                            btn.innerHTML = `<button onclick="clearProduk()" type="button" class="btnClose btn-warning"><i class='bx bx-x-circle' ></i></button>`;
+                        }
+                    })
+                    .catch(error => console.log('Error loading produk:', error));
+            @endif
+
+            // Set pembayaran toggle state
+            const pembayaranToggle = document.getElementById('pembayaranToggle');
+            const pembayaranValue = document.getElementById('pembayaranValue');
+
+            @if(request('pembayaran') == '1')
+                pembayaranToggle.checked = true;
+                pembayaranValue.value = '1';
+            @elseif(request('pembayaran') == '0')
+                pembayaranToggle.checked = false;
+                pembayaranValue.value = '0';
+            @endif
+        });
     </script>
     <style>
         #autocomplete,

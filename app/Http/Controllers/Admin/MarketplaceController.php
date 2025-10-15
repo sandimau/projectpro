@@ -952,6 +952,7 @@ class MarketplaceController extends Controller
 
             $data[$bulan] = [
                 'nama' => $bulan_nama,
+                'bulan' => $i,
                 'omzet' => $omzet,
                 'bayar' => $bayar,
                 'total' => $total,
