@@ -24,26 +24,11 @@
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
                     <form action="{{ route('order.marketplace') }}" method="get">
-                        <div class="d-flex gap-2 align-items-center mb-2">
-                            <label for="nota" class="form-label mb-0">Nota</label>
-                            <input type="text" name="nota" class="form-control" value="{{ request('nota') }}">
-                            <label for="nota" class="form-label mb-0">Konsumen</label>
-                            <div id="autocomplete" class="autocomplete">
-                                <input class="autocomplete-input {{ $errors->has('kontak_id') ? 'is-invalid' : '' }}"
-                                    placeholder="cari kontak" aria-label="cari kontak">
-                                <span id="closeBrg"></span>
-                                <ul class="autocomplete-result-list"></ul>
-                                <input type="hidden" id="kontakId" name="kontak_id" value="{{ request('kontak_id') }}">
-                            </div>
-                            <div id="autocompleteProduk" class="autocomplete">
-                                <input class="autocomplete-input produk {{ $errors->has('produk_id') ? 'invalid' : '' }}"
-                                    placeholder="cari produk" aria-label="cari produk">
-                                <span id="closeBrgProduk"></span>
-                                <ul class="autocomplete-result-list"></ul>
-                                <input type="hidden" id="produkId" name="produk_id" value="{{ request('produk_id') }}">
-                            </div>
-                            <label for="pembayaran" class="form-label mb-0">Pembayaran</label>
-                            <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex flex-column gap-2 w-100">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <label for="nota" class="form-label mb-0">Nota</label>
+                                <input type="text" name="nota" class="form-control" value="{{ request('nota') }}">
+                                <label for="pembayaran" class="form-label mb-0">Pembayaran</label>
                                 <span class="text-muted">Belum</span>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="pembayaranToggle" {{ request('pembayaran') == '1' ? 'checked' : '' }}>
@@ -52,13 +37,31 @@
                                 </div>
                                 <span class="text-muted">Sudah</span>
                             </div>
-                        </div>
-                        <div class="d-flex gap-2 align-items-center">
-                            <label for="tanggal" class="form-label mb-0">Dari</label>
-                            <input type="date" name="dari" class="form-control" value="{{ request('dari') }}">
-                            <label for="tanggal" class="form-label mb-0">Sampai</label>
-                            <input type="date" name="sampai" class="form-control" value="{{ request('sampai') }}">
-                            <button type="submit" class="btn btn-primary">Cari</button>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <label for="nota" class="form-label mb-0">Konsumen</label>
+                                <div id="autocomplete" class="autocomplete">
+                                    <input class="autocomplete-input {{ $errors->has('kontak_id') ? 'is-invalid' : '' }}"
+                                        placeholder="cari kontak" aria-label="cari kontak">
+                                    <span id="closeBrg"></span>
+                                    <ul class="autocomplete-result-list"></ul>
+                                    <input type="hidden" id="kontakId" name="kontak_id" value="{{ request('kontak_id') }}">
+                                </div>
+                                <div id="autocompleteProduk" class="autocomplete">
+                                    <input class="autocomplete-input produk {{ $errors->has('produk_id') ? 'invalid' : '' }}"
+                                        placeholder="cari produk" aria-label="cari produk">
+                                    <span id="closeBrgProduk"></span>
+                                    <ul class="autocomplete-result-list"></ul>
+                                    <input type="hidden" id="produkId" name="produk_id" value="{{ request('produk_id') }}">
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-center gap-2">
+                                <label for="tanggal" class="form-label mb-0">Dari</label>
+                                <input type="date" name="dari" class="form-control" value="{{ request('dari') }}">
+                                <label for="tanggal" class="form-label mb-0">Sampai</label>
+                                <input type="date" name="sampai" class="form-control" value="{{ request('sampai') }}">
+                                <button type="submit" class="btn btn-primary">Cari</button>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -75,9 +78,45 @@
                                 <th>Nota</th>
                                 <th>Konsumen</th>
                                 <th>Order</th>
-                                <th>Total</th>
-                                <th>Bersih</th>
-                                <th>Persentase</th>
+                                <th>
+                                    <a href="{{ request()->fullUrlWithQuery(['sort' => request('sort') == 'total_asc' ? 'total_desc' : 'total_asc']) }}"
+                                       class="text-decoration-none text-dark">
+                                        Total
+                                        @if(request('sort') == 'total_asc')
+                                            <i class="bx bx-sort-up"></i>
+                                        @elseif(request('sort') == 'total_desc')
+                                            <i class="bx bx-sort-down"></i>
+                                        @else
+                                            <i class="bx bx-sort"></i>
+                                        @endif
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="{{ request()->fullUrlWithQuery(['sort' => request('sort') == 'bersih_asc' ? 'bersih_desc' : 'bersih_asc']) }}"
+                                       class="text-decoration-none text-dark">
+                                        Bersih
+                                        @if(request('sort') == 'bersih_asc')
+                                            <i class="bx bx-sort-up"></i>
+                                        @elseif(request('sort') == 'bersih_desc')
+                                            <i class="bx bx-sort-down"></i>
+                                        @else
+                                            <i class="bx bx-sort"></i>
+                                        @endif
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="{{ request()->fullUrlWithQuery(['sort' => request('sort') == 'persentase_asc' ? 'persentase_desc' : 'persentase_asc']) }}"
+                                       class="text-decoration-none text-dark">
+                                        Persentase
+                                        @if(request('sort') == 'persentase_asc')
+                                            <i class="bx bx-sort-up"></i>
+                                        @elseif(request('sort') == 'persentase_desc')
+                                            <i class="bx bx-sort-down"></i>
+                                        @else
+                                            <i class="bx bx-sort"></i>
+                                        @endif
+                                    </a>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -90,8 +129,18 @@
                                     <td>{{ number_format($order->total, 0, ',', '.') }}</td>
                                     <td>{{ number_format($order->bayar, 0, ',', '.') }}</td>
                                     <td>
-                                        @if($order->total != 0 && $order->bayar != 0)
-                                            {{ number_format(($order->total - $order->bayar) / $order->total * 100, 2, ',', '.') }}%
+                                        @if($order->total != 0)
+                                            @php
+                                                $persentase = 0;
+                                                if($order->total > 0) {
+                                                    // Jika total positif, hitung persentase pembayaran
+                                                    $persentase = ($order->bayar / $order->total) * 100;
+                                                } else {
+                                                    // Jika total negatif, hitung persentase kelebihan bayar
+                                                    $persentase = (abs($order->bayar) / abs($order->total)) * 100;
+                                                }
+                                            @endphp
+                                            {{ number_format($persentase, 2, ',', '.') }}%
                                         @else
                                             0%
                                         @endif
@@ -274,6 +323,26 @@
         .autocomplete-input.is-invalid,
         .autocomplete-input.invalid {
             border: solid 1px red;
+        }
+
+        /* Sorting styles */
+        th a {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        th a:hover {
+            color: #007bff !important;
+        }
+
+        th a i {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        th a:hover i {
+            opacity: 1;
         }
     </style>
 @endpush

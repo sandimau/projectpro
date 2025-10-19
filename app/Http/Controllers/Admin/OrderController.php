@@ -175,8 +175,55 @@ class OrderController extends Controller
 
     public function marketplace(Request $request)
     {
+        // Tentukan sorting berdasarkan parameter
+        $sortBy = 'created_at';
+        $sortDirection = 'desc';
+
+        if ($request->sort) {
+            switch ($request->sort) {
+                case 'total_asc':
+                    $sortBy = 'total';
+                    $sortDirection = 'asc';
+                    break;
+                case 'total_desc':
+                    $sortBy = 'total';
+                    $sortDirection = 'desc';
+                    break;
+                case 'bersih_asc':
+                    $sortBy = 'bayar';
+                    $sortDirection = 'asc';
+                    break;
+                case 'bersih_desc':
+                    $sortBy = 'bayar';
+                    $sortDirection = 'desc';
+                    break;
+                case 'persentase_asc':
+                    // Untuk persentase, kita perlu menghitung (total - bayar) / total * 100
+                    // Kita akan handle ini dengan raw query
+                    break;
+                case 'persentase_desc':
+                    // Untuk persentase, kita perlu menghitung (total - bayar) / total * 100
+                    // Kita akan handle ini dengan raw query
+                    break;
+            }
+        }
+
         if ($request->dari == null && $request->sampai == null && $request->nota == null && $request->kontak_id == null && $request->produk_id == null && $request->pembayaran == null) {
-            $orders = Order::whereNotNull('marketplace')->orderBy('created_at', 'desc')->paginate(10);
+            // Jika hanya ada sorting tanpa filter lain
+            if ($request->sort) {
+                $query = Order::whereNotNull('marketplace');
+
+                if ($request->sort == 'persentase_asc' || $request->sort == 'persentase_desc') {
+                    $direction = $request->sort == 'persentase_asc' ? 'asc' : 'desc';
+                    $query->orderByRaw("CASE WHEN total = 0 THEN 0 ELSE ((total - bayar) / total * 100) END {$direction}");
+                } else {
+                    $query->orderBy($sortBy, $sortDirection);
+                }
+
+                $orders = $query->paginate(10)->appends(['sort' => $request->sort]);
+            } else {
+                $orders = Order::whereNotNull('marketplace')->orderBy('created_at', 'desc')->paginate(10);
+            }
         } else {
             // Gunakan subquery untuk menghindari masalah pagination dengan JOIN dan DISTINCT
             $orderIds = Order::query()
@@ -207,16 +254,25 @@ class OrderController extends Controller
                 ->pluck('orders.id');
 
             // Query utama untuk pagination
-            $orders = Order::whereIn('id', $orderIds)
-                ->orderBy('created_at', 'desc')
-                ->paginate(10)
+            $query = Order::whereIn('id', $orderIds);
+
+            // Handle sorting untuk persentase
+            if ($request->sort == 'persentase_asc' || $request->sort == 'persentase_desc') {
+                $direction = $request->sort == 'persentase_asc' ? 'asc' : 'desc';
+                $query->orderByRaw("CASE WHEN total = 0 THEN 0 ELSE ((total - bayar) / total * 100) END {$direction}");
+            } else {
+                $query->orderBy($sortBy, $sortDirection);
+            }
+
+            $orders = $query->paginate(10)
                 ->appends([
                     'dari' => $request->dari,
                     'sampai' => $request->sampai,
                     'nota' => $request->nota,
                     'kontak_id' => $request->kontak_id,
                     'produk_id' => $request->produk_id,
-                    'pembayaran' => $request->pembayaran
+                    'pembayaran' => $request->pembayaran,
+                    'sort' => $request->sort
                 ]);
         }
         return view('admin.orders.marketplace', compact('orders'));
