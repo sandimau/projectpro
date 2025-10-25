@@ -323,7 +323,11 @@ class MarketplaceController extends Controller
                     if ($i < $header)
                         continue;
                     else if ($i == $header) {
-                        if ($baris[1] != $marketplace->kolom1 or $baris[2] != $marketplace->kolom2 or $baris[3] != $marketplace->kolom3)
+                        if (
+                            str_replace(' ', '', $baris[1]) != str_replace(' ', '', $marketplace->kolom1) ||
+                            str_replace(' ', '', $baris[2]) != str_replace(' ', '', $marketplace->kolom2) ||
+                            str_replace(' ', '', $baris[3]) != str_replace(' ', '', $marketplace->kolom3)
+                        )
                             throw new \Exception('file excel tidak sesuai dengan template');
                         continue;
                     }
