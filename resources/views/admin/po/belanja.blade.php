@@ -50,6 +50,9 @@
                             </thead>
                             <tbody id="table_body">
                                 @foreach ($po->poDetail as $item)
+                                    @php
+                                        $isLunas = ($item->jumlah - $item->jumlahKedatangan) <= 0;
+                                    @endphp
                                     <tr>
                                         <td>
                                             <input id="produk{{ $loop->index }}"class="form-control" type="text"
@@ -58,22 +61,37 @@
                                             <input type="hidden" name="poDetail[]" value="{{ $item->id }}">
                                         </td>
                                         <td>
-                                            <input id="ket{{ $loop->index }}" name="keterangan[]" class="form-control"
-                                                type="text" value="{{ old('keterangan.' . $loop->index) }}"
-                                                {{ ($item->jumlah - $item->jumlahKedatangan) <= 0 ? 'disabled' : '' }} />
+                                            @if ($isLunas)
+                                                <input type="hidden" name="keterangan[]" value="">
+                                                <input id="ket{{ $loop->index }}" class="form-control"
+                                                    type="text" value="" disabled />
+                                            @else
+                                                <input id="ket{{ $loop->index }}" name="keterangan[]" class="form-control"
+                                                    type="text" value="{{ old('keterangan.' . $loop->index) }}" />
+                                            @endif
                                         </td>
                                         <td>
-                                            <input id="jumlah{{ $loop->index }}" name="jumlah[]" step=".01"
-                                                class="form-control" type="number"
-                                                value="{{ $item->jumlah - $item->jumlahKedatangan }}"
-                                                onchange="calculateSubTotal({{ $loop->index }})"
-                                                {{ ($item->jumlah - $item->jumlahKedatangan) <= 0 ? 'disabled' : '' }} />
+                                            @if ($isLunas)
+                                                <input type="hidden" name="jumlah[]" value="0">
+                                                <input id="jumlah{{ $loop->index }}" class="form-control" type="number"
+                                                    value="0" disabled />
+                                            @else
+                                                <input id="jumlah{{ $loop->index }}" name="jumlah[]" step=".01"
+                                                    class="form-control" type="number"
+                                                    value="{{ $item->jumlah - $item->jumlahKedatangan }}"
+                                                    onchange="calculateSubTotal({{ $loop->index }})" />
+                                            @endif
                                         </td>
                                         <td>
-                                            <input id="harga{{ $loop->index }}" name="harga[]" class="form-control"
-                                                step=".01" type="number" value="{{ old('harga.' . $loop->index) }}"
-                                                onchange="calculateSubTotal({{ $loop->index }})"
-                                                {{ ($item->jumlah - $item->jumlahKedatangan) <= 0 ? 'disabled' : '' }} />
+                                            @if ($isLunas)
+                                                <input type="hidden" name="harga[]" value="0">
+                                                <input id="harga{{ $loop->index }}" class="form-control"
+                                                    step=".01" type="number" value="0" disabled />
+                                            @else
+                                                <input id="harga{{ $loop->index }}" name="harga[]" class="form-control"
+                                                    step=".01" type="number" value="{{ old('harga.' . $loop->index) }}"
+                                                    onchange="calculateSubTotal({{ $loop->index }})" />
+                                            @endif
                                         </td>
                                         <td>
                                             <input id="subtotal{{ $loop->index }}" disabled

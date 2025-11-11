@@ -293,50 +293,59 @@ class POController extends Controller
 
             if (count($request->poDetail) > 0) {
                 foreach ($request->poDetail as $idx => $poDetailId) {
+                    // Ambil PoDetail untuk cek sisa yang belum datang
+                    $poDetail = PoDetail::find($poDetailId);
+                    $sisaBarang = $poDetail->jumlah - $poDetail->jumlahKedatangan;
+
+                    // Skip jika barang sudah lunas atau tidak ada data valid
                     if (
-                        isset($request->produk[$idx]) && $request->produk[$idx] !== null &&
-                        isset($request->harga[$idx]) && $request->harga[$idx] > 0 &&
-                        isset($request->jumlah[$idx]) && $request->jumlah[$idx] > 0
+                        $sisaBarang <= 0 ||
+                        !isset($request->produk[$idx]) ||
+                        !isset($request->harga[$idx]) ||
+                        !isset($request->jumlah[$idx]) ||
+                        $request->harga[$idx] <= 0 ||
+                        $request->jumlah[$idx] <= 0
                     ) {
-                        // Simpan detail belanja
-                        BelanjaDetail::create([
-                            'belanja_id' => $belanja->id,
-                            'produk_id' => $request->produk[$idx],
-                            'harga' => $request->harga[$idx],
-                            'jumlah' => $request->jumlah[$idx],
-                            'keterangan' => $request->keterangan[$idx] ?? null,
-                        ]);
-
-                        // Update harga produk
-                        $produk = Produk::find($request->produk[$idx]);
-                        $produk->update(['harga' => $request->harga[$idx]]);
-
-                        // Update stok jika produk stok
-                        if ($produk->produkModel->stok == 1) {
-                            $total = $produk->lastStok()->where('produk_id', $produk->id)->latest('id')->first();
-                            if ($total) {
-                                $hpp = (($total->pivot->saldo * $produk->hpp) + ($request->harga[$idx] * $request->jumlah[$idx])) / ($request->jumlah[$idx] + $total->pivot->saldo);
-                            } else {
-                                $hpp = $request->harga[$idx];
-                            }
-                            $produk->update(['hpp' => $hpp]);
-
-                            ProdukStok::create([
-                                'produk_id' => $request->produk[$idx],
-                                'tambah' => $request->jumlah[$idx],
-                                'kurang' => 0,
-                                'keterangan' => 'belanja nota:' . $belanja->nota,
-                                'kode' => 'blj',
-                                'user_id' => auth()->user()->id,
-                                'detail_id' => $belanja->id,
-                            ]);
-                        }
-
-                        // Update jumlah kedatangan di po detail
-                        $poDetail = PoDetail::find($poDetailId);
-                        $total = $poDetail->jumlahKedatangan + $request->jumlah[$idx];
-                        $poDetail->update(['jumlahKedatangan' => $total]);
+                        continue;
                     }
+
+                    // Simpan detail belanja
+                    BelanjaDetail::create([
+                        'belanja_id' => $belanja->id,
+                        'produk_id' => $request->produk[$idx],
+                        'harga' => $request->harga[$idx],
+                        'jumlah' => $request->jumlah[$idx],
+                        'keterangan' => $request->keterangan[$idx] ?? null,
+                    ]);
+
+                    // Update harga produk
+                    $produk = Produk::find($request->produk[$idx]);
+                    $produk->update(['harga' => $request->harga[$idx]]);
+
+                    // Update stok jika produk stok
+                    if ($produk->produkModel->stok == 1) {
+                        $total = $produk->lastStok()->where('produk_id', $produk->id)->latest('id')->first();
+                        if ($total) {
+                            $hpp = (($total->pivot->saldo * $produk->hpp) + ($request->harga[$idx] * $request->jumlah[$idx])) / ($request->jumlah[$idx] + $total->pivot->saldo);
+                        } else {
+                            $hpp = $request->harga[$idx];
+                        }
+                        $produk->update(['hpp' => $hpp]);
+
+                        ProdukStok::create([
+                            'produk_id' => $request->produk[$idx],
+                            'tambah' => $request->jumlah[$idx],
+                            'kurang' => 0,
+                            'keterangan' => 'belanja nota:' . $belanja->nota,
+                            'kode' => 'blj',
+                            'user_id' => auth()->user()->id,
+                            'detail_id' => $belanja->id,
+                        ]);
+                    }
+
+                    // Update jumlah kedatangan di po detail
+                    $total = $poDetail->jumlahKedatangan + $request->jumlah[$idx];
+                    $poDetail->update(['jumlahKedatangan' => $total]);
                 }
             }
 

@@ -133,7 +133,7 @@
                         <tr>
                             <td>{{ $kedatangan->created_at ?? '-' }}</td>
                             <td>
-                                <a href="#">{{ $kedatangan->produk ?? '-' }}</a>
+                                <a href="{{ url('admin/belanja/' . $kedatangan->id) }}">{{ $kedatangan->produk ?? '-' }}</a>
                             </td>
                             <td>{{ $kedatangan->nota ?? '-' }}</td>
                             <td>{{ $kedatangan->diskon ?? '' }}</td>
