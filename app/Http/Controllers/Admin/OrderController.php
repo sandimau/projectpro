@@ -476,4 +476,12 @@ class OrderController extends Controller
             ->delete();
         return redirect()->back()->withSuccess(__('Order canceled telah dihapus.'));
     }
+
+    public function hapusOnline()
+    {
+        Order::where('total', 0)
+            ->where('marketplace', 1)
+            ->where('created_at', '<=', now()->subDay())
+            ->delete();
+    }
 }

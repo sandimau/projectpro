@@ -1,10 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\ProdukKategoriController;
-use App\Http\Controllers\ProdukController;
-use App\Http\Controllers\Admin\LaporanController;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\OrderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,6 +18,8 @@ use App\Http\Controllers\Admin\LaporanController;
 Route::get('/', function () {
     return redirect('/login');
 });
+
+Route::get('/order/hapusOnline', [OrderController::class, 'hapusOnline'])->name('order.hapusOnline');
 
 /**
  * Auth Routes
