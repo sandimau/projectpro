@@ -508,7 +508,7 @@ class MarketplaceController extends Controller
                 $awal_id = Produksi::ambilFlow('Persiapan');
 
                 //////ambil nota terakhir yg udah terinput
-                $terakhir = Order::where('kontak_id', $id_shopee)->latest('id')->first();
+                $terakhir = Order::where('kontak_id', $id_shopee)->latest('id')->whereNotNull('nota')->first();
 
                 while (($baris = fgetcsv($file_excel, 1000, ",")) !== false) {
 
@@ -536,6 +536,7 @@ class MarketplaceController extends Controller
 
                     //////pengecekan order yg udah terinput sebelumnya
                     if (!$input) {
+
 
                         ////////jika statusnya batal, masukin ke array batal
                         if ($status == $marketplace->batal and strpos($barang, 'CUSTOM_') !== false)

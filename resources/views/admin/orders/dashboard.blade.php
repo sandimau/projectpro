@@ -50,7 +50,7 @@
                                                 $tampilan = '';
                                                 $order_id = 0;
 
-                                                foreach ($item->orderDetail()->get() as $detail) {
+                                                foreach ($item->orderDetail()->orderBy('order_id')->get() as $detail) {
                                                     // Filter: skip jika order_id tidak ada atau null
                                                     if (!$detail->order_id) {
                                                         continue;
