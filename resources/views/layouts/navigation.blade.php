@@ -217,7 +217,17 @@
                         <svg class="nav-icon">
                             <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
                         </svg>
-                        {{ __('aktif') }}
+                        Karyawan
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->is('members*') ? 'active' : '' }}"
+                        href="{{ route('members.freelance') }}">
+                        <svg class="nav-icon">
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
+                        </svg>
+                        Freelance
                     </a>
                 </li>
 

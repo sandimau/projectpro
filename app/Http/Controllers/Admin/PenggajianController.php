@@ -156,4 +156,65 @@ class PenggajianController extends Controller
     {
         return view('admin.penggajians.slip',compact('penggajian'));
     }
+
+    public function createFreelance(Member $member)
+    {
+        $jmlLembur = Lembur::where([['member_id', '=', $member->id], ['dibayar', '=', 'belum']])->sum('jam');
+        $totalLembur = $member->lembur * $jmlLembur;
+
+        $kas = AkunDetail::pluck('nama', 'id')->prepend('select kas', '')->toArray();
+        return view('admin.penggajians.createFreelance', compact('member', 'kas', 'totalLembur', 'jmlLembur'));
+    }
+
+    public function storeFreelance(Request $request)
+    {
+        $request->validate([
+            'akun_detail_id' => 'required',
+            'jumlah_hari' => 'required|numeric|min:1',
+
+        ]);
+        DB::transaction(function () use($request) {
+            //insert into penggajian
+            penggajian::insert([
+                'member_id' => $request->member_id,
+                'jam_lembur' => $request->jam_lembur,
+                'lembur' => $request->lembur,
+                'pokok' => $request->jumlah_hari,
+                'total' => $request->total,
+                'jumlah_lain' => $request->jumlah_lain,
+                'lain_lain' => $request->lain_lain,
+                'created_at' => Carbon::now(),
+                'akun_detail_id' => $request->akun_detail_id,
+            ]);
+
+            // update lembur
+            $lembur = Lembur::where([['member_id', '=', $request->member_id], ['dibayar', '=', 'belum']])->update([
+                'dibayar' => 'sudah',
+            ]);
+
+            //update saldo akun detail
+            $akunDetail = AkunDetail::where('id', $request->akun_detail_id)->first();
+            $saldo = $akunDetail->saldo;
+            $update = $saldo - $request->total;
+            $akunDetail->update([
+                'saldo' => $update,
+            ]);
+
+            //get member
+            $member = Member::find($request->member_id);
+
+            //insert into buku besar table
+            BukuBesar::insert([
+                'akun_detail_id' => $request->akun_detail_id,
+                'ket' => 'bayar gaji ke ' . $member->nama_lengkap,
+                'kredit' => $request->total,
+                'kode' => 'gji',
+                'debet' => 0,
+                'saldo' => $update,
+                'created_at' => Carbon::now(),
+            ]);
+        });
+
+        return redirect()->route('members.penggajianFreelance', $request->member_id)->withSuccess(__('Penggajian created successfully.'));
+    }
 }

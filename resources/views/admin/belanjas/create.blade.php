@@ -17,20 +17,30 @@
         <div class="card-body">
             <form method="POST" action="{{ route('belanja.store') }}" enctype="multipart/form-data">
                 @csrf
-                <div class="form-group mb-3">
-                    <label for="nama" class="mb-2">Supplier</label>
-                    <div id="autocomplete" class="autocomplete">
-                        <input class="autocomplete-input {{ $errors->has('kontak_id') ? 'is-invalid' : '' }}"
-                            placeholder="cari supplier" aria-label="cari kontak">
-                        <span id="closeBrg"></span>
-                        <ul class="autocomplete-result-list"></ul>
-                        <input type="hidden" id="kontakId" name="kontak_id">
-                    </div>
-                    @if ($errors->has('kontak_id'))
-                        <div class="invalid-feedback z-10">
-                            {{ $errors->first('kontak_id') }}
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="form-group mb-3">
+                            <label for="nama" class="mb-2">Supplier</label>
+                            <div id="autocomplete" class="autocomplete">
+                                <input class="autocomplete-input {{ $errors->has('kontak_id') ? 'is-invalid' : '' }}"
+                                    placeholder="cari supplier" aria-label="cari kontak">
+                                <span id="closeBrg"></span>
+                                <ul class="autocomplete-result-list"></ul>
+                                <input type="hidden" id="kontakId" name="kontak_id">
+                            </div>
+                            @if ($errors->has('kontak_id'))
+                                <div class="invalid-feedback z-10">
+                                    {{ $errors->first('kontak_id') }}
+                                </div>
+                            @endif
                         </div>
-                    @endif
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="mb-3">
+                            <label for="formFile" class="form-label">bon</label>
+                            <input class="form-control" type="file" id="formFile" name="gambar">
+                        </div>
+                    </div>
                 </div>
                 <div class="row">
                     <div class="col-lg-6">
@@ -124,8 +134,8 @@
                                         <b><span>Total</span></b> <br>
                                     </td>
                                     <td class="text-right">
-                                        <input id="total" name="total" class="form-control text-right" type="number"
-                                            readonly />
+                                        <input id="total" name="total" class="form-control text-right"
+                                            type="number" readonly />
                                     </td>
                                 </tr>
                                 <tr>

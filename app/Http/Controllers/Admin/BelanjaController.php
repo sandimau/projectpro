@@ -16,6 +16,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Symfony\Component\HttpFoundation\Response;
+use Intervention\Image\Facades\Image;
 
 class BelanjaController extends Controller
 {
@@ -65,6 +66,25 @@ class BelanjaController extends Controller
 
 
         DB::transaction(function () use ($request) {
+
+            if ($request->hasFile('gambar')) {
+                $img = $request->file('gambar');
+                $filename = time() . '.' . $request->gambar->extension();
+                $img_resize = Image::make($img->getRealPath());
+                $img_resize->resize(500, null, function ($constraint) {
+                    $constraint->aspectRatio();
+                });
+                $save_path = public_path('uploads/belanja/');
+                if (!file_exists($save_path)) {
+                    try {
+                        mkdir($save_path, 0755, true);
+                    } catch (\Exception $e) {
+                        throw new \Exception('Unable to create directory. Please check folder permissions.');
+                    }
+                }
+                $img_resize->save($save_path . $filename);
+                $gambar = $filename;
+            }
             //insert into belanja table
             $belanja = Belanja::create([
                 'nota' => $request->nota ? $request->nota : rand(1000000, 100),
@@ -74,6 +94,7 @@ class BelanjaController extends Controller
                 'akun_detail_id' => $request->akun_detail_id,
                 'pembayaran' => $request->pembayaran,
                 'tanggal_beli' => $request->tanggal_beli,
+                'gambar' => $gambar ?? null,
             ]);
 
             if ($request->pembayaran > 0 && $request->pembayaran <= $request->total) {

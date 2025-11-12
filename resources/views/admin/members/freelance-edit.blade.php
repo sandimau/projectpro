@@ -1,17 +1,17 @@
 @extends('layouts.app')
 
 @section('title')
-Edit Member
+Edit Freelance
 @endsection
 
 @section('content')
 <div class="card">
     <div class="card-header">
-        edit members
+        edit freelance
     </div>
 
     <div class="card-body">
-        <form method="POST" action="{{ route("members.update", [$member->id]) }}" enctype="multipart/form-data">
+        <form method="POST" action="{{ route("freelance.update", [$member->id]) }}" enctype="multipart/form-data">
             @method('patch')
             @csrf
             <div class="form-group">
@@ -69,25 +69,30 @@ Edit Member
                 @endif
             </div>
             <div class="form-group">
-                <label for="tgl_gajian">Tanggal Gajian</label>
-                <select class="form-select" name="tgl_gajian" name="tgl_gajian">
-                    <option>pilih tanggal</option>
-                    @foreach ($tglGaji as $key => $value)
-                        <option value={{ $key }} {{ $key == $member->tgl_gajian ? 'selected' : '' }}>{{ $value }}</option>
-                    @endforeach
-                </select>
-                @if($errors->has('tgl_gajian'))
-                    <div class="invalid-feedback">
-                        {{ $errors->first('tgl_gajian') }}
-                    </div>
-                @endif
-            </div>
-            <div class="form-group">
                 <label for="no_rek">No Rek</label>
                 <input class="form-control {{ $errors->has('no_rek') ? 'is-invalid' : '' }}" type="text" name="no_rek" id="no_rek" value="{{ old('no_rek',$member->no_rek) }}">
                 @if($errors->has('no_rek'))
                     <div class="invalid-feedback">
                         {{ $errors->first('no_rek') }}
+                    </div>
+                @endif
+            </div>
+
+            <div class="form-group">
+                <label for="no_rek">upah</label>
+                <input class="form-control {{ $errors->has('upah') ? 'is-invalid' : '' }}" type="number" name="upah" id="upah" value="{{ old('upah', $member->upah) }}">
+                @if($errors->has('upah'))
+                    <div class="invalid-feedback">
+                        {{ $errors->first('upah') }}
+                    </div>
+                @endif
+            </div>
+            <div class="form-group">
+                <label for="lembur">lembur</label>
+                <input class="form-control {{ $errors->has('lembur') ? 'is-invalid' : '' }}" type="number" name="lembur" id="lembur" value="{{ old('lembur', $member->lembur) }}">
+                @if($errors->has('lembur'))
+                    <div class="invalid-feedback">
+                        {{ $errors->first('lembur') }}
                     </div>
                 @endif
             </div>

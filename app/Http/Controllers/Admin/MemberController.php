@@ -139,10 +139,65 @@ class MemberController extends Controller
         return view('admin.members.penggajian', compact('gajis','penggajians','gajian','member'));
     }
 
+    public function penggajianFreelance(Member $member)
+    {
+        $penggajians = Penggajian::where('member_id', $member->id)->orderBy('id','desc')->paginate(10);
+        return view('admin.members.penggajianFreelance', compact('penggajians','member'));
+    }
+
     public function gaji(Member $member)
     {
         $gajis = Gaji::where('member_id', $member->id)->with(['member', 'bagian', 'level'])->orderBy('id','desc')->paginate(10);
         return view('admin.members.gaji', compact('gajis','member'));
     }
 
+    public function freelance()
+    {
+        $members = Member::with(['user'])->freelance()->orderBy('id','asc')->get();
+        return view('admin.members.freelance', compact('members'));
+    }
+
+    public function showFreelance(Member $member)
+    {
+        return view('admin.members.showFreelance', compact('member'));
+    }
+
+    public function freelanceCreate()
+    {
+        return view('admin.members.freelance-create');
+    }
+
+    public function freelanceStore(Request $request)
+    {
+        $request->validate([
+            'nama_lengkap' => 'required',
+            'no_telp' => 'required',
+        ]);
+
+        Member::create([
+            'nama_lengkap' => $request->nama_lengkap,
+            'tgl_lahir' => $request->tgl_lahir,
+            'tempat_lahir' => $request->tempat_lahir,
+            'alamat' => $request->alamat,
+            'no_telp' => $request->no_telp,
+            'no_rek' => $request->no_rek,
+            'upah' => $request->upah,
+            'lembur' => $request->lembur,
+            'status' => 1,
+            'jenis' => 'freelance',
+        ]);
+
+        return redirect()->route('members.freelance')->withSuccess(__('Freelance created successfully.'));
+    }
+
+    public function editFreelance(Member $member)
+    {
+        return view('admin.members.freelance-edit', compact('member'));
+    }
+
+    public function updateFreelance(Request $request, Member $member)
+    {
+        $member->update($request->all());
+        return redirect()->route('members.freelance')->withSuccess(__('Freelance updated successfully.'));
+    }
 }

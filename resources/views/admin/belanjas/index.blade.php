@@ -59,6 +59,7 @@
                     <table class=" table table-bordered table-striped table-hover mt-3">
                         <thead>
                             <tr>
+                                <th>gambar</th>
                                 <th>tanggal</th>
                                 <th>nota</th>
                                 <th>supplier</th>
@@ -69,6 +70,15 @@
                         <tbody>
                             @foreach ($belanjas as $belanja)
                                 <tr data-entry-id="{{ $belanja->id }}">
+                                    <td>
+                                        @if ($belanja->gambar)
+                                            <a href="{{ asset('uploads/belanja/' . $belanja->gambar) }}" target="_blank">
+                                                <img src="{{ asset('uploads/belanja/' . $belanja->gambar) }}" alt="gambar" style="width: 100px; height: auto; cursor: zoom-in;">
+                                            </a>
+                                        @else
+                                            <span>-</span>
+                                        @endif
+                                    </td>
                                     <td>{{ date('d-m-Y', strtotime($belanja->created_at)) }}</td>
                                     <td>{{ $belanja->nota }}</td>
                                     <td>{{ $belanja->kontak->nama }}</td>

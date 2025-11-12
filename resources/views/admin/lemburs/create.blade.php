@@ -24,7 +24,7 @@
                     <select class="form-select {{ $errors->has('bulan') ? 'is-invalid' : '' }}" aria-label="Default select example" name="bulan" name="bulan">
                         <option>pilih bulan</option>
                         @foreach ($bulans as $key => $bulan)
-                            <option value="{{ $key }}">{{ $bulan }}</option>
+                            <option value="{{ $key }}" {{ old('bulan', '') == $key ? 'selected' : '' }}>{{ $bulan }}</option>
                         @endforeach
                     </select>
                     @if ($errors->has('bulan'))
@@ -35,7 +35,7 @@
                 </div>
                 <div class="form-group">
                     <label for="jam">jam</label>
-                    <input type="number" class="form-control" name="jam" >
+                    <input type="number" class="form-control" name="jam" value="{{ old('jam', '') }}">
                     @if ($errors->has('jam'))
                         <div class="invalid-feedback">
                             {{ $errors->first('jam') }}

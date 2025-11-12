@@ -31,9 +31,17 @@ class Member extends Model
         return $date->format('Y-m-d H:i:s');
     }
 
+    public function scopeFreelance($query)
+    {
+        $query->where('jenis', 'freelance');
+        $query->where('status', 1);
+        return $query;
+    }
+
     public function scopeAktif($query)
     {
         $query->where('status', 1);
+        $query->where('jenis', 'karyawan');
         return $query;
     }
 

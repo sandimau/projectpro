@@ -84,6 +84,13 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::get('/penggajian/{member}', 'MemberController@penggajian')->name('members.penggajian');
             Route::get('/gaji/{member}', 'MemberController@gaji')->name('members.gaji');
             Route::get('/ijin/{member}', 'MemberController@ijin')->name('members.ijin');
+            Route::get('/freelance', 'MemberController@freelance')->name('members.freelance');
+            Route::get('/freelance/create', 'MemberController@freelanceCreate')->name('freelance.create');
+            Route::post('/freelance/create', 'MemberController@freelanceStore')->name('freelance.store');
+            Route::get('/freelance/{member}/show', 'MemberController@showFreelance')->name('members.showFreelance');
+            Route::get('/freelance/{member}/edit', 'MemberController@editFreelance')->name('freelance.edit');
+            Route::patch('/freelance/{member}/update', 'MemberController@updateFreelance')->name('freelance.update');
+            Route::get('/freelance/penggajian/{member}', 'MemberController@penggajianFreelance')->name('members.penggajianFreelance');
 
             //cuti
             Route::get('/members/{member}/cuti', 'CutiController@create')->name('cuti.create');
@@ -127,6 +134,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::get('/members/{member}/penggajian', 'PenggajianController@create')->name('penggajian.create');
             Route::get('/penggajian/{penggajian}/slip', 'PenggajianController@slip')->name('penggajian.slip');
             Route::post('/penggajian/create', 'PenggajianController@store')->name('penggajian.store');
+            Route::get('/freelance/{member}/penggajian', 'PenggajianController@createFreelance')->name('penggajian.createFreelance');
+            Route::post('/freelance/penggajian/create', 'PenggajianController@storeFreelance')->name('penggajian.storeFreelance');
 
             //produkStoks
             Route::get('/produk/{produk}/produkStok', 'ProdukStokController@index')->name('produkStok.index');
