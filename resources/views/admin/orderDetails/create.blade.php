@@ -17,6 +17,7 @@
             <form method="POST" action="{{ route('orderDetail.store') }}" enctype="multipart/form-data">
                 @csrf
                 <input type="hidden" name="order_id" value="{{ $order->id }}">
+                <input type="text" name="nota" value="{{ $order->nota }}">
                 <div class="form-group mb-3">
                     <label for="nama" class="mb-2">Produk</label>
                     <div id="autocompleteProduk" class="autocomplete">

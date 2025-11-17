@@ -59,6 +59,7 @@ class OrderDetailController extends Controller
         $dataDetail['keterangan'] = $request->keterangan;
         $dataDetail['produksi_id'] = $produksi->id;
         $dataDetail['deathline'] = $request->deathline;
+        $dataDetail['nota'] = $request->nota;
         $dataDetail['created_at'] = Carbon::now();
 
         $produk = Produk::find($request->produk_id);
