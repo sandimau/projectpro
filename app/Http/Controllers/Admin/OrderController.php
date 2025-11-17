@@ -275,7 +275,9 @@ class OrderController extends Controller
                     'sort' => $request->sort
                 ]);
         }
-        return view('admin.orders.marketplace', compact('orders'));
+
+        $kontaks = Kontak::where('marketplace', 1)->get();
+        return view('admin.orders.marketplace', compact('orders', 'kontaks'));
     }
 
     public function create()

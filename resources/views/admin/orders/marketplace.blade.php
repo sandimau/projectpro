@@ -23,11 +23,18 @@
         <div class="card">
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
-                    <form action="{{ route('order.marketplace') }}" method="get">
+                    <form action="{{ route('order.marketplace') }}" method="get" class="w-100">
                         <div class="d-flex flex-column gap-2 w-100">
                             <div class="d-flex align-items-center gap-2 mb-2">
                                 <label for="nota" class="form-label mb-0">Nota</label>
                                 <input type="text" name="nota" class="form-control" value="{{ request('nota') }}">
+                                <label for="nota" class="form-label mb-0">Marketplace</label>
+                                <select name="kontak_id" class="form-control">
+                                    <option value="">Pilih Konsumen</option>
+                                    @foreach ($kontaks as $kontak)
+                                        <option value="{{ $kontak->id }}" {{ request('kontak_id') == $kontak->id ? 'selected' : '' }}>{{ $kontak->nama }}</option>
+                                    @endforeach
+                                </select>
                                 <label for="pembayaran" class="form-label mb-0">Pembayaran</label>
                                 <span class="text-muted">Belum</span>
                                 <div class="form-check form-switch">
@@ -37,15 +44,7 @@
                                 </div>
                                 <span class="text-muted">Sudah</span>
                             </div>
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                <label for="nota" class="form-label mb-0">Konsumen</label>
-                                <div id="autocomplete" class="autocomplete">
-                                    <input class="autocomplete-input {{ $errors->has('kontak_id') ? 'is-invalid' : '' }}"
-                                        placeholder="cari kontak" aria-label="cari kontak">
-                                    <span id="closeBrg"></span>
-                                    <ul class="autocomplete-result-list"></ul>
-                                    <input type="hidden" id="kontakId" name="kontak_id" value="{{ request('kontak_id') }}">
-                                </div>
+                            <div class="d-flex align-items-center gap-2">
                                 <div id="autocompleteProduk" class="autocomplete">
                                     <input class="autocomplete-input produk {{ $errors->has('produk_id') ? 'invalid' : '' }}"
                                         placeholder="cari produk" aria-label="cari produk">
@@ -53,9 +52,6 @@
                                     <ul class="autocomplete-result-list"></ul>
                                     <input type="hidden" id="produkId" name="produk_id" value="{{ request('produk_id') }}">
                                 </div>
-                            </div>
-
-                            <div class="d-flex align-items-center gap-2">
                                 <label for="tanggal" class="form-label mb-0">Dari</label>
                                 <input type="date" name="dari" class="form-control" value="{{ request('dari') }}">
                                 <label for="tanggal" class="form-label mb-0">Sampai</label>
@@ -160,33 +156,6 @@
     <script src="{{ asset('js/autocomplete.min.js') }}"></script>
     <link rel="stylesheet" href="{{ asset('js/autocomplete.css') }}">
     <script>
-        new Autocomplete('#autocomplete', {
-            search: input => {
-                const url = "{{ url('admin/konsumen/api?q=') }}" + `${escape(input)}`;
-                return new Promise(resolve => {
-                    if (input.length < 1) {
-                        return resolve([])
-                    }
-
-                    fetch(url)
-                        .then(response => response.json())
-                        .then(data => {
-                            resolve(data);
-                        })
-                })
-            },
-            getResultValue: result => result.nama,
-            onSubmit: result => {
-                let kontak = document.getElementById('kontakId');
-                kontak.value = result.id;
-
-                let btn = document.getElementById("closeBrg");
-                btn.style.display = "block";
-                btn.innerHTML =
-                    `<button onclick="clearData()" type="button" class="btnClose btn-warning"><i class='bx bx-x-circle' ></i></button>`;
-
-            },
-        })
 
         new Autocomplete('#autocompleteProduk', {
             search: input => {
