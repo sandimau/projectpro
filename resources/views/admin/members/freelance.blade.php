@@ -30,8 +30,8 @@
                                 <th>umur</th>
                                 <th>lama kerja</th>
                                 <th>upah</th>
-                                <th>gaji</th>
                                 <th>lembur</th>
+                                <th>gaji</th>
                                 <th>whattodo</th>
                             </tr>
                         </thead>
