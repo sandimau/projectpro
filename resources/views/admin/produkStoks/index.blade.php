@@ -23,6 +23,28 @@
                 <div class="mt-2">
                     @include('layouts.includes.messages')
                 </div>
+
+                <!-- Form Pencarian -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <form action="{{ route('produk.stok', $produk->id) }}" method="GET">
+                            <div class="input-group">
+                                <input type="text" name="search" class="form-control"
+                                       placeholder="Cari berdasarkan keterangan..."
+                                       value="{{ request('search') }}">
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="fas fa-search"></i> Cari
+                                </button>
+                                @if(request('search'))
+                                    <a href="{{ route('produk.stok', $produk->id) }}" class="btn btn-secondary">
+                                        <i class="fas fa-times"></i> Reset
+                                    </a>
+                                @endif
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
                 <div class="table-responsive">
                     <table class="table table-striped">
                         <thead>
@@ -35,6 +57,9 @@
                                 <th>kurang</th>
                                 <th>saldo</th>
                                 <th>user</th>
+                                @can('opname_access')
+                                    <th>action</th>
+                                @endcan
                             </tr>
                         </thead>
                         <tbody>
@@ -48,6 +73,19 @@
                                     <td>{{ $stok->kurang }}</td>
                                     <td>{{ $stok->saldo }}</td>
                                     <td>{{ $stok->user ? $stok->user->name : null }}</td>
+                                    @can('opname_access')
+                                        @if ($stok->kurang > 0 && $stok->status != 'manual')
+                                        <td>
+                                            <form action="{{ route('produkStok.editStore', $stok->id) }}" method="POST" style="display:inline;">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-danger"
+                                                    onclick="return confirm('Apakah Anda yakin ingin mengembalikan stok ini? Tindakan ini tidak dapat dibatalkan.');">
+                                                    balikin
+                                                </button>
+                                            </form>
+                                        </td>
+                                        @endif
+                                    @endcan
                                 </tr>
                             @endforeach
                         </tbody>

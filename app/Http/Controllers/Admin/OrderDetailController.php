@@ -141,6 +141,7 @@ class OrderDetailController extends Controller
                         'keterangan' => 'barang dijual ke ' .$detail->order->kontak->nama.' '.$username,
                         'kode' => 'jual',
                         'produk_id' => $detail->produk->id,
+                        'detail_id' => $detail->order->id,
                     ]);
                 }
                 if ($awal == 'selesai' and $perubahan == 'batal') {
@@ -151,6 +152,7 @@ class OrderDetailController extends Controller
                         'keterangan' => 'barang dikembalikan dari ' .$detail->order->kontak->nama.' '.$username,
                         'kode' => 'btl',
                         'produk_id' => $detail->produk->id,
+                        'detail_id' => $detail->order->id,
                     ]);
                 }
 

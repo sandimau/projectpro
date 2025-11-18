@@ -142,6 +142,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::get('/produk/{produk}/produk/create', 'ProdukStokController@create')->name('produkStok.create');
             Route::post('/produkStok', 'ProdukStokController@store')->name('produkStok.store');
             Route::get('/opnames', 'ProdukStokController@opname')->name('opnames.index');
+            Route::post('/opnames/{produkStok}/editStore', 'ProdukStokController@editStore')->name('produkStok.editStore');
 
             // kontak
             Route::resource('kontaks', 'KontakController');

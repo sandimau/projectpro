@@ -62,9 +62,16 @@ class ProdukController extends Controller
         return redirect()->route('produkModel.index', ['kategori_id' => $kategori->id])->with('success', 'Produk berhasil dihapus');
     }
 
-    public function stok(Produk $produk)
+    public function stok(Produk $produk, Request $request)
     {
-        $produkStoks = ProdukStok::where('produk_id', $produk->id)->orderBy('id', 'desc')->get();
+        $query = ProdukStok::where('produk_id', $produk->id);
+
+        // Filter berdasarkan keterangan jika ada parameter search
+        if ($request->has('search') && $request->search != '') {
+            $query->where('keterangan', 'like', '%' . $request->search . '%');
+        }
+
+        $produkStoks = $query->orderBy('id', 'desc')->get();
         return view('admin.produkStoks.index', compact('produkStoks','produk'));
     }
 

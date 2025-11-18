@@ -34,6 +34,9 @@
                             <th>harga jual</th>
                             <th>hpp</th>
                             <th>stok</th>
+                            @role('super')
+                                <th>action</th>
+                            @endrole
                         </tr>
                     </thead>
                     <tbody>

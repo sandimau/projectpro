@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use Gate;
+use App\Models\Order;
 use App\Models\Produk;
 use App\Models\ProdukStok;
-use Gate;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use Symfony\Component\HttpFoundation\Response;
 
 class ProdukStokController extends Controller
@@ -84,5 +85,43 @@ class ProdukStokController extends Controller
         }
 
         return view('admin.produkStoks.opname', compact('produkStoks', 'dari', 'sampai'));
+    }
+    public function editStore(ProdukStok $produkStok)
+    {
+        abort_if(Gate::denies('opname_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        if ($produkStok->detail_id) {
+            $order = Order::find($produkStok->detail_id);
+            $ket = 'barang dikembalikan dari ' .$order->kontak->nama.' '.$order->konsumen_detail .' ('.$order->nota.')';
+            $detail_id = $produkStok->detail_id;
+        } else {
+            // Ambil keterangan dan ekstrak kata setelah "oleh" jika ada
+            $ket = $produkStok->keterangan;
+            if (strpos($ket, 'oleh') !== false) {
+                $parts = explode('oleh', $ket, 2);
+                // ambil bagian setelah "oleh", lalu ambil kata pertama
+                $afterOleh = trim($parts[1]);
+                $firstWord = strtok($afterOleh, " ");
+                $ket = $firstWord;
+                $order = Order::where('konsumen_detail', $ket)->first();
+                $ket = 'barang dikembalikan dari ' .$order->kontak->nama.' '.$order->konsumen_detail .' ('.$order->nota.')';
+                $detail_id = $order->id;
+            }
+        }
+
+        ProdukStok::create([
+            'tambah' => $produkStok->kurang,
+            'kurang' => 0,
+            'keterangan' => $ket,
+            'kode' => 'btl',
+            'produk_id' => $produkStok->produk_id,
+            'detail_id' => $detail_id,
+        ]);
+
+        $produkStok->update([
+            'status' => 'manual',
+        ]);
+
+        return redirect()->route('produk.stok', ['produk' => $produkStok->produk_id]);
     }
 }
