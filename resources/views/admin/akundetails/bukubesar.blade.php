@@ -46,27 +46,19 @@
                             @foreach ($bukubesars as $bukubesar)
                                 <tr>
                                     <td>{{ $bukubesar->created_at }}</td>
-                                    @if ($bukubesar->detail_id)
-                                        @if ($bukubesar->kode == 'blj')
-                                            <td><a
-                                                    href="{{ route('belanja.detail', $bukubesar->detail_id) }}">{{ $bukubesar->ket }}</a>
-                                            </td>
+                                    <td>
+                                        @if ($bukubesar->detail_id)
+                                            @if ($bukubesar->kode == 'blj')
+                                                <a href="{{ route('belanja.detail', $bukubesar->detail_id) }}">{{ $bukubesar->ket }}</a>
+                                            @elseif ($bukubesar->kode == 'byr')
+                                                <a href="{{ url('admin/order/' . $bukubesar->detail_id . '/detail') }}">{{ $bukubesar->ket }}</a>
+                                            @else
+                                                {{ $bukubesar->ket }}
+                                            @endif
+                                        @else
+                                            {{ $bukubesar->ket }}
                                         @endif
-                                        @if ($bukubesar->kode == 'byr')
-                                            <td><a
-                                                    href="{{ url('admin/order/' . $bukubesar->detail_id . '/detail') }}">{{ $bukubesar->ket }}</a>
-                                            </td>
-                                        @endif
-
-                                        @if ($bukubesar->kode == 'trf')
-                                            <td>{{ $bukubesar->ket}}</td>
-                                        @endif
-                                        @if ($bukubesar->kode == 'dpst')
-                                            <td>{{ $bukubesar->ket}}</td>
-                                        @endif
-                                    @else
-                                        <td>{{ $bukubesar->ket}}</td>
-                                    @endif
+                                    </td>
                                     <td>{{ number_format($bukubesar->debet, 0, ',', '.') }}</td>
                                     <td>{{ number_format($bukubesar->kredit, 0, ',', '.') }}</td>
                                     <td>{{ number_format($bukubesar->saldo, 0, ',', '.') }}</td>
