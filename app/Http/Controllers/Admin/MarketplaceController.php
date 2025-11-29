@@ -975,7 +975,7 @@ class MarketplaceController extends Controller
             'order' => 'required|mimes:csv',
         ]);
 
-        // try {
+        try {
             DB::transaction(function () use ($request, $id) {
 
                 $config = $id;
@@ -1041,8 +1041,8 @@ class MarketplaceController extends Controller
                 $order = $orderdetil = $stok = $batal = [];
                 $input = false;
                 $notaTerakhir = false;
-                $awal = true;
                 $nota_skr = 0;
+                $sudahKetemuNotaTerakhir = false;
 
                 //////jika marketplace baru, langsung input, ga usah dicek dulu
                 if ($config->baruOrder == 1) {
@@ -1056,7 +1056,9 @@ class MarketplaceController extends Controller
                 $awal_id = Produksi::ambilFlow('Persiapan');
 
                 //////ambil nota terakhir yg udah terinput
-                $terakhir = Order::where('kontak_id', $id_shopee)->latest('created_at')->first();
+                $terakhir = Order::where('kontak_id', $id_shopee)
+                    ->orderBy('created_at', 'desc')
+                    ->first();
 
                 // Proses data dari bawah ke atas (reverse array), skip header
                 $data_rows = array_slice($all_rows, $header); // ambil data setelah header
@@ -1117,16 +1119,21 @@ class MarketplaceController extends Controller
                             $input = true;
                             $notaTerakhir = true;
                         } else {
-                            // Cek apakah nota ini sudah ada di database
-                            $cek_nota_exist = Order::where('kontak_id', $id_shopee)->where('nota', $nota)->exists();
-
-                            if (!$cek_nota_exist) {
-                                // Nota belum ada di database, mulai input
+                            // Jika belum ketemu nota yang sama dengan terakhir
+                            if (!$sudahKetemuNotaTerakhir) {
+                                if ($terakhir->nota == $nota) {
+                                    // Ketemu nota yang sama dengan terakhir, set flag dan skip baris ini
+                                    // Looping selanjutnya (nota berbeda) baru akan dimasukkan
+                                    $sudahKetemuNotaTerakhir = true;
+                                    continue;
+                                } else {
+                                    // Belum ketemu nota yang sama, skip baris ini (karena lebih lama dari yang terakhir)
+                                    continue;
+                                }
+                            } else {
+                                // Sudah ketemu nota yang sama sebelumnya, mulai input
                                 $input = true;
                                 $notaTerakhir = true;
-                            } else {
-                                // Nota sudah ada, skip (karena sudah diinput sebelumnya)
-                                continue;
                             }
                         }
                     }
@@ -1158,7 +1165,10 @@ class MarketplaceController extends Controller
                             $nota_awal = $nota;
 
                             $ongkir = str_replace(".", "", $baris[$marketplace->ongkir]);
-                            $deathline = $baris[$marketplace->deathline] ?? '';
+                            // Tambah 5 hari dari $tanggal
+                            $deathline = isset($baris[$marketplace->deathline]) && $baris[$marketplace->deathline] !== ''
+                                ? $baris[$marketplace->deathline]
+                                : (isset($tanggal) ? Carbon::parse($tanggal)->addDays(5)->toDateString() : '');
 
                             $order[] = array(
                                 'kontak_id' => $id_shopee,
@@ -1225,7 +1235,8 @@ class MarketplaceController extends Controller
                             $stok[] = array(
                                 'produk_id' => $produk->id,
                                 'jumlah' => $jumlah,
-                                'keterangan' => 'dibeli oleh ' . $nama
+                                'keterangan' => 'dibeli oleh ' . $nama,
+                                'detail' => $nota
                             );
                     }
                     $nota_skr = $nota;
@@ -1281,7 +1292,6 @@ class MarketplaceController extends Controller
 
                 //////////////jika ada order baru/////////////////////////////////////////////////////////////
                 if ($input) {
-                    dd($order, $orderdetil, $stok);
                     // Karena data dibaca dari bawah ke atas, perlu membalik urutan sebelum insert
                     // agar urutan data di database tetap sesuai dengan urutan asli file
                     $order = array_reverse($order);
@@ -1346,7 +1356,8 @@ class MarketplaceController extends Controller
                                 'tambah' => 0,
                                 'kurang' => $value['jumlah'],
                                 'keterangan' => $value['keterangan'],
-                                'kode' => 'jual'
+                                'kode' => 'jual',
+                                'detail_id' => $value['detail']
                             ]);
                         }
                     }
@@ -1359,8 +1370,8 @@ class MarketplaceController extends Controller
                 $config->update(['tglUploadOrder' => now()]);
             });
             return redirect()->route('marketplaces.show', $id->id)->withSuccess(__('Upload Order berhasil'));
-        // } catch (\Exception $e) {
-        //     return redirect()->back()->withErrors(['error' => 'Upload Order gagal: ' . $e->getMessage()]);
-        // }
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'Upload Order gagal: ' . $e->getMessage()]);
+        }
     }
 }

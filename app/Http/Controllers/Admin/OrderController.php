@@ -211,7 +211,7 @@ class OrderController extends Controller
         if ($request->dari == null && $request->sampai == null && $request->nota == null && $request->kontak_id == null && $request->produk_id == null && $request->pembayaran == null) {
             // Jika hanya ada sorting tanpa filter lain
             if ($request->sort) {
-                $query = Order::whereNotNull('marketplace');
+                $query = Order::whereNotNull('marketplace')->orderBy('created_at', 'desc');
 
                 if ($request->sort == 'persentase_asc' || $request->sort == 'persentase_desc') {
                     $direction = $request->sort == 'persentase_asc' ? 'asc' : 'desc';
