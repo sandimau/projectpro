@@ -975,7 +975,7 @@ class MarketplaceController extends Controller
             'order' => 'required|mimes:csv',
         ]);
 
-        try {
+        // try {
             DB::transaction(function () use ($request, $id) {
 
                 $config = $id;
@@ -996,12 +996,29 @@ class MarketplaceController extends Controller
                 $header = $marketplace->barisHeader ?? 1;
 
                 // Baca seluruh file ke array terlebih dahulu
-                $file_excel = fopen(request()->order, "r");
-                $all_rows = [];
-                while (($baris = fgetcsv($file_excel, 1000, ",")) !== false) {
-                    $all_rows[] = $baris;
+                $file_path = request()->order->getRealPath();
+
+                // Deteksi encoding dan baca file
+                $content = file_get_contents($file_path);
+
+                // Hapus BOM jika ada (UTF-8 BOM)
+                $content = str_replace("\xEF\xBB\xBF", '', $content);
+
+                // Coba deteksi delimiter (koma atau semicolon)
+                $delimiter = ',';
+                if (substr_count($content, ';') > substr_count($content, ',')) {
+                    $delimiter = ';';
                 }
-                fclose($file_excel);
+
+                // Parse CSV dengan delimiter yang terdeteksi
+                $lines = explode("\n", $content);
+                $all_rows = [];
+                foreach ($lines as $line) {
+                    if (trim($line) !== '') {
+                        $baris = str_getcsv($line, $delimiter, '"');
+                        $all_rows[] = $baris;
+                    }
+                }
 
                 // Validasi header file terlebih dahulu
                 if (count($all_rows) < $header) {
@@ -1009,11 +1026,19 @@ class MarketplaceController extends Controller
                 }
 
                 $header_row = $all_rows[$header - 1]; // array index dimulai dari 0
+
+                // Validasi header
                 if ($header_row[0] != $marketplace->kolom1 or $header_row[1] != $marketplace->kolom2 or $header_row[2] != $marketplace->kolom3) {
                     throw new \Exception('Format header Excel salah. Expected: ' . $marketplace->kolom1 . ', ' . $marketplace->kolom2 . ', ' . $marketplace->kolom3);
                 }
 
-                $order = $orderdetil = $stok = $inputStok = $inputBatal =  $batal = [];
+                // Skip baris index 1 (baris deskripsi kolom) dengan menghapusnya dari array
+                if (isset($all_rows[1])) {
+                    unset($all_rows[1]);
+                    $all_rows = array_values($all_rows); // reindex array
+                }
+
+                $order = $orderdetil = $stok = $batal = [];
                 $input = false;
                 $notaTerakhir = false;
                 $awal = true;
@@ -1041,11 +1066,37 @@ class MarketplaceController extends Controller
 
                 foreach ($data_rows as $index => $baris) {
 
+                    // Skip baris yang kosong atau tidak lengkap
+                    if (empty($baris) || count($baris) < 10) {
+                        continue;
+                    }
+
                     // Hitung nomor baris yang sebenarnya (dari bawah ke atas)
                     $no_baris = $total_rows - $index;
 
                     /////tambahin 1 kolom didepan dengan nomor baris
                     array_unshift($baris, $no_baris);
+
+                    // Validasi index yang dibutuhkan ada di array
+                    $required_indexes = [
+                        $marketplace->nota,
+                        $marketplace->status,
+                        $marketplace->sku_anak,
+                        $marketplace->sku,
+                        $marketplace->tanggal,
+                        $marketplace->nama,
+                        $marketplace->tema,
+                        $marketplace->saldo,
+                        $marketplace->jumlah,
+                        $marketplace->harga,
+                        $marketplace->ongkir
+                    ];
+
+                    $max_index = max($required_indexes);
+                    if (count($baris) <= $max_index) {
+                        // Baris tidak lengkap, skip
+                        continue;
+                    }
 
                     $nota = $baris[$marketplace->nota];
                     $status = $baris[$marketplace->status];
@@ -1230,6 +1281,7 @@ class MarketplaceController extends Controller
 
                 //////////////jika ada order baru/////////////////////////////////////////////////////////////
                 if ($input) {
+                    dd($order, $orderdetil, $stok);
                     // Karena data dibaca dari bawah ke atas, perlu membalik urutan sebelum insert
                     // agar urutan data di database tetap sesuai dengan urutan asli file
                     $order = array_reverse($order);
@@ -1307,8 +1359,8 @@ class MarketplaceController extends Controller
                 $config->update(['tglUploadOrder' => now()]);
             });
             return redirect()->route('marketplaces.show', $id->id)->withSuccess(__('Upload Order berhasil'));
-        } catch (\Exception $e) {
-            return redirect()->back()->withErrors(['error' => 'Upload Order gagal: ' . $e->getMessage()]);
-        }
+        // } catch (\Exception $e) {
+        //     return redirect()->back()->withErrors(['error' => 'Upload Order gagal: ' . $e->getMessage()]);
+        // }
     }
 }
