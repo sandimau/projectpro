@@ -128,12 +128,8 @@
                                         @if($order->total != 0)
                                             @php
                                                 $persentase = 0;
-                                                if($order->total > 0) {
-                                                    // Jika total positif, hitung persentase pembayaran
-                                                    $persentase = ($order->bayar / $order->total) * 100;
-                                                } else {
-                                                    // Jika total negatif, hitung persentase kelebihan bayar
-                                                    $persentase = (abs($order->bayar) / abs($order->total)) * 100;
+                                                if($order->bayar > 0) {
+                                                    $persentase = ($order->total - $order->bayar) / $order->total * 100;
                                                 }
                                             @endphp
                                             {{ number_format($persentase, 2, ',', '.') }}%
