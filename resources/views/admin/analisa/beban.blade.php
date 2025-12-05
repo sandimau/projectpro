@@ -117,41 +117,115 @@
                 maintainAspectRatio: false,
                 onClick: function(evt, activeElements, chart) {
                     if (activeElements.length > 0) {
-                        const element = activeElements[0];
-                        const dataIndex = element.index;
-                        const datasetIndex = element.datasetIndex;
-                        const bulan = data[dataIndex].bulan;
-                        const tahun = $('#tahun').val();
-                        const bulanFormatted = bulan < 10 ? '0' + bulan : bulan;
-                        const urlBulan = tahun + '-' + bulanFormatted;
+                        const points = chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
 
-                        // Tentukan URL berdasarkan kategori yang diklik
-                        let url = '';
-                        const kategori = chart.data.datasets[datasetIndex].label;
+                        if (points.length > 0) {
+                            const point = points[0];
+                            const dataIndex = point.index;
+                            const datasetIndex = point.datasetIndex;
+                            const bulan = data[dataIndex].bulan;
+                            const tahun = $('#tahun').val();
+                            const bulanFormatted = bulan < 10 ? '0' + bulan : bulan;
+                            const urlBulan = tahun + '-' + bulanFormatted;
 
-                        console.log('Kategori diklik:', kategori); // Untuk debugging
+                            // Tentukan URL berdasarkan kategori yang diklik
+                            let url = '';
+                            const kategori = chart.data.datasets[datasetIndex].label;
 
-                        switch(kategori) {
-                            case 'operasional':
-                                url = '{{ url('admin/operasional') }}?bulan=' + urlBulan;
-                                break;
-                            case 'penggajian':
-                                url = '{{ url('admin/penggajian') }}?bulan=' + urlBulan;
-                                break;
-                            case 'tunjangan':
-                                url = '{{ url('admin/tunjangan') }}?bulan=' + urlBulan;
-                                break;
-                            case 'pemakaian_stok':
-                                url = '{{ url('admin/produk-stok') }}?bulan=' + urlBulan;
-                                break;
-                            default:
-                                url = '{{ url('admin/operasional') }}?bulan=' + urlBulan;
+                            console.log('Kategori diklik:', kategori, 'Dataset Index:', datasetIndex); // Untuk debugging
+
+                            switch(kategori) {
+                                case 'operasional':
+                                    url = '{{ url('admin/operasional') }}?bulan=' + urlBulan;
+                                    break;
+                                case 'penggajian':
+                                    url = '{{ url('admin/penggajian') }}?bulan=' + urlBulan;
+                                    break;
+                                case 'tunjangan':
+                                    url = '{{ url('admin/tunjangan') }}?bulan=' + urlBulan;
+                                    break;
+                                case 'pemakaian_stok':
+                                    url = '{{ url('admin/produk-stok') }}?bulan=' + urlBulan;
+                                    break;
+                                default:
+                                    url = '{{ url('admin/operasional') }}?bulan=' + urlBulan;
+                            }
+
+                            console.log('URL redirect:', url); // Untuk debugging
+
+                            // Redirect ke halaman sesuai kategori
+                            window.location.href = url;
+                        } else {
+                            // Fallback: gunakan koordinat mouse untuk menentukan segmen yang diklik
+                            const canvasPosition = Chart.helpers.getRelativePosition(evt, chart);
+                            const x = canvasPosition.x;
+                            const y = canvasPosition.y;
+
+                            // Cari bar yang diklik berdasarkan posisi X
+                            const meta = chart.getDatasetMeta(0);
+                            let clickedDataIndex = -1;
+
+                            for (let i = 0; i < meta.data.length; i++) {
+                                const bar = meta.data[i];
+                                if (x >= bar.x - bar.width / 2 && x <= bar.x + bar.width / 2) {
+                                    clickedDataIndex = i;
+                                    break;
+                                }
+                            }
+
+                            if (clickedDataIndex >= 0) {
+                                // Tentukan dataset berdasarkan posisi Y
+                                let clickedDatasetIndex = -1;
+                                let cumulativeY = chart.scales.y.getPixelForValue(0);
+
+                                for (let i = 0; i < chart.data.datasets.length; i++) {
+                                    const dataset = chart.data.datasets[i];
+                                    const value = dataset.data[clickedDataIndex];
+
+                                    if (value > 0) {
+                                        const meta = chart.getDatasetMeta(i);
+                                        const element = meta.data[clickedDataIndex];
+                                        const segmentTop = element.y;
+                                        const segmentBottom = element.y + element.height;
+
+                                        if (y >= segmentTop && y <= segmentBottom) {
+                                            clickedDatasetIndex = i;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if (clickedDatasetIndex >= 0) {
+                                    const bulan = data[clickedDataIndex].bulan;
+                                    const tahun = $('#tahun').val();
+                                    const bulanFormatted = bulan < 10 ? '0' + bulan : bulan;
+                                    const urlBulan = tahun + '-' + bulanFormatted;
+
+                                    const kategori = chart.data.datasets[clickedDatasetIndex].label;
+                                    let url = '';
+
+                                    switch(kategori) {
+                                        case 'operasional':
+                                            url = '{{ url('admin/operasional') }}?bulan=' + urlBulan;
+                                            break;
+                                        case 'penggajian':
+                                            url = '{{ url('admin/penggajian') }}?bulan=' + urlBulan;
+                                            break;
+                                        case 'tunjangan':
+                                            url = '{{ url('admin/tunjangan') }}?bulan=' + urlBulan;
+                                            break;
+                                        case 'pemakaian_stok':
+                                            url = '{{ url('admin/produk-stok') }}?bulan=' + urlBulan;
+                                            break;
+                                        default:
+                                            url = '{{ url('admin/operasional') }}?bulan=' + urlBulan;
+                                    }
+
+                                    console.log('URL redirect (fallback):', url);
+                                    window.location.href = url;
+                                }
+                            }
                         }
-
-                        console.log('URL redirect:', url); // Untuk debugging
-
-                        // Redirect ke halaman sesuai kategori
-                        window.location.href = url;
                     }
                 },
                 plugins: {
@@ -213,6 +287,18 @@
                 id: 'dataLabels',
                 afterDatasetsDraw: function(chart) {
                     const ctx = chart.ctx;
+
+                    // Fungsi untuk menyederhanakan angka
+                    function formatNumber(num) {
+                        if (num >= 1000000) {
+                            return (num / 1000000).toFixed(1) + 'M';
+                        } else if (num >= 1000) {
+                            return (num / 1000).toFixed(0) + 'K';
+                        } else {
+                            return num.toFixed(0);
+                        }
+                    }
+
                     chart.data.datasets.forEach((dataset, i) => {
                         const meta = chart.getDatasetMeta(i);
                         if (!meta.hidden) {
@@ -229,7 +315,8 @@
                                     const y = element.y + (barHeight / 2);
                                     const x = element.x;
 
-                                    ctx.fillText(data.toFixed(0), x, y);
+                                    // Tampilkan angka yang disederhanakan
+                                    ctx.fillText(formatNumber(data), x, y);
                                 }
                             });
                         }

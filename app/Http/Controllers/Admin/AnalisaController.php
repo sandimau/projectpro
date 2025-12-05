@@ -2,23 +2,13 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Gate;
-use App\Models\Akun;
-use App\Models\AkunKategori;
-use App\Models\Order;
-use App\Models\OrderDetail;
 use App\Models\Penggajian;
 use App\Models\Tunjangan;
-use App\Models\Belanja;
-use App\Models\BelanjaDetail;
-use App\Models\BukuBesar;
 use App\Models\ProdukStok;
-use App\Models\Produk;
-use App\Models\ProdukModel;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
-use Symfony\Component\HttpFoundation\Response;
+use Carbon\Carbon;
 
 class AnalisaController extends Controller
 {
@@ -90,8 +80,245 @@ class AnalisaController extends Controller
         return view('admin.analisa.operasional');
     }
 
+    public function getDataOperasional(Request $request)
+    {
+        $tahun = $request->input('tahun', date('Y'));
+
+        // Ambil semua kategori yang ada terlebih dahulu
+        $allKategori = DB::table('produks')
+            ->select('produk_kategoris.nama as kategori', 'kategori_id')
+            ->join('produk_models', 'produk_model_id', '=', 'produk_models.id')
+            ->join('belanja_details', 'produk_id', '=', 'produks.id')
+            ->join('belanjas', 'belanja_details.belanja_id', '=', 'belanjas.id')
+            ->join('produk_kategoris', 'produk_kategoris.id', '=', 'kategori_id')
+            ->where(function($query) {
+                $query->where('produk_models.stok', '!=', 1)
+                      ->orWhereNull('produk_models.stok');
+            })
+            ->groupBy('kategori_id')
+            ->orderBy('kategori_id')
+            ->get();
+
+        // Ambil data per bulan dan kategori
+        $ambil = DB::table('produks')
+            ->selectRaw('MONTH(belanjas.created_at) as bulan_num,
+            sum(belanja_details.harga*jumlah) as total,
+            produk_kategoris.nama as kategori,kategori_id')
+            ->join('produk_models', 'produk_model_id', '=', 'produk_models.id')
+            ->join('belanja_details', 'produk_id', '=', 'produks.id')
+            ->join('belanjas', 'belanja_details.belanja_id', '=', 'belanjas.id')
+            ->join('produk_kategoris', 'produk_kategoris.id', '=', 'kategori_id')
+            ->whereYear('belanjas.created_at', $tahun)
+            ->where(function($query) {
+                $query->where('produk_models.stok', '!=', 1)
+                      ->orWhereNull('produk_models.stok');
+            })
+            ->groupBy('bulan_num', 'kategori_id')
+            ->orderBy('bulan_num', 'asc')
+            ->orderBy('kategori_id');
+
+        $data = $ambil->get();
+
+        // Kelompokkan data berdasarkan bulan
+        $groupedData = $data->groupBy('bulan_num');
+
+        // Buat daftar bulan
+        $bulans = [
+            1 => 'januari', 2 => 'februari', 3 => 'maret', 4 => 'april',
+            5 => 'mei', 6 => 'juni', 7 => 'juli', 8 => 'agustus',
+            9 => 'september', 10 => 'oktober', 11 => 'november', 12 => 'desember'
+        ];
+
+        // Jika tahun sekarang, batasi sampai bulan ini
+        if ($tahun == date('Y')) {
+            $bulanSekarang = date('n');
+            $bulans = array_slice($bulans, 0, $bulanSekarang, true);
+        }
+
+        // Konversi data untuk format chart
+        $chartData = [];
+
+        foreach ($bulans as $bulan_key => $nama_bulan) {
+            $bulanData = [
+                'bulan' => $bulan_key,
+                'nama_bulan' => $nama_bulan
+            ];
+
+            // Inisialisasi semua kategori dengan nilai 0
+            foreach ($allKategori as $kategori) {
+                $fieldName = strtolower(str_replace(' ', '_', $kategori->kategori));
+                $bulanData[$fieldName] = 0;
+            }
+
+            // Isi data yang ada
+            if ($groupedData->has($bulan_key)) {
+                foreach ($groupedData[$bulan_key] as $item) {
+                    $fieldName = strtolower(str_replace(' ', '_', $item->kategori));
+                    $bulanData[$fieldName] = (float) $item->total;
+                }
+            }
+
+            $chartData[] = $bulanData;
+        }
+
+        return response()->json($chartData);
+    }
+
     public function stok()
     {
         return view('admin.analisa.stok');
+    }
+
+    public function getDataStok(Request $request)
+    {
+        try {
+            $kategori = $request->input('kategori', 'all');
+
+            // Hitung jumlah hari dari awal bulan, 1 bulan yang lalu, hingga hari ini
+            $awalBulan = Carbon::now()->subMonth()->startOfMonth();
+            $hariIni = Carbon::now();
+            $total_hari = $awalBulan->diffInDays($hariIni) + 1;
+
+            // Waktu PO (default 30 hari jika tidak ada config)
+            $waktu_po = 30; // Bisa disesuaikan dengan config
+
+            // Ambil data produk dengan stok (ambil semua produk jika kolom stok tidak ada)
+            $query = DB::table('produks')
+                ->selectRaw('
+                    COALESCE(produk_kategoris.nama, \'Tanpa Kategori\') as kategori,
+                    COALESCE(produk_kategoris.id, 0) as kategori_id,
+                    produk_models.nama as produk,
+                    produks.nama as varian,
+                    produk_models.id as produk_model_id,
+                    produks.id as produk_id,
+                    produk_models.stok as is_stok
+                ')
+                ->join('produk_models', 'produk_model_id', '=', 'produk_models.id')
+                ->leftJoin('produk_kategoris', 'produk_kategoris.id', '=', 'produk_models.kategori_id');
+
+            // Cek apakah kolom stok ada dan bernilai 1
+            $produks = $query->get()->filter(function($item) {
+                return $item->is_stok == 1 || $item->is_stok === null;
+            });
+
+            if ($kategori != 'all') {
+                $produks = $produks->filter(function($item) use ($kategori) {
+                    return $item->kategori_id == $kategori;
+                });
+            }
+
+        $hasil = [];
+
+        foreach ($produks as $produk) {
+            // Hitung totalPakai dari produk_stoks (kurang) dalam periode
+            $totalPakai = DB::table('produk_stoks')
+                ->where('produk_id', $produk->produk_id)
+                ->where('created_at', '>=', $awalBulan)
+                ->where('created_at', '<=', $hariIni)
+                ->where('kurang', '>', 0)
+                ->sum('kurang') ?? 0;
+
+            // Hitung omzet dari order_details dalam periode yang sama
+            $omzet = DB::table('order_details')
+                ->join('orders', 'order_details.order_id', '=', 'orders.id')
+                ->where('order_details.produk_id', $produk->produk_id)
+                ->where('orders.created_at', '>=', $awalBulan)
+                ->where('orders.created_at', '<=', $hariIni)
+                ->sum('order_details.jumlah') ?? 0;
+
+            // Hitung penjualan harian
+            $penjualanHarian = $total_hari > 0 ? round((($totalPakai + $omzet) / $total_hari), 2) : 0;
+
+            // Ambil stok total dari produk_last_stoks (pivot table)
+            $stokTotal = DB::table('produk_last_stoks')
+                ->where('produk_id', $produk->produk_id)
+                ->value('saldo') ?? 0;
+
+            // Jika tidak ada di pivot, ambil dari produk_stoks terakhir
+            if ($stokTotal == 0) {
+                $stokTotal = DB::table('produk_stoks')
+                    ->where('produk_id', $produk->produk_id)
+                    ->orderBy('id', 'desc')
+                    ->value('saldo') ?? 0;
+            }
+
+            // Hitung stok minimal
+            $stokMin = floor($penjualanHarian * $waktu_po * 1.5);
+
+            $kurang = false;
+            $lebih = false;
+            $stokHtml = $stokTotal;
+
+            if ($penjualanHarian == 0) {
+                $status = 'normal';
+            } else {
+                if ($stokTotal >= $stokMin) {
+                    if ($stokTotal > 2 * $stokMin) {
+                        $lebih = true;
+                        $stokHtml = '<b><font color="blue">' . $stokTotal . '</font></b>';
+                    }
+                } else {
+                    $lebihan = $stokTotal / $penjualanHarian;
+                    $pengali_po = 2;
+                    $kekurangan = (($pengali_po * $waktu_po) - $lebihan) * $penjualanHarian;
+                    if ($kekurangan > 0) {
+                        $kurang = true;
+                        $stokHtml = '<b><font color="red">' . $stokTotal . '</font></b> <span style="font-size:10px;">-' . ceil($kekurangan) . '</span>';
+                    }
+                }
+            }
+
+            $hasil[] = [
+                'kategori' => $produk->kategori,
+                'produk' => $produk->produk,
+                'varian' => $produk->varian,
+                'penjualan_harian' => $penjualanHarian,
+                'stok_total' => $stokTotal,
+                'stok_minimal' => $stokMin,
+                'stok_html' => $stokHtml,
+                'kurang' => $kurang,
+                'lebih' => $lebih,
+            ];
+        }
+
+        // Sort berdasarkan kurang=true agar yang paling awal
+        usort($hasil, function($a, $b) {
+            if ($a['kurang'] && !$b['kurang']) {
+                return -1;
+            }
+            if (!$a['kurang'] && $b['kurang']) {
+                return 1;
+            }
+            return 0;
+        });
+
+            return response()->json($hasil);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => true,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getKategoriStok()
+    {
+        try {
+            $kategori = DB::table('produk_kategoris')
+                ->select('produk_kategoris.id', 'produk_kategoris.nama')
+                ->join('produk_models', 'produk_models.kategori_id', '=', 'produk_kategoris.id')
+                ->join('produks', 'produks.produk_model_id', '=', 'produk_models.id')
+                ->where('produk_models.stok', 1)
+                ->groupBy('produk_kategoris.id', 'produk_kategoris.nama')
+                ->orderBy('produk_kategoris.nama')
+                ->get();
+
+            return response()->json($kategori);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => true,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }

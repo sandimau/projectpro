@@ -2,7 +2,7 @@
     <li class="nav-group" aria-expanded="false">
         <a class="nav-link nav-group-toggle" href="#">
             <svg class="nav-icon">
-                <use xlink:href="{{ asset('icons/coreui.svg#cil-3d') }}"></use>
+                <use xlink:href="{{ asset('icons/coreui.svg#cil-industry') }}"></use>
             </svg>
             Produksi
         </a>
@@ -11,7 +11,7 @@
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('order*') ? 'active' : '' }}" href="{{ route('order.dashboard') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-3d') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-task') }}"></use>
                         </svg>
                         Proses
                     </a>
@@ -19,7 +19,7 @@
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('order*') ? 'active' : '' }}" href="{{ route('order.index') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-3d') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-folder-open') }}"></use>
                         </svg>
                         Arsip Offline
                     </a>
@@ -28,7 +28,7 @@
                     <a class="nav-link {{ request()->is('order*') ? 'active' : '' }}"
                         href="{{ route('order.marketplace') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-3d') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-cloud-download') }}"></use>
                         </svg>
                         Arsip Online
                     </a>
@@ -62,7 +62,7 @@
     <li class="nav-group" aria-expanded="false">
         <a class="nav-link nav-group-toggle" href="#">
             <svg class="nav-icon">
-                <use xlink:href="{{ asset('icons/coreui.svg#cil-cash') }}"></use>
+                <use xlink:href="{{ asset('icons/coreui.svg#cil-dollar') }}"></use>
             </svg>
             Keuangan
         </a>
@@ -73,7 +73,7 @@
                         <a class="nav-link {{ request()->is('akunKategoris*') ? 'active' : '' }}"
                             href="{{ route('akunDetails.index') }}">
                             <svg class="nav-icon">
-                                <use xlink:href="{{ asset('icons/coreui.svg#cil-cash') }}"></use>
+                                <use xlink:href="{{ asset('icons/coreui.svg#cil-calculator') }}"></use>
                             </svg>
                             {{ __('akuns') }}
                         </a>
@@ -85,7 +85,7 @@
                     <a class="nav-link {{ request()->is('akunDetails*') ? 'active' : '' }}"
                         href="{{ route('akunDetail.kas') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-cash') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-wallet') }}"></use>
                         </svg>
                         {{ __('kas') }}
                     </a>
@@ -94,7 +94,7 @@
                     <a class="nav-link {{ request()->is('akunDetails*') ? 'active' : '' }}"
                         href="{{ route('order.unpaid') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-cash') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-credit-card') }}"></use>
                         </svg>
                         {{ __('belum lunas') }}
                     </a>
@@ -105,7 +105,7 @@
                     <a class="nav-link {{ request()->is('belanjas*') ? 'active' : '' }}"
                         href="{{ route('belanja.index') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-cash') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-cart') }}"></use>
                         </svg>
                         Belanja
                     </a>
@@ -113,7 +113,7 @@
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('hutang*') ? 'active' : '' }}" href="{{ route('hutang.index') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-cash') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-file') }}"></use>
                         </svg>
                         Hutang/Piutang
                     </a>
@@ -125,7 +125,7 @@
     <li class="nav-group" aria-expanded="false">
         <a class="nav-link nav-group-toggle" href="#">
             <svg class="nav-icon">
-                <use xlink:href="{{ asset('icons/coreui.svg#cil-cash') }}"></use>
+                <use xlink:href="{{ asset('icons/coreui.svg#cil-basket') }}"></use>
             </svg>
             Marketplace
         </a>
@@ -135,7 +135,7 @@
                     <a class="nav-link {{ request()->is('marketplaces*') ? 'active' : '' }}"
                         href="{{ route('marketplaces.index') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-cash') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-settings') }}"></use>
                         </svg>
                         {{ __('Config') }}
                     </a>
@@ -144,7 +144,7 @@
                     <a class="nav-link {{ request()->is('marketplaces*') ? 'active' : '' }}"
                         href="{{ route('marketplaces.analisa') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-cash') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-chart-line') }}"></use>
                         </svg>
                         {{ __('Analisa') }}
                     </a>
@@ -156,7 +156,7 @@
     <li class="nav-group" aria-expanded="false">
         <a class="nav-link nav-group-toggle" href="#">
             <svg class="nav-icon">
-                <use xlink:href="{{ asset('icons/coreui.svg#cil-cash') }}"></use>
+                <use xlink:href="{{ asset('icons/coreui.svg#cil-inbox') }}"></use>
             </svg>
             Inventory
         </a>
@@ -175,7 +175,7 @@
                     <a class="nav-link {{ request()->is('opnames*') ? 'active' : '' }}"
                         href="{{ route('opnames.index') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-basket') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-clipboard') }}"></use>
                         </svg>
                         {{ __('Opname') }}
                     </a>
@@ -184,7 +184,7 @@
                     <a class="nav-link {{ request()->is('produksi*') ? 'active' : '' }}"
                         href="{{ route('produksi.index') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-basket') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-factory') }}"></use>
                         </svg>
                         {{ __('Produksi') }}
                     </a>
@@ -192,7 +192,7 @@
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('po*') ? 'active' : '' }}" href="{{ route('po.index') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-basket') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-description') }}"></use>
                         </svg>
                         {{ __('PO') }}
                     </a>
@@ -204,7 +204,7 @@
     <li class="nav-group" aria-expanded="false">
         <a class="nav-link nav-group-toggle" href="#">
             <svg class="nav-icon">
-                <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
+                <use xlink:href="{{ asset('icons/coreui.svg#cil-people') }}"></use>
             </svg>
             Pegawai
         </a>
@@ -224,7 +224,7 @@
                     <a class="nav-link {{ request()->is('members*') ? 'active' : '' }}"
                         href="{{ route('members.freelance') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-user-follow') }}"></use>
                         </svg>
                         Freelance
                     </a>
@@ -234,7 +234,7 @@
                     <a class="nav-link {{ request()->is('member*') ? 'active' : '' }}"
                         href="{{ route('members.nonaktif') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-user-unfollow') }}"></use>
                         </svg>
                         {{ __('non aktif') }}
                     </a>
@@ -242,7 +242,7 @@
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('ars*') ? 'active' : '' }}" href="{{ route('ars.index') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-headphones') }}"></use>
                         </svg>
                         {{ __('cs') }}
                     </a>
@@ -254,7 +254,7 @@
     <li class="nav-group" aria-expanded="false">
         <a class="nav-link nav-group-toggle" href="#">
             <svg class="nav-icon">
-                <use xlink:href="{{ asset('icons/coreui.svg#cil-cash') }}"></use>
+                <use xlink:href="{{ asset('icons/coreui.svg#cil-chart') }}"></use>
             </svg>
             Analisa
         </a>
@@ -264,7 +264,7 @@
                     <a class="nav-link {{ request()->is('laporan*') ? 'active' : '' }}"
                         href="{{ route('analisa.beban') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-cash') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-chart-line') }}"></use>
                         </svg>
                         Analisa Beban
                     </a>
@@ -273,7 +273,7 @@
                     <a class="nav-link {{ request()->is('laporan*') ? 'active' : '' }}"
                         href="{{ route('analisa.operasional') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-cash') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-bar-chart') }}"></use>
                         </svg>
                         Analisa Operasional
                     </a>
@@ -282,7 +282,7 @@
                     <a class="nav-link {{ request()->is('laporan*') ? 'active' : '' }}"
                         href="{{ route('analisa.stok') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-cash') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-chart-pie') }}"></use>
                         </svg>
                         Analisa Stok
                     </a>
@@ -294,7 +294,7 @@
     <li class="nav-group" aria-expanded="false">
         <a class="nav-link nav-group-toggle" href="#">
             <svg class="nav-icon">
-                <use xlink:href="{{ asset('icons/coreui.svg#cil-cash') }}"></use>
+                <use xlink:href="{{ asset('icons/coreui.svg#cil-description') }}"></use>
             </svg>
             Laporan
         </a>
@@ -304,7 +304,7 @@
                     <a class="nav-link {{ request()->is('laporan*') ? 'active' : '' }}"
                         href="{{ route('laporan.tunjangan') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-cash') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-dollar') }}"></use>
                         </svg>
                         {{ __('Tunjangan') }}
                     </a>
@@ -313,7 +313,7 @@
                     <a class="nav-link {{ request()->is('laporan*') ? 'active' : '' }}"
                         href="{{ route('laporan.penggajian') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-cash') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-wallet') }}"></use>
                         </svg>
                         {{ __('Penggajian') }}
                     </a>
@@ -322,7 +322,7 @@
                     <a class="nav-link {{ request()->is('laporan*') ? 'active' : '' }}"
                         href="{{ route('laporan.neraca') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-cash') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-balance-scale') }}"></use>
                         </svg>
                         {{ __('Neraca') }}
                     </a>
@@ -331,7 +331,7 @@
                     <a class="nav-link {{ request()->is('laporan*') ? 'active' : '' }}"
                         href="{{ route('laporan.labarugi') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-cash') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-chart-line') }}"></use>
                         </svg>
                         {{ __('Laba Rugi') }}
                     </a>
@@ -343,7 +343,7 @@
     <li class="nav-group" aria-expanded="false">
         <a class="nav-link nav-group-toggle" href="#">
             <svg class="nav-icon">
-                <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
+                <use xlink:href="{{ asset('icons/coreui.svg#cil-graph') }}"></use>
             </svg>
             Omzet
         </a>
@@ -353,7 +353,7 @@
                     <a class="nav-link {{ request()->is('order*') ? 'active' : '' }}"
                         href="{{ route('order.omzet') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-calendar') }}"></use>
                         </svg>
                         {{ __('Tahunan') }}
                     </a>
@@ -363,7 +363,7 @@
                     <a class="nav-link {{ request()->is('order*') ? 'active' : '' }}"
                         href="{{ route('order.omzetBulan') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-calendar') }}"></use>
                         </svg>
                         {{ __('Bulanan') }}
                     </a>
@@ -373,7 +373,7 @@
                     <a class="nav-link {{ request()->is('produk*') ? 'active' : '' }}"
                         href="{{ route('produk.aset') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-building') }}"></use>
                         </svg>
                         {{ __('Aset') }}
                     </a>
@@ -382,7 +382,7 @@
                     <a class="nav-link {{ request()->is('produk*') ? 'active' : '' }}"
                         href="{{ route('produk.omzet') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-chart-line') }}"></use>
                         </svg>
                         {{ __('Produk Omzet') }}
                     </a>
@@ -394,7 +394,7 @@
     <li class="nav-group" aria-expanded="false">
         <a class="nav-link nav-group-toggle" href="#">
             <svg class="nav-icon">
-                <use xlink:href="{{ asset('icons/coreui.svg#cil-cog') }}"></use>
+                <use xlink:href="{{ asset('icons/coreui.svg#cil-people') }}"></use>
             </svg>
             User Management
         </a>
@@ -417,7 +417,7 @@
                     <a class="nav-link {{ request()->is('levels*') ? 'active' : '' }}"
                         href="{{ route('level.index') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-layers') }}"></use>
                         </svg>
                         {{ __('Levels') }}
                     </a>
@@ -429,7 +429,7 @@
                     <a class="nav-link {{ request()->is('bagians*') ? 'active' : '' }}"
                         href="{{ route('bagian.index') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-sitemap') }}"></use>
                         </svg>
                         {{ __('Bagians') }}
                     </a>
@@ -460,7 +460,7 @@
                     <a class="nav-link {{ request()->is('permissions*') ? 'active' : '' }}"
                         href="{{ route('permissions.index') }}">
                         <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-room') }}"></use>
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-lock-locked') }}"></use>
                         </svg>
                         {{ __('Permissions') }}
                     </a>
@@ -471,7 +471,7 @@
                 <a class="nav-link {{ request()->is('produksis*') ? 'active' : '' }}"
                     href="{{ route('produksis.index') }}">
                     <svg class="nav-icon">
-                        <use xlink:href="{{ asset('icons/coreui.svg#cil-room') }}"></use>
+                        <use xlink:href="{{ asset('icons/coreui.svg#cil-wrench') }}"></use>
                     </svg>
                     {{ __('Setup Produksi') }}
                 </a>
@@ -481,7 +481,7 @@
                 <a class="nav-link {{ request()->is('speks*') ? 'active' : '' }}"
                     href="{{ route('speks.index') }}">
                     <svg class="nav-icon">
-                        <use xlink:href="{{ asset('icons/coreui.svg#cil-room') }}"></use>
+                        <use xlink:href="{{ asset('icons/coreui.svg#cil-list') }}"></use>
                     </svg>
                     {{ __('Spek Produk') }}
                 </a>
@@ -491,7 +491,7 @@
                 <a class="nav-link {{ request()->is('sistems*') ? 'active' : '' }}"
                     href="{{ route('sistem.index') }}">
                     <svg class="nav-icon">
-                        <use xlink:href="{{ asset('icons/coreui.svg#cil-room') }}"></use>
+                        <use xlink:href="{{ asset('icons/coreui.svg#cil-settings') }}"></use>
                     </svg>
                     {{ __('Sistem') }}
                 </a>

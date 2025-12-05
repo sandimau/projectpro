@@ -299,7 +299,10 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::get('/analisa/beban', 'AnalisaController@beban')->name('analisa.beban');
             Route::get('/analisa/beban/data', 'AnalisaController@getDataBeban')->name('analisa.beban.data');
             Route::get('/analisa/operasional', 'AnalisaController@operasional')->name('analisa.operasional');
+            Route::get('/analisa/operasional/data', 'AnalisaController@getDataOperasional')->name('analisa.operasional.data');
             Route::get('/analisa/stok', 'AnalisaController@stok')->name('analisa.stok');
+            Route::get('/analisa/stok/data', 'AnalisaController@getDataStok')->name('analisa.stok.data');
+            Route::get('/analisa/stok/kategori', 'AnalisaController@getKategoriStok')->name('analisa.stok.kategori');
         });
     });
 });
