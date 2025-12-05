@@ -294,6 +294,12 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::post('/po/{po}/deposit/store', 'POController@depositStore')->name('po.deposit.store');
             Route::get('/po/{po}/belanja/create', 'POController@belanjaCreate')->name('po.belanja.create');
             Route::post('/po/{po}/belanja/store', 'POController@belanjaStore')->name('po.belanja.store');
+
+            // analisa
+            Route::get('/analisa/beban', 'AnalisaController@beban')->name('analisa.beban');
+            Route::get('/analisa/beban/data', 'AnalisaController@getDataBeban')->name('analisa.beban.data');
+            Route::get('/analisa/operasional', 'AnalisaController@operasional')->name('analisa.operasional');
+            Route::get('/analisa/stok', 'AnalisaController@stok')->name('analisa.stok');
         });
     });
 });
