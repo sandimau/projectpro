@@ -182,7 +182,7 @@ class AnalisaController extends Controller
             // Waktu PO (default 30 hari jika tidak ada config)
             $waktu_po = 30; // Bisa disesuaikan dengan config
 
-            // Ambil data produk dengan stok (ambil semua produk jika kolom stok tidak ada)
+            // Ambil data produk dengan stok = 1 dan jual = 1
             $query = DB::table('produks')
                 ->selectRaw('
                     COALESCE(produk_kategoris.nama, \'Tanpa Kategori\') as kategori,
@@ -194,12 +194,12 @@ class AnalisaController extends Controller
                     produk_models.stok as is_stok
                 ')
                 ->join('produk_models', 'produk_model_id', '=', 'produk_models.id')
-                ->leftJoin('produk_kategoris', 'produk_kategoris.id', '=', 'produk_models.kategori_id');
+                ->leftJoin('produk_kategoris', 'produk_kategoris.id', '=', 'produk_models.kategori_id')
+                ->where('produk_models.jual', '=', 1)
+                ->where('produk_models.stok', '=', 1);
 
-            // Cek apakah kolom stok ada dan bernilai 1
-            $produks = $query->get()->filter(function($item) {
-                return $item->is_stok == 1 || $item->is_stok === null;
-            });
+            // Ambil data produk yang memenuhi kriteria
+            $produks = $query->get();
 
             if ($kategori != 'all') {
                 $produks = $produks->filter(function($item) use ($kategori) {

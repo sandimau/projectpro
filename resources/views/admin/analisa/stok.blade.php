@@ -115,7 +115,7 @@
                     <td>${formatNumber(item.penjualan_harian)}</td>
                     <td>${item.stok_html || item.stok_total}</td>
                     <td>${formatNumber(item.stok_minimal)}</td>
-                    <td><span class="badge badge-${statusClass}">${statusText}</span></td>
+                    <td><span>${statusText}</span></td>
                 </tr>
             `;
             tbody.append(row);
