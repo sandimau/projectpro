@@ -753,7 +753,7 @@ class MarketplaceController extends Controller
             'stok' => 'required|mimes:csv',
         ]);
 
-        try {
+        // try {
             $file_excel = fopen(request()->stok, "r");
 
             $i = 0;
@@ -789,6 +789,11 @@ class MarketplaceController extends Controller
                     continue;
                 } else if ($i < ($header + $marketplace->status))
                     continue;
+
+                // Tambahkan filter agar hanya baris[1] yang berupa numerik diterima (misal: 28324459105)
+                if (!is_numeric($baris[1])) {
+                    continue;
+                }
 
                 $varian = $baris[$marketplace->tema] ?? '';
                 $produk = $baris[$marketplace->produk];
@@ -891,9 +896,9 @@ class MarketplaceController extends Controller
             $config->update(['tglUploadStok' => now()]);
 
             echo $table;
-        } catch (\Exception $e) {
-            return redirect()->back()->withErrors(['error' => 'Upload Stok gagal: ' . $e->getMessage()]);
-        }
+        // } catch (\Exception $e) {
+        //     return redirect()->back()->withErrors(['error' => 'Upload Stok gagal: ' . $e->getMessage()]);
+        // }
     }
 
     public function analisa(Request $request)
