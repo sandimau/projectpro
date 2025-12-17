@@ -144,6 +144,13 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::get('/opnames', 'ProdukStokController@opname')->name('opnames.index');
             Route::post('/opnames/{produkStok}/editStore', 'ProdukStokController@editStore')->name('produkStok.editStore');
 
+            // pemakaian
+            Route::get('/pemakaian', 'PemakaianController@index')->name('pemakaian.index');
+            Route::get('/pemakaian/create', 'PemakaianController@create')->name('pemakaian.create');
+            Route::post('/pemakaian', 'PemakaianController@store')->name('pemakaian.store');
+            Route::get('/pemakaian/{pemakaian}/edit', 'PemakaianController@edit')->name('pemakaian.edit');
+            Route::patch('/pemakaian/{pemakaian}/update', 'PemakaianController@update')->name('pemakaian.update');
+
             // kontak
             Route::resource('kontaks', 'KontakController');
 

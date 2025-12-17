@@ -172,6 +172,15 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {{ request()->is('pemakaian*') ? 'active' : '' }}"
+                        href="{{ route('pemakaian.index') }}">
+                        <svg class="nav-icon">
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-basket') }}"></use>
+                        </svg>
+                        Pemakaian
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link {{ request()->is('opnames*') ? 'active' : '' }}"
                         href="{{ route('opnames.index') }}">
                         <svg class="nav-icon">

@@ -74,7 +74,7 @@
                                     <td>{{ $stok->saldo }}</td>
                                     <td>{{ $stok->user ? $stok->user->name : null }}</td>
                                     @can('opname_access')
-                                        @if ($stok->kurang > 0 && $stok->status != 'manual')
+                                        @if ($stok->kurang > 0 && $stok->status != 'manual' && $stok->kode != 'pakai')
                                         <td>
                                             <form action="{{ route('produkStok.editStore', $stok->id) }}" method="POST" style="display:inline;">
                                                 @csrf

@@ -78,7 +78,7 @@
                                         {{ number_format($produk->hpp, 0, ',', '.') }}</a></td>
                                 <td>
                                     <a
-                                        href="{{ route('produk.stok', ['produk' => $produk->produk_id]) }}">{{ $produk->lastStok ?? 0 }}</a>
+                                        href="{{ route('produk.stok', ['produk' => $produk->produk_id]) }}">{{ $produk->lastStokRecord() }}</a>
                                 </td>
                                 @role('super')
                                     <td>

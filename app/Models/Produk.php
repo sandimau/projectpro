@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 
 class Produk extends Model
@@ -33,6 +34,17 @@ class Produk extends Model
     public function lastStok()
     {
         return $this->belongsToMany(Produk::class, 'produk_last_stoks', 'produk_id')->withPivot('saldo');
+    }
+
+    public function LastStokRecord()
+    {
+        $record = DB::table('produk_stoks')
+            ->where('produk_id', $this->produk_id)
+            ->whereNull('deleted_at')
+            ->orderBy('id', 'desc')
+            ->first();
+
+        return $record ? ($record->saldo ?? 0) : 0;
     }
 
     public function produkModel()
