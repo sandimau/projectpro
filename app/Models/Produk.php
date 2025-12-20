@@ -51,4 +51,15 @@ class Produk extends Model
     {
         return $this->belongsTo(ProdukModel::class);
     }
+
+    public function updateHpp($harga, $jumlah)
+    {
+        $total = $this->LastStok()->first()->pivot->saldo ?? 0;
+        if ($total > 0) {
+            $hpp = (($total * $this->hpp) + ($harga * $jumlah)) / ($jumlah + $total);
+        } else {
+            $hpp = $harga;
+        }
+        $this->update(['hpp' => $hpp]);
+    }
 }

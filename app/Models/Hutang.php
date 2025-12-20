@@ -13,6 +13,7 @@ class Hutang extends Model
         'keterangan',
         'jenis',
         'akun_detail_id',
+        'detail_id',
     ];
 
     protected $casts = [

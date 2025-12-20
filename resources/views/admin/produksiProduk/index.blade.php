@@ -12,7 +12,9 @@
                     <div>
                         <h5 class="card-title">Proses Produksi</h5>
                     </div>
-                    <a href="{{ route('produksi.create') }}" class="btn btn-primary">Tambah Produk</a>
+                    <a href="{{ route('produksi.create') }}" class="btn btn-primary">
+                        <i class="bx bx-plus"></i> Produk Produksi
+                    </a>
                 </div>
             </div>
             <div class="card-body">
@@ -20,93 +22,67 @@
                     @include('layouts.includes.messages')
                 </div>
 
-                <!-- Tab Navigation -->
-                <ul class="nav nav-tabs" id="produksiTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="semua-tab" data-bs-toggle="tab" data-bs-target="#semua" type="button" role="tab">Semua</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="selesai-tab" data-bs-toggle="tab" data-bs-target="#selesai" type="button" role="tab">Selesai</button>
-                    </li>
-                </ul>
-
-                <!-- Tab Content -->
-                <div class="tab-content mt-3" id="produksiTabsContent">
-                    <!-- Tab Semua -->
-                    <div class="tab-pane fade show active" id="semua" role="tabpanel">
-                        <div class="table-responsive">
-                            <table class="table table-striped" id="myTable">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Tanggal</th>
-                                        <th scope="col">Produk</th>
-                                        <th scope="col">Target Produksi</th>
-                                        <th scope="col">Total Biaya</th>
-                                        <th scope="col">Keterangan</th>
-                                        <th scope="col">User</th>
-                                        <th scope="col">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($produksis->where('status', '!=', 'finish') as $produksi)
-                                        <tr>
-                                            <td>{{ $produksi->created_at }}</td>
-                                            <td><a href="{{ route('produksi.show', $produksi->id) }}">{{ $produksi->produk->namaLengkap??'-' }}</a></td>
-                                            <td>{{ $produksi->target }}</td>
-                                            <td>{{ $produksi->biaya }}</td>
-                                            <td>{{ $produksi->keterangan }}</td>
-                                            <td>{{ $produksi->user }}</td>
-                                            <td>{{ $produksi->status }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                <!-- Filter Status -->
+                <div class="mb-3">
+                    <form method="GET" action="{{ route('produksi.index') }}" id="filterForm">
+                        <div class="row align-items-end">
+                            <div class="col-md-3">
+                                <label for="status" class="form-label mb-2">Filter Status</label>
+                                <select name="status" id="status" class="form-select"
+                                    onchange="document.getElementById('filterForm').submit();">
+                                    <option value="">Semua Status</option>
+                                    <option value="proses" {{ request('status') == 'proses' ? 'selected' : '' }}>Proses
+                                    </option>
+                                    <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <a href="{{ route('produksi.index') }}" class="btn btn-secondary">Reset Filter</a>
+                            </div>
                         </div>
-                    </div>
-
-                    <!-- Tab Selesai -->
-                    <div class="tab-pane fade" id="selesai" role="tabpanel">
-                        <div class="table-responsive">
-                            <table class="table table-striped" id="selesaiTable">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Tanggal</th>
-                                        <th scope="col">Produk</th>
-                                        <th scope="col">Target Produksi</th>
-                                        <th scope="col">Total Biaya</th>
-                                        <th scope="col">Keterangan</th>
-                                        <th scope="col">User</th>
-                                        <th scope="col">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($produksis->where('status', 'finish') as $produksi)
-                                        <tr>
-                                            <td>{{ $produksi->created_at }}</td>
-                                            <td><a href="{{ route('produksi.show', $produksi->id) }}">{{ $produksi->produk->namaLengkap }}</a></td>
-                                            <td>{{ $produksi->target }}</td>
-                                            <td>{{ $produksi->biaya }}</td>
-                                            <td>{{ $produksi->keterangan }}</td>
-                                            <td>{{ $produksi->user }}</td>
-                                            <td>{{ $produksi->status }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                    </form>
                 </div>
+
+                <!-- Table -->
+                <div class="table-responsive">
+                    <table class="table table-striped" id="myTable">
+                        <thead>
+                            <tr>
+                                <th scope="col">Tanggal</th>
+                                <th scope="col">Produk</th>
+                                <th scope="col">Total Biaya</th>
+                                <th scope="col">Keterangan</th>
+                                <th scope="col">User</th>
+                                <th scope="col">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($produksis as $produksi)
+                                <tr>
+                                    <td>{{ date('d-m-Y H:i', strtotime($produksi->created_at)) }}</td>
+                                    <td><a href="{{ route('produksi.show', $produksi->id) }}">{{ $produksi->hasilProduk ?? '-' }}</a></td>
+                                    <td>{{ number_format($produksi->biaya ?? 0, 0, ',', '.') }}</td>
+                                    <td>{{ $produksi->ket ?? '-' }}</td>
+                                    <td>{{ $produksi->user ?? '-' }}</td>
+                                    <td>
+                                        @if ($produksi->status == 'finish')
+                                            <span class="badge bg-success">Selesai</span>
+                                        @else
+                                            <span class="badge bg-warning">Proses</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="text-center">Tidak ada data produksi</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                {{ $produksis->links() }}
             </div>
         </div>
     </div>
-
-    @push('scripts')
-    <script>
-        $(document).ready(function() {
-            $('#myTable').DataTable();
-            $('#dalamProsesTable').DataTable();
-            $('#selesaiTable').DataTable();
-        });
-    </script>
-    @endpush
 @endsection

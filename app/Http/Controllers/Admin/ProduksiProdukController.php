@@ -14,13 +14,24 @@ use Illuminate\Http\Request;
 use App\Models\ProduksiBahan;
 use App\Models\ProduksiProduk;
 use Illuminate\Support\Facades\DB;
+use App\Models\ProdukProduksiHasil;
 use App\Http\Controllers\Controller;
 
 class ProduksiProdukController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $produksis = ProduksiProduk::orderBy('id', 'desc')->get();
+        $query = ProduksiProduk::with(['produk.produkModel.kategori'])->orderBy('id', 'desc');
+
+        if ($request->has('status') && $request->status != '') {
+            if ($request->status == 'selesai') {
+                $query->where('status', 'finish');
+            } else {
+                $query->where('status', '!=', 'finish');
+            }
+        }
+
+        $produksis = $query->paginate(10);
         return view('admin.produksiProduk.index', compact('produksis'));
     }
 
@@ -33,18 +44,23 @@ class ProduksiProdukController extends Controller
     {
         $request->validate([
             'produk_id' => 'required',
-            'target' => 'required',
+            'jumlah' => 'required',
         ]);
 
-        ProduksiProduk::create([
-            'produk_id' => $request->produk_id,
-            'target' => $request->target,
+        $produksi = ProduksiProduk::create([
             'ket' => $request->ket,
             'user_id' => auth()->user()->id,
             'status' => 'proses',
         ]);
 
-        return redirect()->route('produksi.index')->with('success', 'Produksi berhasil ditambahkan');
+        ProdukProduksiHasil::create([
+            'produk_id' => $request->produk_id,
+            'produksi_id' => $produksi->id,
+            'jumlah' => $request->jumlah,
+            'user_id' => auth()->user()->id ?? null,
+        ]);
+
+        return redirect()->route('produksi.show', $produksi->id)->with('success', 'Produksi berhasil ditambahkan');
     }
 
     public function show(ProduksiProduk $produksi)
@@ -142,6 +158,10 @@ class ProduksiProdukController extends Controller
                     'kredit' => $pembayaran,
                     'detail_id' => $belanja->id,
                 ]);
+
+                $belanja->update([
+                    'pembayaran' => $pembayaran,
+                ]);
             } else {
                 // Masukkan ke hutang
                 Hutang::create([
@@ -151,10 +171,12 @@ class ProduksiProdukController extends Controller
                     'keterangan' => 'Hutang belanja produksi',
                     'jenis' => 'belanja produksi',
                     'akun_detail_id' => $request->akun_detail_id,
+                    'detail_id' => $belanja->id,
                 ]);
             }
 
             $produksi->hitungBiaya();
+            $produksi->hitungHpp();
         });
 
         return redirect()->route('produksi.show', $produksi->id)
@@ -175,6 +197,7 @@ class ProduksiProdukController extends Controller
             'produksi_id' => $produksi->id,
         ]);
         $model->produksi->hitungBiaya();
+        $model->produksi->hitungHpp();
         $stok = ProdukStok::create([
             'produk_id' => $model->produk_id,
             'kode' => 'bahanProduksi',
@@ -196,6 +219,7 @@ class ProduksiProdukController extends Controller
         }
         $belanja->delete();
         $produksi->hitungBiaya();
+        $produksi->hitungHpp();
         return redirect()->route('produksi.show', $produksi->id)->with('danger', 'Produk Belanja berhasil dihapus');
     }
 
@@ -204,6 +228,7 @@ class ProduksiProdukController extends Controller
         $bahan->produkStok->forceDelete();
         $bahan->delete();
         $produksi->hitungBiaya();
+        $produksi->hitungHpp();
         return redirect()->route('produksi.show', $produksi->id)->with('danger', 'Produk bahan berhasil dihapus');
     }
 

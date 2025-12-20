@@ -190,20 +190,42 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->is('produksi*') ? 'active' : '' }}"
-                        href="{{ route('produksi.index') }}">
-                        <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-factory') }}"></use>
-                        </svg>
-                        {{ __('Produksi') }}
-                    </a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link {{ request()->is('po*') ? 'active' : '' }}" href="{{ route('po.index') }}">
                         <svg class="nav-icon">
                             <use xlink:href="{{ asset('icons/coreui.svg#cil-description') }}"></use>
                         </svg>
                         {{ __('PO') }}
+                    </a>
+                </li>
+            @endcan
+        </ul>
+    </li>
+
+    <li class="nav-group" aria-expanded="false">
+        <a class="nav-link nav-group-toggle" href="#">
+            <svg class="nav-icon">
+                <use xlink:href="{{ asset('icons/coreui.svg#cil-inbox') }}"></use>
+            </svg>
+            Produksi
+        </a>
+        <ul class="nav-group-items" style="height: 0px;">
+            @can('produk_access')
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->is('produksi*') ? 'active' : '' }}"
+                        href="{{ route('produksi.index') }}">
+                        <svg class="nav-icon">
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-factory') }}"></use>
+                        </svg>
+                        Proses
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->is('produksi*') ? 'active' : '' }}"
+                        href="{{ route('produkProduksi.index') }}">
+                        <svg class="nav-icon">
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-factory') }}"></use>
+                        </svg>
+                        Produk
                     </a>
                 </li>
             @endcan

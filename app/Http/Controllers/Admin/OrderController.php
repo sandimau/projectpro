@@ -16,6 +16,7 @@ use App\Models\AkunDetail;
 use App\Models\Pembayaran;
 use App\Models\OrderDetail;
 use Illuminate\Http\Request;
+use App\Models\ProdukProduksi;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Symfony\Component\HttpFoundation\Response;
@@ -99,22 +100,25 @@ class OrderController extends Controller
 
     public function apiProdukProduksi()
     {
-        $produk = Produk::select(
+        $produk = ProdukProduksi::select(
             'produk_models.nama',
             'produk_models.satuan',
             'produks.nama as varian',
             'produks.id',
             'produk_kategoris.nama as kategori',
+            'perbandingan',
             DB::raw('COALESCE((SELECT harga FROM belanja_details WHERE produk_id = produks.id ORDER BY created_at DESC LIMIT 1), produk_models.harga) as harga')
         )
+            ->join('produks', 'produk_produksis.produk_id', '=', 'produks.id')
             ->join('produk_models', 'produks.produk_model_id', '=', 'produk_models.id')
             ->join('produk_kategoris', 'produk_models.kategori_id', '=', 'produk_kategoris.id')
             ->where('produk_models.produksi', 1)
             ->where('produks.status', 1)
             ->where(function ($query) {
-                $query->where('produks.nama', 'LIKE', '%' . $_GET['q'] . '%')
-                    ->orWhere('produk_models.nama', 'LIKE', '%' . $_GET['q'] . '%')
-                    ->orWhere('produk_kategoris.nama', 'LIKE', '%' . $_GET['q'] . '%');
+                $q = $_GET['q'] ?? '';
+                $query->where('produks.nama', 'LIKE', '%' . $q . '%')
+                    ->orWhere('produk_models.nama', 'LIKE', '%' . $q . '%')
+                    ->orWhere('produk_kategoris.nama', 'LIKE', '%' . $q . '%');
             })
             ->get();
         return response()->json($produk);
@@ -133,6 +137,29 @@ class OrderController extends Controller
             ->join('produk_models', 'produks.produk_model_id', '=', 'produk_models.id')
             ->join('produk_kategoris', 'produk_models.kategori_id', '=', 'produk_kategoris.id')
             ->where('produk_models.stok', 1)
+            ->where('produks.status', 1)
+            ->where(function ($query) {
+                $query->where('produks.nama', 'LIKE', '%' . $_GET['q'] . '%')
+                    ->orWhere('produk_models.nama', 'LIKE', '%' . $_GET['q'] . '%')
+                    ->orWhere('produk_kategoris.nama', 'LIKE', '%' . $_GET['q'] . '%');
+            })
+            ->get();
+        return response()->json($produk);
+    }
+
+    public function apiProduksi()
+    {
+        $produk = Produk::select(
+            'produk_models.nama',
+            'produk_models.satuan',
+            'produks.nama as varian',
+            'produks.id',
+            'produk_kategoris.nama as kategori',
+            DB::raw('COALESCE((SELECT harga FROM belanja_details WHERE produk_id = produks.id ORDER BY created_at DESC LIMIT 1), produk_models.harga) as harga')
+        )
+            ->join('produk_models', 'produks.produk_model_id', '=', 'produk_models.id')
+            ->join('produk_kategoris', 'produk_models.kategori_id', '=', 'produk_kategoris.id')
+            ->where('produk_models.produksi', 1)
             ->where('produks.status', 1)
             ->where(function ($query) {
                 $query->where('produks.nama', 'LIKE', '%' . $_GET['q'] . '%')

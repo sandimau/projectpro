@@ -1,17 +1,17 @@
 @extends('layouts.app')
 
 @section('title')
-Create Produksi
+Create Hasil Produksi
 @endsection
 
 @section('content')
 <div class="card">
     <div class="card-header">
-        <h5>Add Produksi</h5>
+        <h5>Tambah Hasil Produksi</h5>
     </div>
 
     <div class="card-body">
-        <form method="POST" action="{{ route("produksi.store") }}" enctype="multipart/form-data">
+        <form method="POST" action="{{ route("produksi.hasilProduksiStore", $produksi->id) }}" enctype="multipart/form-data">
             @csrf
             <div class="form-group mb-3">
                 <label for="nama" class="mb-2">Produk</label>
@@ -29,20 +29,11 @@ Create Produksi
                 @endif
             </div>
             <div class="form-group mb-3">
-                <label for="jumlah" class="mb-2">Jumlah</label>
+                <label for="jumlah" class="mb-2">Hasil Produksi</label>
                 <input class="form-control {{ $errors->has('jumlah') ? 'is-invalid' : '' }}" type="number" name="jumlah" id="jumlah" value="{{ old('jumlah', '') }}">
                 @if($errors->has('jumlah'))
                     <div class="invalid-feedback">
                         {{ $errors->first('jumlah') }}
-                    </div>
-                @endif
-            </div>
-            <div class="form-group mb-3">
-                <label for="keterangan" class="mb-2">Keterangan</label>
-                <textarea class="form-control {{ $errors->has('ket') ? 'is-invalid' : '' }}" name="ket" id="ket" rows="3">{{ old('ket', '') }}</textarea>
-                @if($errors->has('ket'))
-                    <div class="invalid-feedback">
-                        {{ $errors->first('ket') }}
                     </div>
                 @endif
             </div>

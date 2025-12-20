@@ -19,9 +19,9 @@ class ProduksiProduk extends Model
 
     public function getUserAttribute()
     {
-        $user = User::find(($this->attributes['user_id'])??0);
+        $user = User::find(($this->attributes['user_id']) ?? 0);
 
-        if($user) {
+        if ($user) {
             return substr($user->email, 0, 5);
         } else {
             return null;
@@ -54,5 +54,76 @@ class ProduksiProduk extends Model
     public function hasilStok()
     {
         return $this->hasMany(ProdukStok::class, 'detail_id', 'id')->where('kode', 'hasilProduksi')->orderBy('id', 'desc');
+    }
+
+    public function hasilProduksi()
+    {
+        return $this->hasMany(ProdukProduksiHasil::class, 'produksi_id');
+    }
+
+    public function getHasilProdukAttribute()
+    {
+        if ($this->hasilProduksi()->count()) {
+            return $this->hasilProduksi()->get()->map(function ($item) {
+                return $item->produk->nama_lengkap;
+            })->implode(', ');
+        } else {
+            return $this->produk ? $this->produk->nama_lengkap : '-';
+        }
+    }
+
+    public function cekkomplit()
+    {
+
+        $jumlahVarian = $this->hasilProduksi()->groupBy('produk_id')->get()->count();
+        $satuan = false;
+
+        foreach ($this->hasilProduksi as $item) {
+            if (empty($item->jumlah)) {
+                return false;
+            }
+
+            if ($jumlahVarian > 1 and empty($item->produkProduksi->perbandingan)) {
+                return false;
+            }
+            if (!$satuan)
+                $satuan = $item->produkProduksi->satuan;
+            else if ($satuan != $item->produkProduksi->satuan) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public function hitungHpp()
+    {
+        if ($this->cekkomplit()) {
+
+            $biaya = $this->biaya;
+
+            $jumlahVarian = $this->hasilProduksi()->groupBy('produk_id')->get()->count();
+
+            if ($jumlahVarian > 1) {
+                $totalPerbandingan = $this->hasilProduksi()->join('produk_produksis', 'produk_produksis.produk_id', '=', 'produk_produksi_hasils.produk_id')->sum(DB::raw('produk_produksis.perbandingan * jumlah'));
+
+                if ($totalPerbandingan > 0) {
+                    foreach ($this->hasilProduksi as $item) {
+                        $item->hpp = $biaya / $totalPerbandingan * $item->produkProduksi->perbandingan;
+                        $item->saveQuietly();
+                    }
+                }
+            } else {
+                $totalJumlah = $this->hasilProduksi()->sum('jumlah');
+
+                if ($totalJumlah > 0) {
+                    $hpp = $biaya / $totalJumlah;
+
+                    foreach ($this->hasilProduksi as $item) {
+                        $item->hpp = $hpp;
+                        $item->saveQuietly();
+                    }
+                }
+            }
+        }
     }
 }

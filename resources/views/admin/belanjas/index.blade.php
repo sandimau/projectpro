@@ -65,6 +65,9 @@
                                 <th>supplier</th>
                                 <th>produk</th>
                                 <th>total</th>
+                                @can('belanja_delete')
+                                    <th>action</th>
+                                @endcan
                             </tr>
                         </thead>
                         <tbody>
@@ -73,7 +76,8 @@
                                     <td>
                                         @if ($belanja->gambar)
                                             <a href="{{ asset('uploads/belanja/' . $belanja->gambar) }}" target="_blank">
-                                                <img src="{{ asset('uploads/belanja/' . $belanja->gambar) }}" alt="gambar" style="width: 100px; height: auto; cursor: zoom-in;">
+                                                <img src="{{ asset('uploads/belanja/' . $belanja->gambar) }}" alt="gambar"
+                                                    style="width: 100px; height: auto; cursor: zoom-in;">
                                             </a>
                                         @else
                                             <span>-</span>
@@ -85,6 +89,19 @@
                                     <td><a href="{{ route('belanja.detail', $belanja->id) }}">{{ $belanja->produk }}</a>
                                     </td>
                                     <td>{{ number_format($belanja->total, 0, ',', '.') }}</td>
+                                    @can('belanja_delete')
+                                        <td>
+                                            <div class="d-flex gap-1">
+                                                <form action="{{ route('belanja.destroy', $belanja->id) }}" method="post"
+                                                    onsubmit="return confirm('Yakin ingin menghapus data ini?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-danger btn-sm"><i
+                                                            class='bx bx-trash'></i></button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    @endcan
                                 </tr>
                             @endforeach
                         </tbody>
@@ -95,8 +112,8 @@
     </div>
 @endsection
 @push('after-scripts')
-<script src="{{ asset('js/autocomplete.min.js') }}"></script>
-<link rel="stylesheet" href="{{ asset('js/autocomplete.css') }}">
+    <script src="{{ asset('js/autocomplete.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ asset('js/autocomplete.css') }}">
     <script>
         new Autocomplete('#autocomplete', {
             search: input => {
@@ -141,7 +158,8 @@
                         })
                 })
             },
-            getResultValue: result => result.varian ? result.kategori + ' - ' + result.nama + ' - ' + result.varian : result.kategori + ' - ' + result.nama,
+            getResultValue: result => result.varian ? result.kategori + ' - ' + result.nama + ' - ' + result
+                .varian : result.kategori + ' - ' + result.nama,
             onSubmit: result => {
                 let idProduk = document.getElementById('produkId');
                 idProduk.value = result.id;

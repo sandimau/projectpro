@@ -21,46 +21,156 @@
                         <div class="row">
                             <div class="col-md-9">
                                 <div class="row">
-                                    <div class="col-lg-3 col-sm-4">
-                                        <h6 class="mb-0 text-secondary">Barang yg diproduksi</h6>
-                                        <p>{{ $produksi->produk->namaLengkap }}</p>
-                                    </div>
                                     <div class="col-lg-2 col-sm-4">
                                         <h6 class="mb-0 text-secondary">Tanggal Mulai</h6>
                                         <p>{{ $produksi->created_at->format('d-m-Y') }}</p>
                                     </div>
                                     <div class="col-lg-2 col-sm-4">
-                                        <h6 class="mb-0 text-secondary">Target</h6>
-                                        <p>{{ $produksi->target }}</p>
-                                    </div>
-                                    <div class="col-lg-2 col-sm-4">
                                         <h6 class="mb-0 text-secondary">keterangan</h6>
-                                        <p>{{ $produksi->keterangan }}</p>
+                                        <p>{{ $produksi->ket }}</p>
                                     </div>
                                     <div class="col-lg-2 col-sm-4">
                                         <h6 class="mb-0 text-secondary">status</h6>
                                         <p>{{ $produksi->status }}</p>
                                     </div>
+                                    <div class="col-lg-2 col-sm-4">
+                                        <h6 class="mb-0 text-secondary">total biaya</h6>
+                                        <p>{{ number_format($produksi->biaya, 0, ',', '.') }}</p>
+                                    </div>
+                                    @if ($produksi->status == 'finish')
+                                        <div class="col-lg-2 col-sm-4">
+                                            <h6 class="mb-0 text-secondary">waktu produksi</h6>
+                                            <p> <?php
+                                            if (!empty($produksi->updated_at)) {
+                                                $datetime1 = new DateTime($produksi->created_at);
+                                                $datetime2 = new DateTime($produksi->updated_at);
+                                                $interval = $datetime1->diff($datetime2);
+                                                echo $interval->format('%a') . ' hari';
+                                            } else {
+                                                echo '0 hari';
+                                            }
+                                            ?></p>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                             <div class="col-md-3 text-end">
                                 @if ($produksi->status != 'finish')
                                     @can('produk_stok_access')
-                                        <a href="{{ route('produksi.edit', $produksi->id) }}"
-                                            class="btn btn-info rounded-pill text-white">
-                                            edit
-                                        </a>
-                                        <a href="{{ route('produksi.selesai', $produksi->id) }}"
-                                            class="btn btn-primary rounded-pill text-white">
-                                            selesai
-                                        </a>
+                                        <div class="d-flex gap-2 justify-content-end">
+                                            <a href="{{ route('produksi.edit', $produksi->id) }}"
+                                                class="btn btn-info rounded-pill text-white">
+                                                edit
+                                            </a>
+                                            @if ($produksi->hasilProduksi()->count() == 0)
+                                                <a href="{{ route('produksi.selesai', $produksi->id) }}"
+                                                    class="btn btn-success rounded-pill text-white">
+                                                    selesai
+                                                </a>
+                                            @else
+                                                @if ($produksi->cekkomplit())
+                                                    <form action="{{ route('produksi.selesaiProduksi', $produksi->id) }}"
+                                                        method="post" class="m-0">
+                                                        @csrf
+                                                        <button type="submit"
+                                                            onclick="return confirm('Apakah anda yakin ingin selesai produksi?')"
+                                                            class="btn btn-primary rounded-pill"><i class="bx bx-check"></i>
+                                                            selesaikan</button>
+                                                    </form>
+                                                @endif
+                                            @endif
+                                        </div>
                                     @endcan
+                                @endif
+                                @if ($produksi->status == 'finish')
+                                    @if ($produksi->hasilProduksi()->count() > 0)
+                                        <div class="d-flex gap-2 justify-content-end">
+                                            <a href="{{ route('produksi.produksiLagi', $produksi->id) }}"
+                                                class="btn btn-success rounded-pill text-white">
+                                                Produksi Lagi
+                                            </a>
+                                        </div>
+                                    @endif
                                 @endif
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+            <!-- TABEL HASIL PRODUKSI -->
+            <div class="col-lg-12 mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h4 class="mb-0">Hasil Produksi</h4>
+                    @if ($produksi->status != 'finish')
+                        @if ($produksi->hasilProduksi()->count() > 0)
+                            <a href="{{ route('produksi.hasilProduksi', $produksi->id) }}"
+                                class="btn btn-success rounded-pill"><i class="bx bx-plus"></i> tambah data</a>
+                        @endif
+                    @endif
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>tgl</th>
+                                <th>barang</th>
+                                <th>jumlah</th>
+                                <th>perbandingan</th>
+                                <th>satuan</th>
+                                <th>hpp</th>
+                                <th>user</th>
+                                @if ($produksi->status != 'finish')
+                                    <th>action</th>
+                                @endif
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if ($produksi->hasilProduksi()->count())
+                                @foreach ($produksi->hasilProduksi as $hasil)
+                                    <tr>
+                                        <td>{{ $hasil->created_at->format('d-m-Y') }}</td>
+                                        <td>{{ $hasil->produk->namaLengkap }}</td>
+                                        <td>{{ $hasil->jumlah }}</td>
+                                        <td>{{ $hasil->perbandingan }}</td>
+                                        <td>{{ $hasil->satuan }}</td>
+                                        <td>{{ number_format($hasil->hpp, 0, ',', '.') }}</td>
+                                        <td>{{ $hasil->user->name ?? '-' }}</td>
+                                        @if ($produksi->status != 'finish')
+                                            <td>
+                                                <div class="d-flex gap-1">
+                                                    <a href="{{ route('produksi.editHasilProduksi', [$produksi->id, $hasil->id]) }}"
+                                                        class="btn btn-warning btn-sm"><i class="bx bx-edit"></i></a>
+                                                    <form
+                                                        action="{{ route('produksi.hapusHasilProduksi', [$produksi->id, $hasil->id]) }}"
+                                                        method="post">
+                                                        @csrf
+                                                        @method('delete')
+                                                        <button type="submit"
+                                                            onclick="return confirm('Apakah anda yakin ingin menghapus data ini?')"
+                                                            class="btn btn-danger btn-sm"><i
+                                                                class="bx bx-trash"></i></button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        @endif
+                                    </tr>
+                                @endforeach
+                            @else
+                                <tr>
+                                    <td>{{ $produksi->created_at->format('d-m-Y') }}</td>
+                                    <td>{{ $produksi->produk ? $produksi->produk->namaLengkap : '-' }}</td>
+                                    <td>{{ $produksi->target }}</td>
+                                    <td>{{ $produksi->perbandingan ?? '-' }}</td>
+                                    <td>{{ $produksi->satuan ?? '-' }}</td>
+                                    <td>{{ $produksi->hpp ?? '-' }}</td>
+                                    <td>{{ $produksi->user->name ?? '-' }}</td>
+                                </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- TABEL AMBIL BAHAN DI GUDANG -->
             <div class="col-lg-12 mt-4">
                 <div class="d-flex justify-content-between align-items-center mb-2">
@@ -80,7 +190,9 @@
                                 <th>hpp</th>
                                 <th>keterangan</th>
                                 <th>penginput</th>
-                                <th>action</th>
+                                @if ($produksi->status != 'finish')
+                                    <th>action</th>
+                                @endif
                             </tr>
                         </thead>
                         <tbody>
@@ -89,11 +201,11 @@
                                     <td>{{ $bahan->created_at->format('d-m-Y') }}</td>
                                     <td>{{ $bahan->produk->namaLengkap }}</td>
                                     <td>{{ $bahan->jumlah }}</td>
-                                    <td>{{ $bahan->hpp }}</td>
+                                    <td>{{ number_format($bahan->hpp, 0, ',', '.') }}</td>
                                     <td>{{ $bahan->keterangan }}</td>
                                     <td>{{ $bahan->produkStok->user->name ?? '-' }}</td>
-                                    <td>
-                                        @if ($produksi->status != 'finish')
+                                    @if ($produksi->status != 'finish')
+                                        <td>
                                             <form
                                                 action="{{ route('produksi.ambilBahanDestroy', [$produksi->id, $bahan->id]) }}"
                                                 method="post">
@@ -103,8 +215,8 @@
                                                     onclick="return confirm('Apakah anda yakin ingin menghapus data ini?')"
                                                     class="btn btn-danger btn-sm"><i class="bx bx-trash"></i></button>
                                             </form>
-                                        @endif
-                                    </td>
+                                        </td>
+                                    @endif
                                 </tr>
                             @endforeach
                         </tbody>
@@ -128,8 +240,8 @@
                                 <th>tgl</th>
                                 <th>supplier</th>
                                 <th>barang/jasa</th>
-                                <th>total</th>
-                                <th>kekurangan</th>
+                                <th class="text-end">total</th>
+                                <th class="text-end">kekurangan</th>
                                 <th>penginput</th>
                                 <th>action</th>
                             </tr>
@@ -141,8 +253,9 @@
                                     <td>{{ $belanja->kontak->nama }}</td>
                                     <td><a href="{{ route('belanja.detail', $belanja->id) }}"
                                             target="_blank">{{ $belanja->produk }}</a></td>
-                                    <td>{{ $belanja->total }}</td>
-                                    <td class="text-primary">{{ $belanja->kekurangan }}</td>
+                                    <td class="text-end">{{ number_format($belanja->total ?? 0, 0, ',', '.') }}</td>
+                                    <td class="text-primary text-end">
+                                        {{ number_format($belanja->total - $belanja->pembayaran ?? 0, 0, ',', '.') }}</td>
                                     <td>{{ $belanja->user->name ?? '-' }}</td>
                                     <td>
                                         @if ($produksi->status != 'finish')
@@ -163,51 +276,6 @@
                     </table>
                 </div>
             </div>
-
-            <div class="col-lg-6">
-                <div class="card mt-4">
-                    <div class="card-body">
-                        <h5>hasil</h5>
-                        <div class="row">
-                            <div class="col-12">
-                                <table style="width:100%">
-                                    <tr>
-                                        <td>total biaya</td>
-                                        <td class="text-end">{{ number_format($produksi->biaya, 0, ',', '.') }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>target produksi</td>
-                                        <td class="text-end">{{ $produksi->target }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>hasil produksi</td>
-                                        <td class="text-end">{{ $produksi->hasil ?? 0 }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td>waktu produksi</td>
-                                        <td class="text-end">
-                                            <?php
-                                            if (!empty($produksi->updated_at)) {
-                                                $datetime1 = new DateTime($produksi->created_at);
-                                                $datetime2 = new DateTime($produksi->updated_at);
-                                                $interval = $datetime1->diff($datetime2);
-                                                echo $interval->format('%a') . ' hari';
-                                            } else {
-                                                echo '0 hari';
-                                            }
-                                            ?>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>hpp</td>
-                                        <td class="text-end">{{ number_format($produksi->hpp ?? 0, 0, ',', '.') }}</td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
             <div class="col-lg-6">
                 <div class="card mt-4">
                     <div class="card-header">
@@ -218,7 +286,8 @@
                             enctype="multipart/form-data">
                             @csrf
                             <div class="input-group mb-3">
-                                <input type="text" class="form-control chat" placeholder="tulis pesan" name="isi">
+                                <input type="text" class="form-control chat" placeholder="tulis pesan"
+                                    name="isi">
                                 <button class="input-group-text btn btn-primary rounded-pill" type="submit"><i
                                         class='bx bx-send'></i></button>
                             </div>
@@ -245,43 +314,6 @@
                 </div>
             </div>
         </div>
-
-        <div class="col-lg-12 mt-4">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <h4 class="mb-0">hasil produksi</h4>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Tanggal</th>
-                            <th>Keterangan</th>
-                            <th>kode</th>
-                            <th>hpp</th>
-                            <th>tambah</th>
-                            <th>kurang</th>
-                            <th>saldo</th>
-                            <th>user</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($produksi->hasilStok as $stok)
-                            <tr>
-                                <td>{{ $stok->created_at->format('d-m-Y') }}</td>
-                                <td>{{ $stok->keterangan }}</td>
-                                <td>{{ $stok->kode }}</td>
-                                <td>{{ $stok->hpp }}</td>
-                                <td>{{ $stok->tambah }}</td>
-                                <td>{{ $stok->kurang }}</td>
-                                <td>{{ $stok->saldo }}</td>
-                                <td>{{ $stok->user ? $stok->user->name : null }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
 
     </div>
 @endsection

@@ -182,6 +182,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::get('/belanja/create', 'BelanjaController@create')->name('belanja.create');
             Route::post('/belanja', 'BelanjaController@store')->name('belanja.store');
             Route::get('/belanja/{belanja}', 'BelanjaController@detail')->name('belanja.detail');
+            Route::delete('/belanja/{belanja}', 'BelanjaController@destroy')->name('belanja.destroy');
 
             //order
             Route::get('/order', 'OrderController@index')->name('order.index');
@@ -194,6 +195,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::get('/produk/api', 'OrderController@apiProduk')->name('order.produk');
             Route::get('/produkBeli/api', 'OrderController@apiProdukBeli')->name('order.produkBeli');
             Route::get('/produkProduksi/api', 'OrderController@apiProdukProduksi')->name('order.produkProduksi');
+            Route::get('/produksi/api', 'OrderController@apiProduksi')->name('order.produksi');
             Route::get('/produkStok/api', 'OrderController@apiProdukStok')->name('order.produkStok');
             Route::get('/order/dashboard', 'OrderController@dashboard')->name('order.dashboard');
             Route::get('/order/{order}/edit', 'OrderController@edit')->name('order.edit');
@@ -282,6 +284,19 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::get('/produksi/{produksi}/ambilBahan', 'ProduksiProdukController@ambilBahan')->name('produksi.ambilBahan');
             Route::post('/produksi/{produksi}/ambilBahan', 'ProduksiProdukController@ambilBahanStore')->name('produksi.ambilBahanStore');
             Route::delete('/produksi/{produksi}/ambilBahan/{bahan}', 'ProduksiProdukController@ambilBahanDestroy')->name('produksi.ambilBahanDestroy');
+
+            // produk produksi
+            Route::get('/produkProduksi', 'ProdukProduksiController@index')->name('produkProduksi.index');
+            Route::get('/produkProduksi/create', 'ProdukProduksiController@create')->name('produkProduksi.create');
+            Route::post('/produkProduksi', 'ProdukProduksiController@store')->name('produkProduksi.store');
+            Route::delete('/produkProduksi/{produkProduksi}', 'ProdukProduksiController@destroy')->name('produkProduksi.destroy');
+            Route::get('/produksi/{produksi}/hasilProduksi', 'ProdukProduksiController@hasilProduksi')->name('produksi.hasilProduksi');
+            Route::post('/produksi/{produksi}/hasilProduksi', 'ProdukProduksiController@hasilProduksiStore')->name('produksi.hasilProduksiStore');
+            Route::delete('/produksi/{produksi}/hasilProduksi/{hasil}', 'ProdukProduksiController@hasilProduksiDestroy')->name('produksi.hapusHasilProduksi');
+            Route::get('/produksi/{produksi}/hasilProduksi/{hasil}/edit', 'ProdukProduksiController@editHasilProduksi')->name('produksi.editHasilProduksi');
+            Route::patch('/produksi/{produksi}/hasilProduksi/{hasil}/update', 'ProdukProduksiController@updateHasilProduksi')->name('produksi.updateHasilProduksi');
+            Route::post('/produksi/{produksi}/selesaiProduksi', 'ProdukProduksiController@selesaiProduksi')->name('produksi.selesaiProduksi');
+            Route::get('/produksi/{produksi}/produksiLagi', 'ProdukProduksiController@produksiLagi')->name('produksi.produksiLagi');
 
             // po
             Route::get('/po', 'POController@index')->name('po.index');

@@ -120,6 +120,7 @@ class BelanjaController extends Controller
                     'jumlah' => $request->total,
                     'keterangan' => 'pembelian ke ' . $supplier->nama,
                     'jenis' => 'belanja',
+                    'detail_id' => $belanja->id,
                 ]);
             }
 
@@ -142,14 +143,7 @@ class BelanjaController extends Controller
                         ]);
 
                         if ($produk->produkModel->stok == 1) {
-                            $total = $produk->lastStok()->where('produk_id', $produk->id)->latest('id')->first();
-                            if ($total) {
-                                $hpp = (($total->pivot->saldo * $produk->hpp) + ($request->harga[$item] * $request->jumlah[$item])) / ($request->jumlah[$item] + $total->pivot->saldo);
-                            } else {
-                                $hpp = $request->harga[$item];
-                            }
-
-                            $produk->update(['hpp' => $hpp]);
+                            $produk->updateHpp($request->harga[$item], $request->jumlah[$item]);
 
                             ProdukStok::create([
                                 'produk_id' => $request->barang_beli_id[$item],
@@ -178,4 +172,81 @@ class BelanjaController extends Controller
 
         return view('admin.belanjas.detail', compact('belanjaDetail', 'belanja'));
     }
+
+    public function destroy($belanja)
+    {
+        $belanja = Belanja::findOrFail($belanja);
+
+        DB::transaction(function () use ($belanja) {
+            // Reverse BukuBesar jika ada pembayaran
+            if ($belanja->pembayaran > 0 && $belanja->pembayaran <= $belanja->total && $belanja->akun_detail_id) {
+                // Hapus atau reverse entry BukuBesar
+                $bukuBesar = BukuBesar::where('kode', 'blj')
+                    ->where('detail_id', $belanja->id)
+                    ->where('akun_detail_id', $belanja->akun_detail_id)
+                    ->first();
+
+                if ($bukuBesar) {
+                    // Buat entry reversal untuk balance kredit sebelumnya
+                    BukuBesar::create([
+                        'akun_detail_id' => $belanja->akun_detail_id,
+                        'ket' => 'pembatalan pembelian nota: ' . $belanja->nota,
+                        'debet' => $belanja->pembayaran,
+                        'kredit' => 0,
+                        'kode' => 'batal',
+                        'detail_id' => $belanja->id,
+                    ]);
+                }
+            }
+
+            // Hapus Hutang jika tidak bayar atau bayar sebagian
+            if ($belanja->pembayaran < $belanja->total) {
+                // Gunakan kriteria yang sama seperti relasiHutang di model Belanja
+                $hutang = Hutang::where('detail_id', $belanja->id)
+                    ->first();
+
+                if ($hutang) {
+                    $hutang->delete();
+                }
+            }
+
+            // Reverse ProdukStok untuk setiap detail belanja
+            $belanjaDetails = BelanjaDetail::where('belanja_id', $belanja->id)->get();
+
+            foreach ($belanjaDetails as $detail) {
+                $produk = Produk::find($detail->produk_id);
+
+                if ($produk && $produk->produkModel->stok == 1) {
+                    // Buat reversal entry ProdukStok (kurang = jumlah yang ditambah sebelumnya)
+                    // Stok akan berkurang, tetapi HPP tetap karena adalah weighted average historis
+                    ProdukStok::create([
+                        'produk_id' => $detail->produk_id,
+                        'tambah' => 0,
+                        'kurang' => $detail->jumlah,
+                        'keterangan' => 'pembatalan belanja nota: ' . $belanja->nota,
+                        'kode' => 'batal',
+                        'user_id' => auth()->user()->id,
+                        'detail_id' => $belanja->id,
+                    ]);
+                }
+            }
+
+            // Hapus BelanjaDetail
+            BelanjaDetail::where('belanja_id', $belanja->id)->delete();
+
+            // Hapus gambar jika ada
+            if ($belanja->gambar) {
+                $gambar_path = public_path('uploads/belanja/' . $belanja->gambar);
+                if (file_exists($gambar_path)) {
+                    unlink($gambar_path);
+                }
+            }
+
+            // Hapus Belanja
+            $belanja->delete();
+        });
+
+        return redirect()->route('belanja.index')->withSuccess(__('Belanja deleted successfully.'));
+    }
+
 }
