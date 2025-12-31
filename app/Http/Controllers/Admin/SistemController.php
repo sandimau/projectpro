@@ -53,9 +53,6 @@ class SistemController extends Controller
             if ($value->type == 'text') {
                 $sistem[$value->nama] = 'required';
             }
-            if ($value->type == 'file') {
-                $sistem[$value->nama] = 'required|mimes:jpeg,png,jpg';
-            }
         }
         $request->validate($sistem);
 
@@ -82,6 +79,11 @@ class SistemController extends Controller
                 ]);
             }
             if ($value->type == 'text') {
+                $value->update([
+                    'isi' => $request->{$value->nama},
+                ]);
+            }
+            if ($value->type == 'number') {
                 $value->update([
                     'isi' => $request->{$value->nama},
                 ]);

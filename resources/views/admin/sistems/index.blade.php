@@ -40,6 +40,9 @@
                                             <img src="{{ url('uploads/'.$item->nama.'/' . $item->isi) }}"
                                                 alt="" srcset="">
                                         @endif
+                                        @if ($item->type == 'number')
+                                            {{ $item->isi }}
+                                        @endif
                                     </td>
                                 </tr>
                             @endforeach

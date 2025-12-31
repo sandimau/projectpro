@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\Penggajian;
+use Carbon\Carbon;
+use App\Models\Sistem;
 use App\Models\Tunjangan;
+use App\Models\Penggajian;
 use App\Models\ProdukStok;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
+use App\Http\Controllers\Controller;
 
 class AnalisaController extends Controller
 {
@@ -166,6 +167,7 @@ class AnalisaController extends Controller
 
     public function stok()
     {
+        $sistems = Sistem::where('nama', 'limit_stok')->first();
         return view('admin.analisa.stok');
     }
 
@@ -179,8 +181,10 @@ class AnalisaController extends Controller
             $hariIni = Carbon::now();
             $total_hari = $awalBulan->diffInDays($hariIni) + 1;
 
+            $sistems = Sistem::where('nama', 'limit_stok')->first();
+
             // Waktu PO (default 30 hari jika tidak ada config)
-            $waktu_po = 30; // Bisa disesuaikan dengan config
+            $waktu_po = $sistems->isi ?? 30; // Bisa disesuaikan dengan config
 
             // Ambil data produk dengan stok = 1 dan jual = 1
             $query = DB::table('produks')
