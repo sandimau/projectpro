@@ -46,6 +46,15 @@ Kas Transfer Create
                 @endif
             </div>
             <div class="form-group mb-3">
+                <label class="required" for="keterangan">keterangan</label>
+                <textarea class="form-control {{ $errors->has('keterangan') ? 'is-invalid' : '' }}" name="keterangan" id="keterangan" required>{{ old('keterangan') }}</textarea>
+                @if($errors->has('keterangan'))
+                    <div class="invalid-feedback">
+                        {{ $errors->first('keterangan') }}
+                    </div>
+                @endif
+            </div>
+            <div class="form-group mb-3">
                 <button class="btn btn-danger" type="submit">
                     {{ trans('save') }}
                 </button>

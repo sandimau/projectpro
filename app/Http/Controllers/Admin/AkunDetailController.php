@@ -106,7 +106,7 @@ class AkunDetailController extends Controller
             BukuBesar::create([
                 'akun_detail_id' => $request->akun_detail_dari,
                 'kode' => 'trf',
-                'ket' => 'transfer ke ' . $akunDetailKe->nama,
+                'ket' => 'transfer ke ' . $akunDetailKe->nama. ' (' . $request->keterangan . ')',
                 'kredit' => $request->jumlah,
                 'debet' => 0,
             ]);
@@ -115,7 +115,7 @@ class AkunDetailController extends Controller
             BukuBesar::create([
                 'akun_detail_id' => $request->akun_detail_tujuan,
                 'kode' => 'trf',
-                'ket' => 'transfer dari ' . $akunDetailDari->nama,
+                'ket' => 'transfer dari ' . $akunDetailDari->nama. ' (' . $request->keterangan . ')',
                 'kredit' => 0,
                 'debet' => $request->jumlah,
             ]);
