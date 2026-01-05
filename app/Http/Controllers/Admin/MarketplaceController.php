@@ -907,8 +907,22 @@ class MarketplaceController extends Controller
             $query->whereNotNull('marketplace');
         }])->get();
 
-        $tahun_skr = date('Y');
-        $bulan_skr = date('n');
+        // Ambil tahun pertama dari order
+        $tahunPertama = DB::table('orders')->min(DB::raw('YEAR(created_at)'));
+        $tahunPertama = $tahunPertama ?: date('Y');
+        $tahunSekarang = date('Y');
+
+        // Buat list tahun dari tahun pertama sampai tahun sekarang
+        $listTahun = [];
+        for ($y = $tahunSekarang; $y >= $tahunPertama; $y--) {
+            $listTahun[] = $y;
+        }
+
+        // Ambil tahun dari request atau default tahun sekarang
+        $tahun_skr = $request->input('tahun', $tahunSekarang);
+
+        // Tentukan batas bulan (jika tahun yang dipilih adalah tahun sekarang, loop sampai bulan sekarang)
+        $bulan_skr = ($tahun_skr == $tahunSekarang) ? date('n') : 12;
         $data = [];
 
         for ($i = 1; $i <= $bulan_skr; $i++) {
@@ -971,7 +985,7 @@ class MarketplaceController extends Controller
             ];
         }
 
-        return view('admin.marketplaces.analisa', compact('marketplaces', 'data'));
+        return view('admin.marketplaces.analisa', compact('marketplaces', 'data', 'listTahun', 'tahun_skr'));
     }
 
     public function uploadOrderTiktok(Request $request, Marketplace $id)

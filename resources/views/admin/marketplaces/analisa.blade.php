@@ -7,8 +7,16 @@
 @section('content')
     <div class="bg-light rounded">
         <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Analisa Marketplace Tahun {{ date('Y') }}</h5>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Analisa Marketplace Tahun {{ $tahun_skr }}</h5>
+                <form action="{{ route('marketplaces.analisa') }}" method="GET" class="d-flex align-items-center">
+                    <label for="tahun" class="me-2 mb-0">Tahun:</label>
+                    <select name="tahun" id="tahun" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+                        @foreach ($listTahun as $tahun)
+                            <option value="{{ $tahun }}" {{ $tahun == $tahun_skr ? 'selected' : '' }}>{{ $tahun }}</option>
+                        @endforeach
+                    </select>
+                </form>
             </div>
             <div class="card-body">
                 <div class="mt-2">
@@ -41,8 +49,7 @@
                                                     $omzetValue = $bulanData['omzet'][$marketplace->kontak->id] ?? 0;
                                                     $bayarValue = $bulanData['bayar'][$marketplace->kontak->id] ?? 0;
                                                     $bulanNumber = $bulanData['bulan'] ?? date('n');
-                                                    $tahun = date('Y');
-                                                    $tanggalAwal = $tahun . '-' . str_pad($bulanNumber, 2, '0', STR_PAD_LEFT) . '-01';
+                                                    $tanggalAwal = $tahun_skr . '-' . str_pad($bulanNumber, 2, '0', STR_PAD_LEFT) . '-01';
                                                     $tanggalAkhir = date('Y-m-t', strtotime($tanggalAwal));
                                                 @endphp
                                                 @if($omzetValue > 0)
