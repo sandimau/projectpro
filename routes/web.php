@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\LinkController;
+use App\Http\Controllers\Admin\LinkPageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,6 +22,9 @@ Route::get('/', function () {
 });
 
 Route::get('/order/hapusOnline', [OrderController::class, 'hapusOnline'])->name('order.hapusOnline');
+
+// Public Link Page (seperti Linktree)
+Route::get('/link/{slug}', [LinkController::class, 'show'])->name('link.show');
 
 /**
  * Auth Routes
@@ -325,6 +330,15 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::get('/analisa/stok', 'AnalisaController@stok')->name('analisa.stok');
             Route::get('/analisa/stok/data', 'AnalisaController@getDataStok')->name('analisa.stok.data');
             Route::get('/analisa/stok/kategori', 'AnalisaController@getKategoriStok')->name('analisa.stok.kategori');
+
+            // Link Pages (seperti Linktree)
+            Route::resource('linkPages', 'LinkPageController');
+            Route::get('/linkPages/{linkPage}/items', 'LinkPageController@items')->name('linkPages.items');
+            Route::get('/linkPages/{linkPage}/items/create', 'LinkPageController@createItem')->name('linkPages.items.create');
+            Route::post('/linkPages/{linkPage}/items', 'LinkPageController@storeItem')->name('linkPages.items.store');
+            Route::get('/linkPages/{linkPage}/items/{item}/edit', 'LinkPageController@editItem')->name('linkPages.items.edit');
+            Route::put('/linkPages/{linkPage}/items/{item}', 'LinkPageController@updateItem')->name('linkPages.items.update');
+            Route::delete('/linkPages/{linkPage}/items/{item}', 'LinkPageController@destroyItem')->name('linkPages.items.destroy');
         });
     });
 });

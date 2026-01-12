@@ -527,6 +527,16 @@
                     {{ __('Sistem') }}
                 </a>
             </li>
+
+            <li class="nav-item">
+                <a class="nav-link {{ request()->is('admin/linkPages*') ? 'active' : '' }}"
+                    href="{{ route('linkPages.index') }}">
+                    <svg class="nav-icon">
+                        <use xlink:href="{{ asset('icons/coreui.svg#cil-link') }}"></use>
+                    </svg>
+                    {{ __('Link Pages') }}
+                </a>
+            </li>
         </ul>
     </li>
 </ul>
