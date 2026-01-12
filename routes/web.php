@@ -18,7 +18,7 @@ use App\Http\Controllers\Admin\LinkPageController;
 */
 
 Route::get('/', function () {
-    return redirect('/login');
+    return auth()->check() ? redirect()->route('dashboard') : redirect('/login');
 });
 
 Route::get('/order/hapusOnline', [OrderController::class, 'hapusOnline'])->name('order.hapusOnline');
@@ -66,6 +66,9 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
         });
 
         Route::group(['prefix' => 'admin', 'namespace' => 'Admin'], function () {
+            // Dashboard
+            Route::get('/dashboard', 'DashboardController@index')->name('dashboard');
+
             Route::resource('akuns', 'AkunController');
 
             // akun details
