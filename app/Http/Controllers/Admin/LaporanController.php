@@ -132,8 +132,12 @@ class LaporanController extends Controller
         $tahun_skr = date('Y');
         $bulan_skr = date('n');
 
-        for ($i = 1; $i <= $bulan_skr; $i++) {
-            $bulan[$tahun_skr . '-' . str_pad($i, 2, '0', STR_PAD_LEFT)] = date('F', mktime(0, 0, 0, $i, 1)) . ' ' . $tahun_skr;
+        // Tambahkan bulan-bulan dari 2 tahun sebelumnya
+        for ($tahun = $tahun_skr - 1; $tahun <= $tahun_skr; $tahun++) {
+            $bulan_akhir = ($tahun == $tahun_skr) ? $bulan_skr : 12;
+            for ($i = 1; $i <= $bulan_akhir; $i++) {
+                $bulan[$tahun . '-' . str_pad($i, 2, '0', STR_PAD_LEFT)] = date('F', mktime(0, 0, 0, $i, 1)) . ' ' . $tahun;
+            }
         }
 
         return view('admin.laporan.labarugi', compact('omzet', 'hpp', 'opname', 'beban', 'gaji', 'tunjangan', 'bulan', 'total_potonganMP'));
