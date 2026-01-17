@@ -303,6 +303,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::delete('/produksi/{produksi}/hasilProduksi/{hasil}', 'ProdukProduksiController@hasilProduksiDestroy')->name('produksi.hapusHasilProduksi');
             Route::get('/produksi/{produksi}/hasilProduksi/{hasil}/edit', 'ProdukProduksiController@editHasilProduksi')->name('produksi.editHasilProduksi');
             Route::patch('/produksi/{produksi}/hasilProduksi/{hasil}/update', 'ProdukProduksiController@updateHasilProduksi')->name('produksi.updateHasilProduksi');
+            Route::post('/produksi/{produksi}/hasilProduksi/{hasil}/selesai', 'ProdukProduksiController@selesaiHasilProduksiSatuan')->name('produksi.selesaiHasilProduksiSatuan');
             Route::post('/produksi/{produksi}/selesaiProduksi', 'ProdukProduksiController@selesaiProduksi')->name('produksi.selesaiProduksi');
             Route::get('/produksi/{produksi}/produksiLagi', 'ProdukProduksiController@produksiLagi')->name('produksi.produksiLagi');
 

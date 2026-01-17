@@ -21,6 +21,7 @@ class ProdukProduksiHasil extends Model
         'produksi_id',
         'jumlah',
         'hpp',
+        'status',
         'user_id',
     ];
 

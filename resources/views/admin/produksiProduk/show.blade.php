@@ -118,6 +118,7 @@
                                 <th>perbandingan</th>
                                 <th>satuan</th>
                                 <th>hpp</th>
+                                <th>status</th>
                                 <th>user</th>
                                 @if ($produksi->status != 'finish')
                                     <th>action</th>
@@ -127,29 +128,49 @@
                         <tbody>
                             @if ($produksi->hasilProduksi()->count())
                                 @foreach ($produksi->hasilProduksi as $hasil)
-                                    <tr>
+                                    <tr class="{{ $hasil->status == 'finish' ? 'table-success' : '' }}">
                                         <td>{{ $hasil->created_at->format('d-m-Y') }}</td>
                                         <td>{{ $hasil->produk->namaLengkap }}</td>
                                         <td>{{ $hasil->jumlah }}</td>
                                         <td>{{ $hasil->perbandingan }}</td>
                                         <td>{{ $hasil->satuan }}</td>
                                         <td>{{ number_format($hasil->hpp, 0, ',', '.') }}</td>
+                                        <td>
+                                            @if ($hasil->status == 'finish')
+                                                <span class="badge bg-success">Selesai</span>
+                                            @else
+                                                <span class="badge bg-warning">Proses</span>
+                                            @endif
+                                        </td>
                                         <td>{{ $hasil->user->name ?? '-' }}</td>
                                         @if ($produksi->status != 'finish')
                                             <td>
                                                 <div class="d-flex gap-1">
-                                                    <a href="{{ route('produksi.editHasilProduksi', [$produksi->id, $hasil->id]) }}"
-                                                        class="btn btn-warning btn-sm"><i class="bx bx-edit"></i></a>
-                                                    <form
-                                                        action="{{ route('produksi.hapusHasilProduksi', [$produksi->id, $hasil->id]) }}"
-                                                        method="post">
-                                                        @csrf
-                                                        @method('delete')
-                                                        <button type="submit"
-                                                            onclick="return confirm('Apakah anda yakin ingin menghapus data ini?')"
-                                                            class="btn btn-danger btn-sm"><i
-                                                                class="bx bx-trash"></i></button>
-                                                    </form>
+                                                    @if ($hasil->status != 'finish' && $hasil->hpp > 0)
+                                                        <form
+                                                            action="{{ route('produksi.selesaiHasilProduksiSatuan', [$produksi->id, $hasil->id]) }}"
+                                                            method="post">
+                                                            @csrf
+                                                            <button type="submit"
+                                                                onclick="return confirm('Selesaikan hasil produksi ini? Stok akan ditambahkan.')"
+                                                                class="btn btn-success btn-sm" title="Selesaikan"><i
+                                                                    class="bx bx-check"></i></button>
+                                                        </form>
+                                                    @endif
+                                                    @if ($hasil->status != 'finish')
+                                                        <a href="{{ route('produksi.editHasilProduksi', [$produksi->id, $hasil->id]) }}"
+                                                            class="btn btn-warning btn-sm"><i class="bx bx-edit"></i></a>
+                                                        <form
+                                                            action="{{ route('produksi.hapusHasilProduksi', [$produksi->id, $hasil->id]) }}"
+                                                            method="post">
+                                                            @csrf
+                                                            @method('delete')
+                                                            <button type="submit"
+                                                                onclick="return confirm('Apakah anda yakin ingin menghapus data ini?')"
+                                                                class="btn btn-danger btn-sm"><i
+                                                                    class="bx bx-trash"></i></button>
+                                                        </form>
+                                                    @endif
                                                 </div>
                                             </td>
                                         @endif
@@ -163,6 +184,7 @@
                                     <td>{{ $produksi->perbandingan ?? '-' }}</td>
                                     <td>{{ $produksi->satuan ?? '-' }}</td>
                                     <td>{{ $produksi->hpp ?? '-' }}</td>
+                                    <td>-</td>
                                     <td>{{ $produksi->user->name ?? '-' }}</td>
                                 </tr>
                             @endif

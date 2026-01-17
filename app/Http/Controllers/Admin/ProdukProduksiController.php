@@ -86,6 +86,38 @@ class ProdukProduksiController extends Controller
             ->with('success', 'Hasil Produksi berhasil dihapus');
     }
 
+    public function selesaiHasilProduksiSatuan(ProduksiProduk $produksi, ProdukProduksiHasil $hasil)
+    {
+        if ($hasil->status == 'finish') {
+            return redirect()->route('produksi.show', $produksi->id)
+                ->with('error', 'Hasil produksi ini sudah diselesaikan');
+        }
+
+        $produk = $hasil->produk;
+        $produk->updateHpp($hasil->hpp, $hasil->jumlah);
+
+        ProdukStok::create([
+            'produk_id' => $produk->id,
+            'tambah' => $hasil->jumlah,
+            'kurang' => 0,
+            'keterangan' => 'hasil produksi',
+            'kode' => 'hasilProduksi',
+            'detail_id' => $hasil->id
+        ]);
+
+        $hasil->update(['status' => 'finish']);
+
+        // Cek apakah semua hasil produksi sudah selesai
+        $belumSelesai = $produksi->hasilProduksi()->where('status', '!=', 'finish')->count();
+        if ($belumSelesai == 0) {
+            $produksi->updated_at = now();
+            $produksi->save();
+        }
+
+        return redirect()->route('produksi.show', $produksi->id)
+            ->with('success', 'Hasil Produksi berhasil diselesaikan');
+    }
+
     public function editHasilProduksi(ProduksiProduk $produksi, ProdukProduksiHasil $hasil)
     {
         $hasil->load('produk.produkModel.kategori');
@@ -109,6 +141,10 @@ class ProdukProduksiController extends Controller
     public function selesaiProduksi(ProduksiProduk $produksi)
     {
         foreach ($produksi->hasilProduksi as $item) {
+            // Skip jika sudah selesai
+            if ($item->status == 'finish') {
+                continue;
+            }
 
             $produk = $item->produk;
             $produk->updateHpp($item->hpp, $item->jumlah);
@@ -121,6 +157,8 @@ class ProdukProduksiController extends Controller
                 'kode' => 'hasilProduksi',
                 'detail_id' => $item->id
             ]);
+
+            $item->update(['status' => 'finish']);
         }
 
         $produksi->updated_at = now();
