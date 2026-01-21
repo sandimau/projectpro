@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Webhook;
 
 use App\Models\Produk;
 use App\Models\Belanja;
-use App\Models\ProjectMp;
 use App\Models\BukuBesar;
+use App\Models\ProjectMp;
 use App\Models\AkunDetail;
 use App\Models\ProdukStok;
 use App\Models\Marketplace;
@@ -17,10 +17,11 @@ use App\Models\MarketplaceBuffer;
 use App\Models\ProdukMarketplace;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\ShopeeApi;
+use App\Http\Controllers\Traits\MarketplaceTriger;
 
 class BufferController extends Controller
 {
-    use ShopeeApi;
+    use ShopeeApi, MarketplaceTriger;
 
     public function wallet($marketplace = false)
     {
@@ -31,168 +32,177 @@ class BufferController extends Controller
         }
 
         foreach ($marketplaces as $marketplace) {
-            $loop_api = true;
-            $page_no = 0;
+            try {
+                $loop_api = true;
+                $page_no = 0;
 
-            $projectMp = [];
-            $penarikanMp = [];
-            $iklan = [];
-            $ketemu = false;
-            $baru = false;
-            $totalIklan = 0;
+                $projectMp = [];
+                $penarikanMp = [];
+                $iklan = [];
+                $totalIklan = 0;
+                $last = false;
+                $apiSuccess = false;
 
-            /////ambil data terakhir
-            $terakhir = BukuBesar::where('akun_detail_id', $marketplace->kas_id)->latest()->first();
+                $terakhir = BukuBesar::where('akun_detail_id', $marketplace->kas_id)->latest()->first();
+                $from = $terakhir ? strtotime($terakhir->created_at) - 1 : strtotime("-3 days");
 
-            if (!$terakhir) {
-                $baru = true;
-                $from = strtotime("-3 days");
-            } else {
-                $from = strtotime($terakhir->created_at) - 1;
-            }
+                while ($loop_api) {
+                    $page_no++;
+                    $param = [
+                        'page_no' => $page_no,
+                        'page_size' => '100',
+                        'create_time_from' => $from,
+                        'create_time_to' => strtotime("now")
+                    ];
 
-            while ($loop_api) {
+                    $api = $this->ambilApi($marketplace, 'payment/get_wallet_transaction_list', $param);
 
-                $page_no++;
-                $param = [
-                    'page_no' => $page_no,
-                    'page_size' => '100',
-                    'create_time_from' => $from,
-                    'create_time_to' => strtotime("now")
-                ];
+                    if (isset($api['error']) && !empty($api['error'])) {
+                        $this->logError($marketplace, 'wallet api error', $api);
+                        $loop_api = false;
+                        continue;
+                    }
 
-                $api = $this->ambilApi($marketplace, 'payment/get_wallet_transaction_list', $param);
-                if (!empty($api['response'])) {
-                    $transcation = $api['response']['transaction_list'];
+                    if (!empty($api['response'])) {
+                        $apiSuccess = true;
+                        $transcation = $api['response']['transaction_list'] ?? [];
 
-                    if (!$api['response']['more']) {
+                        if (!($api['response']['more'] ?? false)) {
+                            $loop_api = false;
+                        }
+
+                        // Ambil transaksi terbaru untuk update saldo
+                        if ($page_no == 1 && !empty($transcation[0])) {
+                            $last = $transcation[0];
+                        }
+
+                        foreach ($transcation as $value) {
+                            // Skip jika transaksi sudah pernah diproses
+                            if ($terakhir) {
+                                $txTime = date("Y-m-d H:i:s", $value['create_time']);
+                                if ($txTime == $terakhir->created_at && $value['current_balance'] == $terakhir->debet) {
+                                    continue;
+                                }
+                            }
+
+                            if ($value['transaction_tab_type'] === 'wallet_wallet_payment') {
+                                $iklan[] = [
+                                    'produk_id' => $marketplace->iklan,
+                                    'harga' => abs($value['amount']),
+                                    'jumlah' => 1,
+                                    'keterangan' => $value['transaction_tab_type'] . ' ' . $marketplace->nama,
+                                    'jenis' => 'iklan',
+                                    'detail_id' => $marketplace->id
+                                ];
+                                $totalIklan += abs($value['amount']);
+                            }
+
+                            if ($value['transaction_tab_type'] == "wallet_order_income") {
+                                $project = ProjectMp::where('nota', $value['order_sn'])->first();
+
+                                $persen = 0;
+                                if ($project && $project->total > 0) {
+                                    $persen = ($project->total - $value['amount']) / $project->total * 100;
+                                }
+
+                                $projectMp[] = [
+                                    'nota' => $value['order_sn'],
+                                    'bersih' => $value['amount'],
+                                    'persen' => floor($persen)
+                                ];
+                            }
+
+                            if ($value['transaction_tab_type'] == 'wallet_withdrawals' && $value['amount'] != 0) {
+                                $penarikanMp[] = [
+                                    'akun_detail_id' => $marketplace->penarikan_id,
+                                    'kode' => 'trf',
+                                    'ket' => $value['transaction_tab_type'] . ' ' . $marketplace->nama,
+                                    'detail_id' => $value['withdrawal_id'],
+                                    'debet' => abs($value['amount']),
+                                    'kredit' => 0,
+                                    'created_at' => date("Y-m-d H:i:s", $value['create_time']),
+                                    'updated_at' => now(),
+                                ];
+                            }
+                        }
+                    } else {
                         $loop_api = false;
                     }
+                }
 
-                    //update saldo kas marketplace
-                    if ($page_no == 1) {
-                        if (!empty($transcation[0])) {
-                            $last = $transcation[0];
-                        } else {
-                            $last = false;
-                            $ketemu = true;
+                // Proses jika API berhasil dipanggil
+                if ($apiSuccess) {
+                    if ($last) {
+                        try {
+                            BukuBesar::where('akun_detail_id', $marketplace->kas_id)->delete();
+                            BukuBesar::create([
+                                'akun_detail_id' => $marketplace->kas_id,
+                                'kode' => 'byr',
+                                'ket' => 'saldo akhir',
+                                'debet' => $last['current_balance'],
+                                'kredit' => 0,
+                                'created_at' => date("Y-m-d H:i:s", $last['create_time'])
+                            ]);
+                        } catch (\Exception $e) {
+                            $this->logError($marketplace, 'update saldo buku besar', $e->getMessage());
                         }
                     }
 
-                    //update project mp & buku besar penarikan
-                    foreach ($transcation as $key => $value) {
+                    if (!empty($projectMp)) {
+                        try {
+                            ProjectMp::upsert($projectMp, ['nota'], ['bersih', 'persen']);
+                        } catch (\Exception $e) {
+                            $this->logError($marketplace, 'update project mp', $e->getMessage());
+                        }
+                    }
 
-                        if (!$baru) {
-                            if (date("Y-m-d H:i:s", $value['create_time']) == $terakhir->created_at && $value['current_balance'] == $terakhir->debet) {
-                                $ketemu = true;
-                                break;
+                    if (!empty($penarikanMp)) {
+                        try {
+                            BukuBesar::insert($penarikanMp);
+                            $AkunDetail = AkunDetail::find($marketplace->penarikan_id);
+                            if ($AkunDetail) {
+                                $AkunDetail->updateSaldo();
                             }
-                        } else {
-                            $ketemu = true;
+                        } catch (\Exception $e) {
+                            $this->logError($marketplace, 'insert penarikan', $e->getMessage());
                         }
+                    }
 
-                        //update iklan
-                        if ($value['transaction_tab_type'] === 'wallet_wallet_payment') {
-                            $iklan[] = [
-                                'produk_id' => $marketplace->iklan_id,
-                                'harga' => abs($value['amount']),
-                                'jumlah' => 1,
-                                'keterangan' => $value['transaction_tab_type'] . ' ' . $marketplace->nama,
-                                'jenis' => 'iklan',
-                                'detail_id' => $marketplace->id
-                            ];
-                            $totalIklan += abs($value['amount']);
-                        }
+                    if (!empty($iklan)) {
+                        try {
+                            $belanja = Belanja::create([
+                                'nota' => request()->nota ?: rand(1000000, 100),
+                                'total' => $totalIklan,
+                                'kontak_id' => $marketplace->kontak_id,
+                                'created_at' => now()
+                            ]);
 
-                        //update selisih dengan project mp
-                        if ($value['transaction_tab_type'] == "wallet_order_income") {
-                            $project = ProjectMp::where('nota', $value['order_sn'])->first();
-
-                            $persen = 0;
-                            if ($project && $project->total > 0) {
-                                $persen = ($project->total - $value['amount']) / $project->total * 100;
+                            foreach ($iklan as $item) {
+                                $item['belanja_id'] = $belanja->id;
+                                BelanjaDetail::create($item);
                             }
-
-                            $projectMp[] = [
-                                'nota' => $value['order_sn'],
-                                'bersih' => $value['amount'],
-                                'persen' => floor($persen)
-                            ];
-                        }
-
-                        //update penarikan
-                        if ($value['transaction_tab_type'] == 'wallet_withdrawals' and $value['amount'] != 0) {
-
-                            $nilai = abs($value['amount']);
-
-                            //masukan kedalam array
-                            $penarikanMp[] = [
-                                'akun_detail_id' => $marketplace->penarikan_id,
-                                'kode' => 'trf',
-                                'ket' => $value['transaction_tab_type'] . ' ' . $marketplace->nama,
-                                'detail_id' => $value['withdrawal_id'],
-                                'debet' => $nilai,
-                                'kredit' => 0,
-                                'created_at' => date("Y-m-d H:i:s", $value['create_time']),
-                                'updated_at' => now(),
-                            ];
+                        } catch (\Exception $e) {
+                            $this->logError($marketplace, 'insert iklan', $e->getMessage());
                         }
                     }
                 } else {
-                    $loop_api = false;
+                    $this->logError($marketplace, 'wallet api', 'Tidak ada response dari API wallet');
                 }
-            }
-
-            if ($ketemu) {
-
-                if ($last) {
-                    BukuBesar::where('akun_detail_id', $marketplace->kas_id)->delete();
-                    BukuBesar::create([
-                        'akun_detail_id' => $marketplace->kas_id,
-                        'kode' => 'byr',
-                        'ket' => 'saldo akhir',
-                        'debet' => $last['current_balance'],
-                        'kredit' => 0,
-                        'created_at' => date("Y-m-d H:i:s", $last['create_time'])
-                    ]);
-                }
-
-                //update project mp berdasarkan nota
-                if (!empty($projectMp)) {
-                    ProjectMp::upsert($projectMp, ['nota'], ['bersih', 'persen']);
-                }
-
-                //insert buku besar penarikan
-                if (!empty($penarikanMp)) {
-                    BukuBesar::insert($penarikanMp);
-
-                    $AkunDetail = AkunDetail::find($marketplace->penarikan_id);
-                    $AkunDetail->updateSaldo();
-                }
-
-                if (!empty($iklan)) {
-                    $belanja = Belanja::create([
-                        'nota' => request()->nota ? request()->nota : rand(1000000, 100),
-                        'total' => $totalIklan,
-                        'kontak_id' => $marketplace->kontak_id,
-                        'created_at' => date("Y-m-d H:i:s")
-                    ]);
-
-                    foreach ($iklan as $item) {
-                        $item['belanja_id'] = $belanja->id;
-                        BelanjaDetail::create($item);
-                    }
-                }
-            } else {
-                MarketplaceLog::create([
-                    'isi' => 'gagal update saldo wallet',
-                    'jenis' => 'update saldo',
-                    'shop_id' => $marketplace->shop_id,
-                    'marketplace' => $marketplace->nama,
-                    'tanggal' => now()
-                ]);
+            } catch (\Exception $e) {
+                $this->logError($marketplace, 'wallet error', $e->getMessage());
             }
         }
+    }
+
+    private function logError($marketplace, $jenis, $isi)
+    {
+        MarketplaceLog::create([
+            'isi' => is_array($isi) ? json_encode($isi) : $isi,
+            'jenis' => $jenis,
+            'shop_id' => $marketplace->shop_id,
+            'marketplace' => $marketplace->nama,
+            'tanggal' => now()
+        ]);
     }
 
     public function prosesBuffer()
@@ -373,12 +383,9 @@ class BufferController extends Controller
                 ->get();
 
             ProdukStok::where('project_id', $cancel->project_id)->where('kode', 'shp')->forceDelete();
-
             foreach ($details as $detail) {
-                if ($detail->stok == 1)
-                    $this->updateStokMp($detail->produk_id, $project->cabang_id, $project->company_id);
+                $this->updateStokMp($detail->produk_id);
             }
-
             ProjectMpDetail::where('project_id', $cancel->project_id)->delete();
             ProjectMp::where('id', $cancel->project_id)->delete();
             MarketplaceBuffer::where('mp', 'shopee')->where('id', $cancel->id)->delete();
