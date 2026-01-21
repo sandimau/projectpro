@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Webhook;
 
 use App\Models\Produk;
 use App\Models\Belanja;
+use App\Models\Produksi;
 use App\Models\BukuBesar;
 use App\Models\ProjectMp;
 use App\Models\AkunDetail;
@@ -159,10 +160,10 @@ class BufferController extends Controller
                     if (!empty($penarikanMp)) {
                         try {
                             BukuBesar::insert($penarikanMp);
-                            $AkunDetail = AkunDetail::find($marketplace->penarikan_id);
-                            if ($AkunDetail) {
-                                $AkunDetail->updateSaldo();
-                            }
+                            // $AkunDetail = AkunDetail::find($marketplace->penarikan_id);
+                            // if ($AkunDetail) {
+                            //     $AkunDetail->updateSaldo();
+                            // }
                         } catch (\Exception $e) {
                             $this->logError($marketplace, 'insert penarikan', $e->getMessage());
                         }
@@ -252,7 +253,6 @@ class BufferController extends Controller
                         try {
                             $projectMp = ProjectMp::create([
                                 'marketplace_id' => $marketplace->id,
-                                'cabang_id' => $marketplace->cabang_id,
                                 'nota' => $nota,
                                 'total' => $orderlist['total_amount'],
                                 'konsumen' => $orderlist['buyer_username'],
@@ -261,7 +261,8 @@ class BufferController extends Controller
                             ]);
                             $project_id = $projectMp->id;
                         } catch (\Exception $e) {
-                            $project_id = ProjectMp::where('nota', $nota)->first()->id;
+                            $existingProject = ProjectMp::where('nota', $nota)->first();
+                            $project_id = $existingProject ? $existingProject->id : null;
                             $baru = false;
 
                             MarketplaceBuffer::where('mp', 'shopee')->where('nota', $nota)->update([
