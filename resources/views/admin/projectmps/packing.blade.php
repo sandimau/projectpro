@@ -77,7 +77,7 @@
                                             @endphp
                                             <div class="order-item mp-item" data-mp="{{ $mpKey }}">
                                                 <a class="popup d-flex"
-                                                    href="{{ url('admin/projectmp/' . $projectId) }}">
+                                                    href="{{ url('admin/projectMpDetail/' . $projectId) }}">
                                                     <p style="font-weight:600" class="text-default">
                                                         @if ($first->config_warna)
                                                             <span class="label label-rounded"

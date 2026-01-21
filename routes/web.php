@@ -259,7 +259,15 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             // Project Marketplace Dashboard
             Route::get('/projectmp/dashboard', 'ProjectMpController@dashboard')->name('projectmp.dashboard');
             Route::get('/projectmp/packing', 'ProjectMpController@packing')->name('projectmp.packing');
-            Route::get('/projectmp/{projectMp}', 'ProjectMpController@detail')->name('projectmp.detail');
+            Route::post('/projectmp/{projectmp}/chat', 'ProjectMpController@storeChat')->name('projectMp.chatStore');
+
+            // ProjectMpDetail
+            Route::get('/projectMpDetail/{projectMp}', 'ProjectMpDetailController@detail')->name('projectmp.detail');
+            Route::patch('/projectMpDetail/{projectMp}/status', 'ProjectMpDetailController@updateStatus')->name('projectMpDetail.status');
+            Route::get('/projectMpDetail/{detail}/gambar', 'ProjectMpDetailController@gambar')->name('projectMpDetail.gambar');
+            Route::post('/projectMpDetail/upload', 'ProjectMpDetailController@upload')->name('projectMpDetail.upload');
+            Route::get('/projectMpDetail/{detail}/editGambar', 'ProjectMpDetailController@editGambar')->name('projectMpDetail.editGambar');
+            Route::patch('/projectMpDetail/{detail}/updateGambar', 'ProjectMpDetailController@updateGambar')->name('projectMpDetail.updateGambar');
 
             // produk-kategori-utama
             Route::resource('produk-kategori-utama', 'ProdukKategoriUtamaController');

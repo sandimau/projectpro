@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Models\Chat;
 use App\Models\Order;
+use App\Models\Member;
 use App\Models\Produksi;
 use App\Models\ProjectMp;
 use App\Models\Marketplace;
 use Illuminate\Http\Request;
+use App\Models\ProjectMpDetail;
 use App\Models\MarketplaceBuffer;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Gate;
@@ -58,7 +60,7 @@ class ProjectMpController extends Controller
         // Status yang akan ditampilkan sebagai tab
         $statuses = [
             'READY_TO_SHIP' => ['nama' => 'Perlu diProses', 'warna' => '#28a745'],
-            'SHIPPED' => ['nama' => 'Telah diproses', 'warna' => '#ffc107'],
+            'PROCESSED' => ['nama' => 'Telah diproses', 'warna' => '#ffc107'],
         ];
 
         return view('admin.projectmps.packing', compact('marketplaces', 'mps', 'statuses'));
@@ -76,15 +78,15 @@ class ProjectMpController extends Controller
         return $hasil;
     }
 
-    public function detail(Request $request, $projectMp)
+    public function storeChat(Request $request, ProjectMpDetail $projectmp)
     {
-        $projectMp = ProjectMp::find($projectMp);
-        $marketplace = $projectMp->marketplace;
-        $orderDetails = $projectMp->details;
+        $member = Member::where('user_id', auth()->user()->id)->first();
 
-        $produksi = Produksi::orderBy('urutan')->get();
-        $chats = Chat::where('project_id',$projectMp->id)->get();
-
-        return view('admin.projectmps.detail', compact('projectMp', 'marketplace', 'orderDetails', 'produksi', 'chats'));
+        Chat::create([
+            'isi' => $request->isi,
+            'member_id' => $member->id ?? null,
+            'order_id' => $projectmp->id
+        ]);
+        return redirect('/admin/projectMpDetail/' . $projectmp->id)->withSuccess(__('chat created successfully.'));
     }
 }

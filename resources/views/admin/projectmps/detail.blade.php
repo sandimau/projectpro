@@ -8,7 +8,8 @@
     <div class="bg-light rounded">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item active" aria-current="page"> <a href="{{ route('projectmp.dashboard') }}" >Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page"> <a
+                        href="{{ route('projectmp.dashboard') }}">Dashboard</a></li>
                 <li class="breadcrumb-item active" aria-current="page">Order Detail</li>
             </ol>
         </nav>
@@ -19,7 +20,8 @@
                     <div class="card-header">
                         <div class="d-flex justify-content-between align-details-center">
                             <div>
-                                <h5 class="card-title">{{ $projectMp->nota }} | {{ $marketplace->nama }} - {{ $projectMp->keterangan }}</h5>
+                                <h5 class="card-title">{{ $projectMp->nota }} | {{ $marketplace->nama }} -
+                                    {{ $projectMp->konsumen }}</h5>
                             </div>
                         </div>
                     </div>
@@ -75,70 +77,72 @@
                                         <th>jml</th>
                                         <th>harga</th>
                                         <th>subtotal</th>
-                                        <th>spesifikasi</th>
-                                        <th>status</th>
+                                        @if ($projectMp->buffer->custom != null)
+                                            <th>status</th>
+                                        @endif
                                         <th>gambar</th>
-                                        <th>deadline</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($projectMp->details as $detail)
+                                    @foreach ($projectMpdetails as $detail)
                                         <tr>
                                             <td>{{ $detail->produk->namaLengkap }}</td>
                                             <td>{{ $detail->tema }}</td>
                                             <td>{{ $detail->jumlah }}</td>
                                             <td>{{ number_format($detail->harga) }}</td>
                                             <td>{{ number_format($detail->harga * $detail->jumlah) }}</td>
-                                            <td>
-                                                @foreach ($detail->spek as $spek)
-                                                    <span style="font-weight: 600"> {{ $spek->nama }}: </span>
-                                                    {{ $spek->pivot->keterangan }},
-                                                @endforeach
-
-                                                @if (!empty($detail->keterangan))
-                                                    <span class='text-danger'> keterangan:</span>
-                                                    {{ $detail->keterangan }}
-                                                @endif
-                                            </td>
-                                            <td>
-                                                <form action="{{ route('projectMpDetail.status', $detail->id) }}"
-                                                    method="post"
-                                                    onsubmit="document.getElementById('submit').disabled=true;
+                                            @if ($detail->projectMP->buffer->custom != null)
+                                                <td>
+                                                    <form action="{{ route('projectMpDetail.status', $detail->id) }}"
+                                                        method="post"
+                                                        onsubmit="document.getElementById('submit').disabled=true;
                                                     document.getElementById('submit').value='proses'">
-                                                    {{ csrf_field() }}
-                                                    {{ method_field('patch') }}
-                                                    <select class="form-select" aria-label="Default select example"
-                                                        name="produksi_id" id="produksi_id" onchange="this.form.submit()">
-                                                        @foreach ($produksi as $entry)
-                                                            <option value="{{ $entry->id }}"
-                                                                {{ $detail->produksi_id == $entry->id ? 'selected' : '' }}>
-                                                                {{ $entry->nama }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                </form>
-                                            </td>
+                                                        {{ csrf_field() }}
+                                                        {{ method_field('patch') }}
+                                                        <select class="form-select" aria-label="Default select example"
+                                                            name="produksi_id" id="produksi_id"
+                                                            onchange="this.form.submit()">
+                                                            @foreach ($produksi as $entry)
+                                                                <option value="{{ $entry->id }}"
+                                                                    {{ $detail->produksi_id == $entry->id ? 'selected' : '' }}>
+                                                                    {{ $entry->nama }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </form>
+                                                </td>
+                                            @endif
                                             <td>
                                                 @if ($detail->gambar)
-                                                    <a href="#" data-bs-toggle="modal" data-bs-target="#imageModal{{ $detail->id }}">
+                                                    <a href="#" data-bs-toggle="modal"
+                                                        data-bs-target="#imageModal{{ $detail->id }}">
                                                         <img style="height: 60px"
                                                             src="{{ asset('uploads/projectMp/' . $detail->gambar) }}"
                                                             alt="" srcset="">
                                                     </a>
 
                                                     <!-- Modal -->
-                                                    <div class="modal fade" id="imageModal{{ $detail->id }}" tabindex="-1" aria-labelledby="imageModalLabel{{ $detail->id }}" aria-hidden="true">
+                                                    <div class="modal fade" id="imageModal{{ $detail->id }}"
+                                                        tabindex="-1" aria-labelledby="imageModalLabel{{ $detail->id }}"
+                                                        aria-hidden="true">
                                                         <div class="modal-dialog modal-lg">
                                                             <div class="modal-content">
                                                                 <div class="modal-header">
-                                                                    <h5 class="modal-title" id="imageModalLabel{{ $detail->id }}">Gambar Order</h5>
-                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                    <h5 class="modal-title"
+                                                                        id="imageModalLabel{{ $detail->id }}">Gambar
+                                                                        ProjectMP</h5>
+                                                                    <button type="button" class="btn-close"
+                                                                        data-bs-dismiss="modal" aria-label="Close"></button>
                                                                 </div>
                                                                 <div class="modal-body text-center">
-                                                                    <img class="img-fluid" style="width: 100%;" src="{{ asset('uploads/projectMp/' . $detail->gambar) }}" alt="">
+                                                                    <img class="img-fluid" style="width: 100%;"
+                                                                        src="{{ asset('uploads/projectMp/' . $detail->gambar) }}"
+                                                                        alt="">
                                                                 </div>
                                                                 <div class="modal-footer">
-                                                                    <a href="{{ route('projectMpDetail.editGambar', $detail->id) }}" class="btn btn-primary">Edit Gambar</a>
-                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                                                                    <a href="{{ route('projectMpDetail.editGambar', $detail->id) }}"
+                                                                        class="btn btn-primary">Edit Gambar</a>
+                                                                    <button type="button" class="btn btn-secondary"
+                                                                        data-bs-dismiss="modal">Tutup</button>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -149,9 +153,6 @@
                                                             class='bx bx-image-alt'></i></a>
                                                 @endif
                                             </td>
-                                            <td>
-                                                {{ date('d-m-Y', strtotime($detail->deathline)) }}
-                                            </td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -160,27 +161,8 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-6">
-                <div class="card mt-4">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <p class="mb-0">pengiriman</p>
-                                <h6>{{ $projectMp->pengiriman }}</h6>
-                            </div>
-                            <div>
-                                <p class="mb-0">invoice</p>
-                                <h6>{{ $projectMp->invoice }}</h6>
-                            </div>
-                            <div>
-                                <p class="mb-0">pembayaran</p>
-                                <h6>{{ $projectMp->jenis_pembayaran }}</h6>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6">
+
+            <div class="col-lg-12">
                 <div class="card mt-4">
                     <div class="card-header">
                         notes

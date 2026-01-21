@@ -69,7 +69,7 @@ class MarketplaceBuffer extends Model
     {
         return $query
             ->where(function ($query) {
-                $query->where('marketplace_buffers.status', 'SHIPPED')
+                $query->where('marketplace_buffers.status', 'PROCESSED')
                     ->orWhere('marketplace_buffers.status', 'READY_TO_SHIP');
             })
             ->whereNull('marketplace_buffers.custom');

@@ -125,7 +125,7 @@
                                                         $status = $buffer->status ?? '';
 
                                                         $tampilan .= "<div class='order-item mp-item' data-mp='" . $mpKey . "'>";
-                                                        $tampilan .= "<a class='popup d-flex' href='" . url('admin/projectmp/' . $detail->project_id) . "'>";
+                                                        $tampilan .= "<a class='popup d-flex' href='" . url('admin/projectMpDetail/' . $detail->project_id) . "'>";
                                                         $tampilan .= "<p style='font-weight:600' class='text-default'>";
 
                                                         if ($mpWarna) {
