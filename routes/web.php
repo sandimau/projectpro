@@ -256,6 +256,11 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::post('/marketplaces/{id}/uploadKeuanganTiktok', 'MarketplaceController@uploadKeuanganTiktok')->name('marketplaces.uploadKeuanganTiktok');
             Route::get('/analisaMarketplace', 'MarketplaceController@analisa')->name('marketplaces.analisa');
 
+            // Project Marketplace Dashboard
+            Route::get('/projectmp/dashboard', 'ProjectMpController@dashboard')->name('projectmp.dashboard');
+            Route::get('/projectmp/packing', 'ProjectMpController@packing')->name('projectmp.packing');
+            Route::get('/projectmp/{projectMp}', 'ProjectMpController@detail')->name('projectmp.detail');
+
             // produk-kategori-utama
             Route::resource('produk-kategori-utama', 'ProdukKategoriUtamaController');
 

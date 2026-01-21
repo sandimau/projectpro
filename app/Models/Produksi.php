@@ -39,6 +39,11 @@ class Produksi extends Model
         return $this->hasMany(OrderDetail::class);
     }
 
+    public function projectMpDetail()
+    {
+        return $this->hasMany(ProjectMpDetail::class);
+    }
+
     public static function ambilFlow($grup)
     {
         return self::where('nama', $grup)->first()->id;

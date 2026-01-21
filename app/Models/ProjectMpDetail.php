@@ -27,4 +27,9 @@ class ProjectMpDetail extends Model
     {
         return $this->belongsTo(Produk::class);
     }
+
+    public function produksi()
+    {
+        return $this->belongsTo(Produksi::class);
+    }
 }

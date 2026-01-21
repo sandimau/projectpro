@@ -27,4 +27,9 @@ class ProjectMp extends Model
     {
         return $this->hasMany(ProjectMpDetail::class, 'project_id');
     }
+
+    public function buffer()
+    {
+        return $this->hasOne(MarketplaceBuffer::class, 'project_id');
+    }
 }

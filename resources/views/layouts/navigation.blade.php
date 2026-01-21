@@ -132,6 +132,24 @@
         <ul class="nav-group-items" style="height: 0px;">
             @can('marketplace_access')
                 <li class="nav-item">
+                    <a class="nav-link {{ request()->is('admin/projectmp/dashboard*') ? 'active' : '' }}"
+                        href="{{ route('projectmp.dashboard') }}">
+                        <svg class="nav-icon">
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-speedometer') }}"></use>
+                        </svg>
+                        {{ __('Proses Custom') }}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->is('admin/projectmp/packing*') ? 'active' : '' }}"
+                        href="{{ route('projectmp.packing') }}">
+                        <svg class="nav-icon">
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-truck') }}"></use>
+                        </svg>
+                        {{ __('Proses Packing') }}
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link {{ request()->is('marketplaces*') ? 'active' : '' }}"
                         href="{{ route('marketplaces.index') }}">
                         <svg class="nav-icon">
@@ -141,7 +159,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->is('marketplaces*') ? 'active' : '' }}"
+                    <a class="nav-link {{ request()->is('analisaMarketplace*') ? 'active' : '' }}"
                         href="{{ route('marketplaces.analisa') }}">
                         <svg class="nav-icon">
                             <use xlink:href="{{ asset('icons/coreui.svg#cil-chart-line') }}"></use>

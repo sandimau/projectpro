@@ -329,6 +329,17 @@ class BufferController extends Controller
                                         $this->mpBeli($sku, $marketplace, $jumlah, $project_id);
                                         $hpp = $produk->hpp ?? 0;
                                     }
+
+                                    // Get first produksi for custom orders
+                                    $produksi_id = null;
+                                    if ($custom) {
+                                        $firstProduksi = Produksi::where('nama', '!=', 'finish')
+                                            ->where('nama', '!=', 'batal')
+                                            ->orderBy('urutan')
+                                            ->first();
+                                        $produksi_id = $firstProduksi->id ?? null;
+                                    }
+
                                     $orderdetail[] = [
                                         'harga' => $harga,
                                         'jumlah' => $jumlah,
@@ -337,6 +348,7 @@ class BufferController extends Controller
                                         'tema' => $item['model_name'],
                                         'project_id' => $project_id,
                                         'hpp' => $hpp,
+                                        'produksi_id' => $produksi_id,
                                     ];
                                 }
                             }
