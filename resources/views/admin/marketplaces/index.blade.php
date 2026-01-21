@@ -48,6 +48,7 @@
                                     <td>{{ $marketplace->kasPenarikan->nama ?? '-' }}</td>
                                     <td>{{ $marketplace->kontak->nama ?? '-' }}</td>
                                     <td>{{ $marketplace->produk->namaLengkap ?? '-' }}</td>
+                                    <td>{!! $marketplace->sinkron !!}</td>
                                     @can('marketplace_edit')
                                         <td>
                                             <div class="d-flex">

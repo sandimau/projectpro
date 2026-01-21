@@ -14,6 +14,7 @@ class ProdukProduksiHasil extends Model
     protected $dates = [
         'created_at',
         'updated_at',
+        'finished_at',
     ];
 
     protected $fillable = [
@@ -22,6 +23,7 @@ class ProdukProduksiHasil extends Model
         'jumlah',
         'hpp',
         'status',
+        'finished_at',
         'user_id',
     ];
 

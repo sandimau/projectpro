@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\LinkController;
 use App\Http\Controllers\Admin\LinkPageController;
+use App\Http\Controllers\Webhook\ShopeeLivePushController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,6 +26,22 @@ Route::get('/order/hapusOnline', [OrderController::class, 'hapusOnline'])->name(
 
 // Public Link Page (seperti Linktree)
 Route::get('/link/{slug}', [LinkController::class, 'show'])->name('link.show');
+
+Route::get('/shopee/auth', [ShopeeLivePushController::class, 'auth'])
+    ->name('webhook.shopee.auth');
+
+Route::post('/webhook/shopee/push', [ShopeeLivePushController::class, 'push'])->name('webhook.shopee.push');
+
+Route::get('/shopee/manualRefresh', [ShopeeLivePushController::class, 'manualRefreshToken'])->name('webhook.shopee.manualRefresh');
+
+// Buffer Controller Routes
+Route::prefix('buffer')->name('buffer.')->group(function () {
+    Route::get('/wallet', [\App\Http\Controllers\Webhook\BufferController::class, 'wallet'])->name('wallet');
+    Route::get('/proses', [\App\Http\Controllers\Webhook\BufferController::class, 'prosesBuffer'])->name('proses');
+    Route::get('/hapus-cancel', [\App\Http\Controllers\Webhook\BufferController::class, 'hapusCancelShopee'])->name('hapusCancelShopee');
+    Route::get('/bersihkan', [\App\Http\Controllers\Webhook\BufferController::class, 'bersihkanBuffer'])->name('bersihkan');
+    Route::get('/update', [\App\Http\Controllers\Webhook\BufferController::class, 'updateBuffer'])->name('update');
+});
 
 /**
  * Auth Routes
@@ -303,8 +320,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::delete('/produksi/{produksi}/hasilProduksi/{hasil}', 'ProdukProduksiController@hasilProduksiDestroy')->name('produksi.hapusHasilProduksi');
             Route::get('/produksi/{produksi}/hasilProduksi/{hasil}/edit', 'ProdukProduksiController@editHasilProduksi')->name('produksi.editHasilProduksi');
             Route::patch('/produksi/{produksi}/hasilProduksi/{hasil}/update', 'ProdukProduksiController@updateHasilProduksi')->name('produksi.updateHasilProduksi');
-            Route::post('/produksi/{produksi}/hasilProduksi/{hasil}/selesai', 'ProdukProduksiController@selesaiHasilProduksiSatuan')->name('produksi.selesaiHasilProduksiSatuan');
             Route::post('/produksi/{produksi}/selesaiProduksi', 'ProdukProduksiController@selesaiProduksi')->name('produksi.selesaiProduksi');
+            Route::post('/produksi/{produksi}/hasilProduksi/{hasil}/selesai', 'ProdukProduksiController@selesaiHasilProduksiSatuan')->name('produksi.selesaiHasilProduksi');
             Route::get('/produksi/{produksi}/produksiLagi', 'ProdukProduksiController@produksiLagi')->name('produksi.produksiLagi');
 
             // po

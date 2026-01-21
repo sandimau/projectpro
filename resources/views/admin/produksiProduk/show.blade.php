@@ -68,14 +68,23 @@
                                                     selesai
                                                 </a>
                                             @else
-                                                @if ($produksi->cekkomplit())
+                                                @if ($produksi->cekkomplit() && $produksi->hasPendingHasil())
                                                     <form action="{{ route('produksi.selesaiProduksi', $produksi->id) }}"
                                                         method="post" class="m-0">
                                                         @csrf
                                                         <button type="submit"
-                                                            onclick="return confirm('Apakah anda yakin ingin selesai produksi?')"
+                                                            onclick="return confirm('Apakah anda yakin ingin menyelesaikan semua hasil produksi ({{ $produksi->countPendingHasil() }} item)?')"
                                                             class="btn btn-primary rounded-pill"><i class="bx bx-check"></i>
-                                                            selesaikan</button>
+                                                            selesaikan semua</button>
+                                                    </form>
+                                                @elseif ($produksi->allHasilSelesai() && $produksi->status != 'finish')
+                                                    <form action="{{ route('produksi.selesaiProduksi', $produksi->id) }}"
+                                                        method="post" class="m-0">
+                                                        @csrf
+                                                        <button type="submit"
+                                                            onclick="return confirm('Semua hasil produksi sudah selesai. Tandai produksi sebagai finish?')"
+                                                            class="btn btn-success rounded-pill"><i class="bx bx-check"></i>
+                                                            finish produksi</button>
                                                     </form>
                                                 @endif
                                             @endif
@@ -118,46 +127,38 @@
                                 <th>perbandingan</th>
                                 <th>satuan</th>
                                 <th>hpp</th>
-                                <th>status</th>
                                 <th>user</th>
-                                @if ($produksi->status != 'finish')
-                                    <th>action</th>
-                                @endif
+                                <th>status</th>
+                                <th>action</th>
                             </tr>
                         </thead>
                         <tbody>
                             @if ($produksi->hasilProduksi()->count())
                                 @foreach ($produksi->hasilProduksi as $hasil)
-                                    <tr class="{{ $hasil->status == 'finish' ? 'table-success' : '' }}">
+                                    <tr>
                                         <td>{{ $hasil->created_at->format('d-m-Y') }}</td>
                                         <td>{{ $hasil->produk->namaLengkap }}</td>
                                         <td>{{ $hasil->jumlah }}</td>
                                         <td>{{ $hasil->perbandingan }}</td>
                                         <td>{{ $hasil->satuan }}</td>
                                         <td>{{ number_format($hasil->hpp, 0, ',', '.') }}</td>
+                                        <td>{{ $hasil->user->name ?? '-' }}</td>
                                         <td>
                                             @if ($hasil->status == 'finish')
                                                 <span class="badge bg-success">Selesai</span>
+                                                <small class="d-block text-muted">
+                                                    @if ($hasil->finished_at)
+                                                        {{ \Carbon\Carbon::parse($hasil->finished_at)->format('d-m-Y') }}
+                                                    @endif
+                                                </small>
                                             @else
                                                 <span class="badge bg-warning">Proses</span>
                                             @endif
                                         </td>
-                                        <td>{{ $hasil->user->name ?? '-' }}</td>
-                                        @if ($produksi->status != 'finish')
-                                            <td>
-                                                <div class="d-flex gap-1">
-                                                    @if ($hasil->status != 'finish' && $hasil->hpp > 0)
-                                                        <form
-                                                            action="{{ route('produksi.selesaiHasilProduksiSatuan', [$produksi->id, $hasil->id]) }}"
-                                                            method="post">
-                                                            @csrf
-                                                            <button type="submit"
-                                                                onclick="return confirm('Selesaikan hasil produksi ini? Stok akan ditambahkan.')"
-                                                                class="btn btn-success btn-sm" title="Selesaikan"><i
-                                                                    class="bx bx-check"></i></button>
-                                                        </form>
-                                                    @endif
-                                                    @if ($hasil->status != 'finish')
+                                        <td>
+                                            <div class="d-flex gap-1">
+                                                @if ($hasil->status == 'proses')
+                                                    @if ($produksi->status != 'finish')
                                                         <a href="{{ route('produksi.editHasilProduksi', [$produksi->id, $hasil->id]) }}"
                                                             class="btn btn-warning btn-sm"><i class="bx bx-edit"></i></a>
                                                         <form
@@ -171,9 +172,22 @@
                                                                     class="bx bx-trash"></i></button>
                                                         </form>
                                                     @endif
-                                                </div>
-                                            </td>
-                                        @endif
+                                                    @if ($produksi->cekkomplit())
+                                                        <form
+                                                            action="{{ route('produksi.selesaiHasilProduksi', [$produksi->id, $hasil->id]) }}"
+                                                            method="post">
+                                                            @csrf
+                                                            <button type="submit"
+                                                                onclick="return confirm('Apakah anda yakin ingin menyelesaikan hasil produksi ini?')"
+                                                                class="btn btn-success btn-sm"><i
+                                                                    class="bx bx-check"></i></button>
+                                                        </form>
+                                                    @endif
+                                                @else
+                                                    <span class="text-muted">-</span>
+                                                @endif
+                                            </div>
+                                        </td>
                                     </tr>
                                 @endforeach
                             @else
@@ -184,8 +198,9 @@
                                     <td>{{ $produksi->perbandingan ?? '-' }}</td>
                                     <td>{{ $produksi->satuan ?? '-' }}</td>
                                     <td>{{ $produksi->hpp ?? '-' }}</td>
-                                    <td>-</td>
                                     <td>{{ $produksi->user->name ?? '-' }}</td>
+                                    <td>-</td>
+                                    <td>-</td>
                                 </tr>
                             @endif
                         </tbody>

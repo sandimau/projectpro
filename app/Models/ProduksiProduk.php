@@ -95,6 +95,30 @@ class ProduksiProduk extends Model
         return true;
     }
 
+    /**
+     * Cek apakah ada hasil produksi yang masih proses
+     */
+    public function hasPendingHasil()
+    {
+        return $this->hasilProduksi()->where('status', 'proses')->exists();
+    }
+
+    /**
+     * Hitung jumlah hasil produksi yang masih proses
+     */
+    public function countPendingHasil()
+    {
+        return $this->hasilProduksi()->where('status', 'proses')->count();
+    }
+
+    /**
+     * Cek apakah semua hasil produksi sudah selesai
+     */
+    public function allHasilSelesai()
+    {
+        return $this->hasilProduksi()->count() > 0 && $this->hasilProduksi()->where('status', 'proses')->count() == 0;
+    }
+
     public function hitungHpp()
     {
         if ($this->cekkomplit()) {

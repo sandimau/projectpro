@@ -31,4 +31,8 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'shopee' => [
+        'live_push_partner_key' => env('SHOPEE_LIVE_PUSH_PARTNER_KEY'),
+    ],
+
 ];
