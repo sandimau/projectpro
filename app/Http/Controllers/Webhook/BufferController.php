@@ -159,11 +159,11 @@ class BufferController extends Controller
 
                     if (!empty($penarikanMp)) {
                         try {
-                            BukuBesar::insert($penarikanMp);
-                            // $AkunDetail = AkunDetail::find($marketplace->penarikan_id);
-                            // if ($AkunDetail) {
-                            //     $AkunDetail->updateSaldo();
-                            // }
+                            // Insert satu per satu agar trigger model BukuBesar berjalan (boot/saving)
+                            foreach ($penarikanMp as $data) {
+                                BukuBesar::create($data);
+                            }
+                            // Tidak perlu update saldo manual ke AkunDetail, karena sudah dilakukan di BukuBesar::boot()
                         } catch (\Exception $e) {
                             $this->logError($marketplace, 'insert penarikan', $e->getMessage());
                         }
