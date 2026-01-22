@@ -135,9 +135,9 @@
                                                         $tampilan .= "<span class='label label-rounded mr-1' style='background-color: " . $warna . "'>" . $nominal . "</span>";
                                                         $tampilan .= ($project->konsumen ?? $project->nota ?? '');
 
-                                                        if ($project->keterangan) {
-                                                            $tampilan .= " <small class='text-muted'>" . $project->keterangan . "</small>";
-                                                        }
+                                                        // if ($project->keterangan) {
+                                                        //     $tampilan .= " <small class='text-muted'>" . $project->keterangan . "</small>";
+                                                        // }
 
                                                         $tampilan .= "</p>";
                                                     }

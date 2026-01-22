@@ -51,21 +51,11 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4 text-end">
-                                @can('projectMp_detail_create')
-                                    <a href="{{ route('projectMpDetail.add', $projectMp->id) }}"
-                                        class="btn btn-success rounded-pill text-white">
-                                        <i class='bx bx-plus-circle'></i> tambah
-                                    </a>
-                                    <a href="{{ route('projectMp.edit', $projectMp->id) }}"
-                                        class="btn btn-info rounded-pill text-white">
-                                        edit
-                                    </a>
-                                    <a href="{{ route('projectMp.invoice', $projectMp->id) }}"
-                                        class="btn btn-primary rounded-pill text-white">
-                                        invoice
-                                    </a>
-                                @endcan
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <h6 class="mb-0 text-secondary">Keterangan</h6>
+                                    <p>{{ $projectMp->keterangan }}</p>
+                                </div>
                             </div>
                         </div>
                         <div class="table-responsive">
