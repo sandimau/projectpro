@@ -260,6 +260,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::get('/projectmp/dashboard', 'ProjectMpController@dashboard')->name('projectmp.dashboard');
             Route::get('/projectmp/packing', 'ProjectMpController@packing')->name('projectmp.packing');
             Route::post('/projectmp/{projectmp}/chat', 'ProjectMpController@storeChat')->name('projectMp.chatStore');
+            Route::get('/projectmp', 'ProjectMpController@index')->name('projectmp.index');
 
             // ProjectMpDetail
             Route::get('/projectMpDetail/{projectMp}', 'ProjectMpDetailController@detail')->name('projectmp.detail');

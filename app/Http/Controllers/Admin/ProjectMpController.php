@@ -89,4 +89,104 @@ class ProjectMpController extends Controller
         ]);
         return redirect('/admin/projectMpDetail/' . $projectmp->id)->withSuccess(__('chat created successfully.'));
     }
+
+    public function index(Request $request)
+    {
+        // Tentukan sorting berdasarkan parameter
+        $sortBy = 'created_at';
+        $sortDirection = 'desc';
+
+        if ($request->sort) {
+            switch ($request->sort) {
+                case 'total_asc':
+                    $sortBy = 'total';
+                    $sortDirection = 'asc';
+                    break;
+                case 'total_desc':
+                    $sortBy = 'total';
+                    $sortDirection = 'desc';
+                    break;
+                case 'bersih_asc':
+                    $sortBy = 'bayar';
+                    $sortDirection = 'asc';
+                    break;
+                case 'bersih_desc':
+                    $sortBy = 'bayar';
+                    $sortDirection = 'desc';
+                    break;
+                case 'persentase_asc':
+                    // Untuk persentase, kita perlu menghitung (total - bayar) / total * 100
+                    // Kita akan handle ini dengan raw query
+                    break;
+                case 'persentase_desc':
+                    // Untuk persentase, kita perlu menghitung (total - bayar) / total * 100
+                    // Kita akan handle ini dengan raw query
+                    break;
+            }
+        }
+
+        if ($request->dari == null && $request->sampai == null && $request->nota == null && $request->produk_id == null && $request->pembayaran == null) {
+            // Jika hanya ada sorting tanpa filter lain
+            if ($request->sort) {
+                $query = ProjectMp::orderBy('created_at', 'desc');
+
+                if ($request->sort == 'persentase_asc' || $request->sort == 'persentase_desc') {
+                    $direction = $request->sort == 'persentase_asc' ? 'asc' : 'desc';
+                    $query->orderByRaw("CASE WHEN total = 0 THEN 0 ELSE ((total - bayar) / total * 100) END {$direction}");
+                } else {
+                    $query->orderBy($sortBy, $sortDirection);
+                }
+
+                $projectmps = $query->paginate(10)->appends(['sort' => $request->sort]);
+            } else {
+                $projectmps = ProjectMp::orderBy('created_at', 'desc')->paginate(10);
+            }
+        } else {
+            // Gunakan subquery untuk menghindari masalah pagination dengan JOIN dan DISTINCT
+            $projectmpIds = ProjectMp::query()
+                ->leftJoin('project_mp_details', 'project_mps.id', '=', 'project_mp_details.project_id')
+                ->when($request->dari && $request->sampai, function ($query) use ($request) {
+                    $query->whereBetween('project_mps.created_at', [$request->dari, $request->sampai]);
+                })
+                ->when($request->nota, function ($query) use ($request) {
+                    $query->where('project_mps.nota', 'LIKE', '%' . $request->nota . '%');
+                })
+                ->when($request->produk_id, function ($query) use ($request) {
+                    $query->where('project_mp_details.produk_id', $request->produk_id);
+                })
+                ->when($request->pembayaran == '1', function ($query) use ($request) {
+                    // Jika pembayaran = 1 (sudah dibayar), filter yang bayar >= total
+                    $query->whereRaw('project_mps.bersih > 0');
+                })
+                ->when($request->pembayaran == '0', function ($query) use ($request) {
+                    // Jika pembayaran = 0 (belum dibayar), filter yang bayar < total atau bersih null
+                    $query->whereRaw('(project_mps.bersih = 0 OR project_mps.bersih IS NULL) and project_mps.total > 0');
+                })
+                ->distinct()
+                ->pluck('project_mps.id');
+
+            // Query utama untuk pagination
+            $query = ProjectMp::whereIn('id', $projectmpIds);
+
+            // Handle sorting untuk persentase
+            if ($request->sort == 'persentase_asc' || $request->sort == 'persentase_desc') {
+                $direction = $request->sort == 'persentase_asc' ? 'asc' : 'desc';
+                $query->orderByRaw("CASE WHEN total = 0 THEN 0 ELSE ((total - bayar) / total * 100) END {$direction}");
+            } else {
+                $query->orderBy($sortBy, $sortDirection);
+            }
+
+            $projectmps = $query->paginate(10)
+                ->appends([
+                    'dari' => $request->dari,
+                    'sampai' => $request->sampai,
+                    'nota' => $request->nota,
+                    'produk_id' => $request->produk_id,
+                    'pembayaran' => $request->pembayaran,
+                    'sort' => $request->sort
+                ]);
+        }
+
+        return view('admin.projectmps.index', compact('projectmps'));
+    }
 }

@@ -150,6 +150,15 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {{ request()->is('admin/projectmp/index*') ? 'active' : '' }}"
+                        href="{{ route('projectmp.index') }}">
+                        <svg class="nav-icon">
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-folder-open') }}"></use>
+                        </svg>
+                        {{ __('Arsip Order') }}
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link {{ request()->is('marketplaces*') ? 'active' : '' }}"
                         href="{{ route('marketplaces.index') }}">
                         <svg class="nav-icon">

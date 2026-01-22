@@ -32,4 +32,15 @@ class ProjectMp extends Model
     {
         return $this->hasOne(MarketplaceBuffer::class, 'project_id');
     }
+
+    public function getListprodukAttribute()
+    {
+        $yy = array();
+        foreach ($this->details as $item) {
+            $nama_produk = '';
+            $nama_produk .= $item->produk->namaLengkap;
+            $yy[] = $nama_produk;
+        }
+        return implode(', ', $yy);
+    }
 }

@@ -77,8 +77,10 @@
                                         <th>jml</th>
                                         <th>harga</th>
                                         <th>subtotal</th>
-                                        @if ($projectMp->buffer->custom != null)
-                                            <th>status</th>
+                                        @if ($projectMp->buffer)
+                                            @if ($projectMp->buffer->custom == 1)
+                                                <th>status</th>
+                                            @endif
                                         @endif
                                         <th>gambar</th>
                                     </tr>
@@ -91,25 +93,27 @@
                                             <td>{{ $detail->jumlah }}</td>
                                             <td>{{ number_format($detail->harga) }}</td>
                                             <td>{{ number_format($detail->harga * $detail->jumlah) }}</td>
-                                            @if ($detail->projectMP->buffer->custom != null)
-                                                <td>
-                                                    <form action="{{ route('projectMpDetail.status', $detail->id) }}"
-                                                        method="post"
-                                                        onsubmit="document.getElementById('submit').disabled=true;
+                                            @if ($projectMp->buffer)
+                                                @if ($detail->projectMP->buffer->custom != null)
+                                                    <td>
+                                                        <form action="{{ route('projectMpDetail.status', $detail->id) }}"
+                                                            method="post"
+                                                            onsubmit="document.getElementById('submit').disabled=true;
                                                     document.getElementById('submit').value='proses'">
-                                                        {{ csrf_field() }}
-                                                        {{ method_field('patch') }}
-                                                        <select class="form-select" aria-label="Default select example"
-                                                            name="produksi_id" id="produksi_id"
-                                                            onchange="this.form.submit()">
-                                                            @foreach ($produksi as $entry)
-                                                                <option value="{{ $entry->id }}"
-                                                                    {{ $detail->produksi_id == $entry->id ? 'selected' : '' }}>
-                                                                    {{ $entry->nama }}</option>
-                                                            @endforeach
-                                                        </select>
-                                                    </form>
-                                                </td>
+                                                            {{ csrf_field() }}
+                                                            {{ method_field('patch') }}
+                                                            <select class="form-select" aria-label="Default select example"
+                                                                name="produksi_id" id="produksi_id"
+                                                                onchange="this.form.submit()">
+                                                                @foreach ($produksi as $entry)
+                                                                    <option value="{{ $entry->id }}"
+                                                                        {{ $detail->produksi_id == $entry->id ? 'selected' : '' }}>
+                                                                        {{ $entry->nama }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </form>
+                                                    </td>
+                                                @endif
                                             @endif
                                             <td>
                                                 @if ($detail->gambar)
