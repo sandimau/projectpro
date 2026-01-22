@@ -107,11 +107,11 @@ class ProjectMpController extends Controller
                     $sortDirection = 'desc';
                     break;
                 case 'bersih_asc':
-                    $sortBy = 'bayar';
+                    $sortBy = 'bersih';
                     $sortDirection = 'asc';
                     break;
                 case 'bersih_desc':
-                    $sortBy = 'bayar';
+                    $sortBy = 'bersih';
                     $sortDirection = 'desc';
                     break;
                 case 'persentase_asc':
@@ -132,7 +132,7 @@ class ProjectMpController extends Controller
 
                 if ($request->sort == 'persentase_asc' || $request->sort == 'persentase_desc') {
                     $direction = $request->sort == 'persentase_asc' ? 'asc' : 'desc';
-                    $query->orderByRaw("CASE WHEN total = 0 THEN 0 ELSE ((total - bayar) / total * 100) END {$direction}");
+                    $query->orderBy("persen", $direction);
                 } else {
                     $query->orderBy($sortBy, $sortDirection);
                 }
@@ -171,7 +171,7 @@ class ProjectMpController extends Controller
             // Handle sorting untuk persentase
             if ($request->sort == 'persentase_asc' || $request->sort == 'persentase_desc') {
                 $direction = $request->sort == 'persentase_asc' ? 'asc' : 'desc';
-                $query->orderByRaw("CASE WHEN total = 0 THEN 0 ELSE ((total - bayar) / total * 100) END {$direction}");
+                $query->orderByRaw("CASE WHEN total = 0 THEN 0 ELSE ((total - bersih) / total * 100) END {$direction}");
             } else {
                 $query->orderBy($sortBy, $sortDirection);
             }
