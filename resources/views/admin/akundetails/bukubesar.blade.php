@@ -36,8 +36,8 @@
                             <tr>
                                 <th scope="col">tanggal</th>
                                 <th scope="col">ket</th>
-                                <th scope="col">debet</th>
                                 <th scope="col">kredit</th>
+                                <th scope="col">debet</th>
                                 <th scope="col">saldo</th>
                                 <th scope="col">user</th>
                             </tr>
@@ -59,8 +59,8 @@
                                             {{ $bukubesar->ket }}
                                         @endif
                                     </td>
-                                    <td>{{ number_format($bukubesar->debet, 0, ',', '.') }}</td>
                                     <td>{{ number_format($bukubesar->kredit, 0, ',', '.') }}</td>
+                                    <td>{{ number_format($bukubesar->debet, 0, ',', '.') }}</td>
                                     <td>{{ number_format($bukubesar->saldo, 0, ',', '.') }}</td>
                                     <td>{{ $bukubesar->user->name ?? '-' }}</td>
                                 </tr>

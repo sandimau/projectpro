@@ -94,7 +94,7 @@
                                                             <small class="text-muted">{{ $first->keterangan }}</small>
                                                         @endif
                                                     </p>
-                                                    <div class="ms-auto d-flex align-items-center gap-1 flex-wrap">
+                                                    <div class="d-flex align-items-center gap-1 flex-wrap">
                                                         @foreach ($details as $detail)
                                                             @if ($detail->nama_model)
                                                                 <span class="badge bg-secondary">
