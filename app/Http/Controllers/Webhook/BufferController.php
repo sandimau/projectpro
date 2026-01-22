@@ -47,6 +47,8 @@ class BufferController extends Controller
                 $terakhir = BukuBesar::where('akun_detail_id', $marketplace->kas_id)->latest()->first();
                 $from = $terakhir ? strtotime($terakhir->created_at) - 1 : strtotime("-3 days");
 
+                $tokenError = false;
+
                 while ($loop_api) {
                     $page_no++;
                     $param = [
@@ -58,7 +60,27 @@ class BufferController extends Controller
 
                     $api = $this->ambilApi($marketplace, 'payment/get_wallet_transaction_list', $param);
 
+                    // Jika error karena token Shopee bermasalah
                     if (isset($api['error']) && !empty($api['error'])) {
+                        // Cek jika kemungkinan masalah token
+                        $tokenString = json_encode($api['error']);
+                        if (
+                            stripos($tokenString, 'access_token') !== false ||
+                            stripos($tokenString, 'refresh_token') !== false ||
+                            stripos($tokenString, 'invalid') !== false ||
+                            stripos($tokenString, 'expired') !== false
+                        ) {
+                            // Jalankan manualRefreshToken Shopee
+                            try {
+                                // Jalankan route secara internal (tanpa http request eksternal)
+                                app()->make(\App\Http\Controllers\Webhook\ShopeeLivePushController::class)->manualRefreshToken();
+                                $this->logError($marketplace, 'wallet api error(token)','Token Shopee Error, menjalankan manualRefreshToken');
+                            } catch (\Exception $tokenEx) {
+                                $this->logError($marketplace, 'wallet token manual refresh gagal', $tokenEx->getMessage());
+                            }
+                            $tokenError = true;
+                        }
+
                         $this->logError($marketplace, 'wallet api error', $api);
                         $loop_api = false;
                         continue;
@@ -129,6 +151,12 @@ class BufferController extends Controller
                     } else {
                         $loop_api = false;
                     }
+                }
+
+                // Jika ada error token Shopee, tidak perlu proses lebih jauh dan berikan pesan jelas
+                if ($tokenError) {
+                    // Stop di sini
+                    continue;
                 }
 
                 // Proses jika API berhasil dipanggil
@@ -395,7 +423,7 @@ class BufferController extends Controller
                 ->leftJoin('produk_models', 'produk_models.id', '=', 'produks.produk_model_id')
                 ->get();
 
-            ProdukStok::where('project_id', $cancel->project_id)->where('kode', 'shp')->forceDelete();
+            ProdukStok::where('detail_id', $cancel->project_id)->where('kode', 'shp')->forceDelete();
             foreach ($details as $detail) {
                 $this->updateStokMp($detail->produk_id);
             }
