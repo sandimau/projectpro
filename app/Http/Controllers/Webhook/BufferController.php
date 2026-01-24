@@ -394,6 +394,8 @@ class BufferController extends Controller
                             ]);
                         }
                     }
+                } else {
+                    $this->logError($marketplace, 'proses buffer', $api);
                 }
             }
         }
