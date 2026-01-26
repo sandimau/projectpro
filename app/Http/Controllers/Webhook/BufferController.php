@@ -444,7 +444,7 @@ class BufferController extends Controller
             })
             ->where('status', '!=', 'TO_RETURN')
             ->orderBy('created_at', 'asc')
-            ->limit(150)
+            ->limit(20)
             ->get();
 
         $buffers = $buffers->groupBy('shop_id');

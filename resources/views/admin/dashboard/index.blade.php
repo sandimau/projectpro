@@ -53,7 +53,7 @@
                                 Omzet Marketplace Pekanan
                             </h5>
                         </div>
-                        <a href="{{ route('order.marketplace') }}" class="btn btn-sm px-3"
+                        <a href="{{ route('projectmp.index') }}" class="btn btn-sm px-3"
                             style="background: linear-gradient(135deg, #6c5ce7, #a29bfe); color: white; border-radius: 20px;">
                             <i class='bx bx-show'></i>
                         </a>
@@ -257,15 +257,16 @@
 
             // Prepare data Omzet Online
             $sortedOnline = collect($omzetOnline ?? [])->sortKeys();
-            $firstOnline = $sortedOnline->first();
-            $mpList = [];
-            if ($firstOnline) {
-                foreach ($firstOnline as $key => $val) {
-                    if ($key !== 'date') {
-                        $mpList[] = $key;
-                    }
-                }
-            }
+            // Jangan ambil dari item pertama (bisa kosong). Kumpulkan dari semua hari.
+            $mpList = $sortedOnline
+                ->flatMap(function ($row) {
+                    $vars = is_object($row) ? get_object_vars($row) : (array) $row;
+                    return array_keys($vars);
+                })
+                ->filter(fn ($key) => $key !== 'date')
+                ->unique()
+                ->values()
+                ->all();
 
             $onlineDates = $sortedOnline->keys()->toArray();
             $formattedDatesOnline = [];

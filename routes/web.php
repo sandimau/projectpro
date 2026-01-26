@@ -33,6 +33,7 @@ Route::get('/shopee/auth', [ShopeeLivePushController::class, 'auth'])
 Route::post('/webhook/shopee/push', [ShopeeLivePushController::class, 'push'])->name('webhook.shopee.push');
 
 Route::get('/shopee/manualRefresh', [ShopeeLivePushController::class, 'manualRefreshToken'])->name('webhook.shopee.manualRefresh');
+Route::get('/shopee/bersihkanBuffer', [\App\Http\Controllers\Webhook\BufferController::class, 'bersihkanBuffer'])->name('webhook.shopee.bersihkanBuffer');
 
 // Buffer Controller Routes
 Route::prefix('buffer')->name('buffer.')->group(function () {

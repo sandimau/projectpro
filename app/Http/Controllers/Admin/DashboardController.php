@@ -39,7 +39,6 @@ class DashboardController extends Controller
 
         // === Marketplace List untuk chart ===
         $data['marketplaces'] = Marketplace::pluck('nama', 'id');
-
         return view('admin.dashboard.index', $data);
     }
 
@@ -49,7 +48,7 @@ class DashboardController extends Controller
     private function getOmzetOfflinePekanan()
     {
         $results = DB::select("
-            SELECT 
+            SELECT
                 DATE(created_at) as date,
                 SUM(total) as total_omzet
             FROM orders
@@ -83,14 +82,13 @@ class DashboardController extends Controller
     private function getOmzetOnlinePekanan()
     {
         $results = DB::select("
-            SELECT 
+            SELECT
                 m.id as marketplace_id,
                 m.nama as marketplace_nama,
                 DATE(o.created_at) as date,
-                SUM(o.total) as total_omzet
+                COALESCE(SUM(o.total), 0) as total_omzet
             FROM marketplaces m
-            LEFT JOIN orders o ON m.id = o.marketplace 
-                AND o.deleted_at IS NULL
+            LEFT JOIN project_mps o ON m.id = o.marketplace_id
                 AND o.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
             GROUP BY m.id, m.nama, DATE(o.created_at)
             ORDER BY m.id, DATE(o.created_at)
@@ -126,7 +124,7 @@ class DashboardController extends Controller
     private function getProdukTerlarisPekanan()
     {
         $results = DB::select("
-            SELECT 
+            SELECT
                 p.id as produk_id,
                 p.nama as nama_produk,
                 pm.nama as model_nama,
@@ -163,7 +161,7 @@ class DashboardController extends Controller
     private function getOrderTerbesarHariIni()
     {
         $results = DB::select("
-            SELECT 
+            SELECT
                 p.id as produk_id,
                 p.nama as nama_produk,
                 pm.nama as model_nama,
