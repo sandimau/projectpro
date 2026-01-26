@@ -230,7 +230,7 @@ class ShopeeLivePushController extends Controller
      */
     public function manualRefreshToken()
     {
-        $id = request()->get('id');
+        $id = 1;
 
         // Validasi input
         if (!$id) {
