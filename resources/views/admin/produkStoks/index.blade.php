@@ -57,9 +57,9 @@
                                 <th>kurang</th>
                                 <th>saldo</th>
                                 <th>user</th>
-                                {{-- @can('opname_access')
+                                @can('opname_access')
                                     <th>action</th>
-                                @endcan --}}
+                                @endcan
                             </tr>
                         </thead>
                         <tbody>
@@ -73,7 +73,7 @@
                                     <td>{{ $stok->kurang }}</td>
                                     <td>{{ $stok->saldo }}</td>
                                     <td>{{ $stok->user ? $stok->user->name : null }}</td>
-                                    {{-- @can('opname_access')
+                                    @can('opname_access')
                                         @if ($stok->kurang > 0 && $stok->status != 'manual' && $stok->kode != 'pakai')
                                         <td>
                                             <form action="{{ route('produkStok.editStore', $stok->id) }}" method="POST" style="display:inline;">
@@ -85,7 +85,7 @@
                                             </form>
                                         </td>
                                         @endif
-                                    @endcan --}}
+                                    @endcan
                                 </tr>
                             @endforeach
                         </tbody>

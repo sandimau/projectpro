@@ -354,7 +354,7 @@ class BufferController extends Controller
                                     $produk = Produk::find($sku);
                                     $model_id = $produk->produk_model_id ?? 0;
                                     $stok = ProdukModel::find($model_id)->stok ?? 0;
-                                    if ($stok == 1) {
+                                    if ($stok == 1 && !$custom) {
                                         $this->mpBeli($sku, $marketplace, $jumlah, $project_id);
                                         $hpp = $produk->hpp ?? 0;
                                     }
