@@ -279,6 +279,8 @@ class BufferController extends Controller
 
                         $baru = true;
                         try {
+                            $created_at = date("Y-m-d H:i:s", $orderlist['create_time']);
+                            $deathline = date("Y-m-d H:i:s", strtotime($created_at . ' +6 days'));
                             $projectMp = ProjectMp::create([
                                 'marketplace_id' => $marketplace->id,
                                 'nota' => $nota,
@@ -286,6 +288,8 @@ class BufferController extends Controller
                                 'konsumen' => $orderlist['buyer_username'],
                                 'keterangan' => $keterangan,
                                 'shipping' => $orderlist['shipping_carrier'],
+                                'created_at' => $created_at,
+                                'deadline' => $deathline,
                             ]);
                             $project_id = $projectMp->id;
                         } catch (\Exception $e) {
