@@ -145,7 +145,40 @@
 
                                                 // Tampilkan produk
                                                 $nama_produk = $detail->produk->namaLengkap ?? ($detail->tema ?? '');
-                                                $tampilan .= "<span style='color:#636363; padding-right:5px;'>" . $nama_produk . "</span>";
+
+                                                $jadwalx = '';
+                                                if ($detail->projectMp->deadline) {
+                                                    $time1 = new DateTime(date('Y-m-d'));
+                                                    $time2 = new DateTime($detail->projectMp->deadline);
+                                                    $interval = $time1->diff($time2)->format('%r%a');
+
+                                                    $hasil = $interval;
+                                                    if ($interval == 0) {
+                                                        $hasil = ' hari ini';
+                                                        $class = 'warning';
+                                                    }
+                                                    if ($interval == 1) {
+                                                        $hasil = ' besok';
+                                                        $class = 'info';
+                                                    }
+                                                    if ($interval > 1) {
+                                                        $hasil = $interval . ' hari lagi';
+                                                        $class = 'success';
+                                                    }
+                                                    if ($interval < 0) {
+                                                        $hasil = $interval . ' hari';
+                                                        $class = 'danger';
+                                                    }
+
+                                                    $jadwalx =
+                                                        " <small> <span class='badge text-white text-bg-" .
+                                                        $class .
+                                                        "''>" .
+                                                        $hasil .
+                                                        '</span></small>';
+                                                }
+
+                                                $tampilan .= "<span style='color:#636363; padding-right:5px;'>" . $nama_produk . $jadwalx . "</span>";
 
                                                 $project_id = $detail->project_id;
                                             }
