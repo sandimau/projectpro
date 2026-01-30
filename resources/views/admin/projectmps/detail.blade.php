@@ -73,6 +73,7 @@
                                             @endif
                                         @endif
                                         <th>gambar</th>
+                                        <th>Deadline</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -146,6 +147,9 @@
                                                         class="btn btn-success text-white"><i
                                                             class='bx bx-image-alt'></i></a>
                                                 @endif
+                                            </td>
+                                            <td>
+                                                <a href="{{ route('projectMpDetail.edit', $detail->id) }}">{{ $detail->deadline ? \Carbon\Carbon::parse($detail->deadline)->format('d-m-Y') : 'Belum ada' }}</a>
                                             </td>
                                         </tr>
                                     @endforeach

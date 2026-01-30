@@ -270,6 +270,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::post('/projectMpDetail/upload', 'ProjectMpDetailController@upload')->name('projectMpDetail.upload');
             Route::get('/projectMpDetail/{detail}/editGambar', 'ProjectMpDetailController@editGambar')->name('projectMpDetail.editGambar');
             Route::patch('/projectMpDetail/{detail}/updateGambar', 'ProjectMpDetailController@updateGambar')->name('projectMpDetail.updateGambar');
+            Route::get('/projectMpDetail/{detail}/edit', 'ProjectMpDetailController@edit')->name('projectMpDetail.edit');
+            Route::patch('/projectMpDetail/{detail}/update', 'ProjectMpDetailController@update')->name('projectMpDetail.update');
 
             // produk-kategori-utama
             Route::resource('produk-kategori-utama', 'ProdukKategoriUtamaController');

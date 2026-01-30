@@ -156,4 +156,18 @@ class ProjectMpDetailController extends Controller
 
         return redirect('/admin/projectMpDetail/' . $ProjectMpDetail->projectMp->id)->withSuccess(__('Gambar detail updated successfully.'));
     }
+
+    public function edit(ProjectMpDetail $detail)
+    {
+        return view('admin.projectmps.editDetail', compact('detail'));
+    }
+
+    public function update(Request $request, ProjectMpDetail $detail)
+    {
+        $detail->update($request->all());
+        $detail->projectMp->update([
+            'deadline' => $request->deadline,
+        ]);
+        return redirect('/admin/projectMpDetail/' . $detail->projectMp->id)->withSuccess(__('Detail updated successfully.'));
+    }
 }

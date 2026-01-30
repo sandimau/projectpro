@@ -148,8 +148,9 @@
 
                                                 $jadwalx = '';
                                                 if ($detail->projectMp->deadline) {
+                                                    $waktu = $detail->deadline ?? $detail->projectMp->deadline;
                                                     $time1 = new DateTime(date('Y-m-d'));
-                                                    $time2 = new DateTime($detail->projectMp->deadline);
+                                                    $time2 = new DateTime($waktu);
                                                     $interval = $time1->diff($time2)->format('%r%a');
 
                                                     $hasil = $interval;
