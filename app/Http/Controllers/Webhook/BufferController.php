@@ -443,7 +443,7 @@ class BufferController extends Controller
     {
         $buffers = MarketplaceBuffer::where('mp', 'shopee')
             ->where(function ($query) {
-                $query->where('created_at', '<', now()->subDays(14))
+                $query->where('created_at', '<', now()->subDays(7))
                     ->orWhereNotIn('status', ['READY_TO_SHIP', 'CANCELLED', 'UNPAID', 'PROCESSED', 'SHIPPED', 'TO_CONFIRM_RECEIVE']);
             })
             ->where('status', '!=', 'TO_RETURN')
@@ -471,11 +471,13 @@ class BufferController extends Controller
                     $status = $orderlist['order_status'];
                     MarketplaceBuffer::where('mp', 'shopee')->where('nota', $nota)->update(['status' => $status]);
                 }
+            } else {
+                $this->logError($marketplace, 'bersihkan buffer', $api);
             }
         }
     }
 
-    public function updateBuffer()
+    public function updateBufferCancel()
     {
         $marketplaces = Marketplace::where('marketplace', 'shopee')
             ->whereNotNull('shop_id')
@@ -511,6 +513,8 @@ class BufferController extends Controller
                                 ->update(['status' => $status]);
                         }
                     }
+                } else {
+                    $this->logError($marketplace, 'update buffer cancel', $api);
                 }
             }
             $notaString = implode(',', $notaArray);
@@ -527,6 +531,8 @@ class BufferController extends Controller
                     $status = $orderlist['order_status'];
                     MarketplaceBuffer::where('mp', 'shopee')->where('nota', $nota)->update(['status' => $status]);
                 }
+            } else {
+                $this->logError($marketplace, 'update buffer cancel', $api);
             }
         }
     }
