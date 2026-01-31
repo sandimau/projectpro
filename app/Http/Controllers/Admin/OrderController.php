@@ -12,6 +12,7 @@ use App\Models\Produk;
 use App\Models\Sistem;
 use App\Models\Produksi;
 use App\Models\BukuBesar;
+use App\Models\ProjectMp;
 use App\Models\AkunDetail;
 use App\Models\Pembayaran;
 use App\Models\OrderDetail;
@@ -486,15 +487,47 @@ class OrderController extends Controller
     public function omzet()
     {
         abort_if(Gate::denies('omzet_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        $orders = Order::omzetTahun()->get();
-        return view('admin.orders.omzet', compact('orders'));
+        $orders = Order::omzetTahun()->get()->keyBy('year');
+        $projects = ProjectMp::omzetTahun()->get()->keyBy('year');
+
+        // Gabungkan semua tahun unik dari Order dan ProjectMp, urutkan kronologis
+        $allYears = $orders->keys()->merge($projects->keys())->unique()->sort()->values();
+
+        $chartData = $allYears->map(function ($year) use ($orders, $projects) {
+            $order = $orders->get($year);
+            $project = $projects->get($year);
+            return (object) [
+                'year' => $year,
+                'omzet' => (float) ($order?->sum ?? 0),
+                'omzetMp' => (float) ($project?->sumMp ?? 0),
+            ];
+        });
+
+        return view('admin.orders.omzet', compact('chartData'));
     }
 
     public function omzetBulan()
     {
         abort_if(Gate::denies('omzet_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        $years = Order::omzetBulan(date('Y'))->get();
-        return view('admin.orders.omzetBulan', compact('years'));
+        $orders = Order::omzetBulan()->get()->keyBy('month');
+        $projects = ProjectMp::omzetBulan()->get()->keyBy('month');
+
+        // Gabungkan semua bulan unik dari Order dan ProjectMp, urutkan kronologis
+        $allMonths = $orders->keys()->merge($projects->keys())->unique()->sort()->values();
+
+        $chartData = $allMonths->map(function ($month) use ($orders, $projects) {
+            $order = $orders->get($month);
+            $project = $projects->get($month);
+            return (object) [
+                'month' => $month,
+                'year' => $order?->year ?? $project?->year,
+                'monthname' => $order?->monthname ?? $project?->monthname,
+                'omzet' => (float) ($order?->omzet ?? 0),
+                'omzetMp' => (float) ($project?->omzetMp ?? 0),
+            ];
+        });
+
+        return view('admin.orders.omzetBulan', compact('chartData'));
     }
 
     public function hapusCancel()

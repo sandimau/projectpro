@@ -89,7 +89,7 @@ class Order extends Model
         return $query;
     }
 
-    public function scopeOmzetBulan($query,$var)
+    public function scopeOmzetBulan($query)
     {
         $query->select(
             DB::raw('YEAR(created_at) as year'),
@@ -97,7 +97,6 @@ class Order extends Model
             DB::raw('MONTHNAME(created_at) as monthname'),
             DB::raw('SUM(total) as omzet')
         );
-        // $query->where( DB::raw('YEAR(created_at)'), '=', $var );
         $query->whereRaw('total');
         $query->groupBy('month');
         $query->orderBy('created_at');

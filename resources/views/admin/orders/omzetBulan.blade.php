@@ -6,109 +6,97 @@
 
 @section('content')
     <div class="bg-light rounded">
-        <div class="card">
-            <canvas id="speedChart"></canvas>
+        <div class="card p-3">
+            <div id="omzetChart" style="height:600px;"></div>
         </div>
     </div>
-    @php @endphp
 @endsection
 
+
 @push('after-scripts')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
     <script>
-        var speedCanvas = document.getElementById("speedChart");
+        document.addEventListener('DOMContentLoaded', function() {
 
-        var myChart = new Chart(speedCanvas, {
-            type: 'line',
-            data: {
-                labels: [
-                    @php
-                        foreach ($years as $value) {
-                            echo '"' . $value->monthname . ' ' . $value->year . '",';
-                        }
-                    @endphp
-                ],
-                datasets: [{
-                    label: 'omzet', // Name the series
-                    data: [
-                        @php
-                            foreach ($years as $value) {
-                                echo $value->omzet . ',';
-                            }
-                        @endphp
-                    ], // Specify the data values array
-                    fill: false,
-                    borderColor: '#2196f3', // Add custom color border (Line)
-                    backgroundColor: '#2196f3', // Add custom color background (Points and Fill)
-                    borderWidth: 1 // Specify bar border width
-                }]},
-            options: {
-            responsive: true, // Instruct chart js to respond nicely.
-            maintainAspectRatio: false, // Add to prevent default behaviour of full-width/height
+            const labels = @json($chartData->map(fn($v) => "{$v->monthname} {$v->year}"));
+            const omzet = @json($chartData->map(fn($v) => (float) $v->omzet));
+            const omzetMP = @json($chartData->map(fn($v) => (float) $v->omzetMp));
+
+            function formatRupiahJuta(value) {
+                const juta = value / 1_000_000;
+
+                return juta.toLocaleString('id-ID', {
+                    minimumFractionDigits: juta % 1 === 0 ? 0 : 2,
+                    maximumFractionDigits: 2
+                });
             }
+
+
+            const options = {
+                chart: {
+                    type: 'bar',
+                    height: 600,
+                    stacked: true,
+                    toolbar: {
+                        show: true
+                    }
+                },
+                series: [{
+                        name: 'Omzet',
+                        data: omzet
+                    },
+                    {
+                        name: 'Omzet MP',
+                        data: omzetMP
+                    }
+                ],
+                xaxis: {
+                    categories: labels
+                },
+                yaxis: {
+                    labels: {
+                        formatter: function(value) {
+                            return formatRupiahJuta(value);
+                        }
+                    }
+                },
+                tooltip: {
+                    y: {
+                        formatter: function(value) {
+                            return formatRupiahJuta(value);
+                        }
+                    }
+                },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function(value) {
+                        return formatRupiahJuta(value);
+                    },
+                    style: {
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        colors: ['#fff']
+                    }
+                },
+                plotOptions: {
+                    bar: {
+                        horizontal: false,
+                        borderRadius: 4
+                    }
+                },
+                colors: ['#2196f3', '#4caf50'],
+                legend: {
+                    position: 'top'
+                }
+            };
+
+            const chart = new ApexCharts(
+                document.querySelector("#omzetChart"),
+                options
+            );
+
+            chart.render();
         });
-
-
-
-        // var dataFirst = {
-        //     label: @php
-        //         $data = null;
-        //         if ($last->first()) {
-        //             $data = $last->first()->year;
-        //         }
-        //     echo '"omzet ' . $data . '"'; @endphp,
-        //     data: [
-        //         @php
-        //             foreach ($last as $value) {
-        //                 echo $value->omzet . ',';
-        //             }
-        //         @endphp
-        //     ],
-        //     lineTension: 0,
-        //     fill: false,
-        //     borderColor: 'red'
-        // };
-
-        // var dataSecond = {
-        //     label: @php echo '"omzet '.$years->first()->year . '"' @endphp,
-        //     data: [
-        //         @php
-        //             foreach ($years as $value) {
-        //                 echo $value->omzet . ',';
-        //             }
-        //         @endphp
-        //     ],
-        //     lineTension: 0,
-        //     fill: false,
-        //     borderColor: 'blue'
-        // };
-
-        // var speedData = {
-        //     labels: [
-        //         @php
-        //             foreach ($years as $value) {
-        //                 echo '"' . $value->monthname . '",';
-        //             }
-        //         @endphp
-        //     ],
-        //     datasets: [dataFirst, dataSecond]
-        // };
-
-        // var chartOptions = {
-        //     legend: {
-        //         display: true,
-        //         position: 'top',
-        //         labels: {
-        //             boxWidth: 80,
-        //             fontColor: 'black'
-        //         }
-        //     }
-        // };
-
-        // var lineChart = new Chart(speedCanvas, {
-        //     type: 'line',
-        //     data: speedData,
-        //     options: chartOptions
-        // });
     </script>
 @endpush
