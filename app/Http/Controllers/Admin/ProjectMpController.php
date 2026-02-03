@@ -125,7 +125,7 @@ class ProjectMpController extends Controller
             }
         }
 
-        if ($request->dari == null && $request->sampai == null && $request->nota == null && $request->produk_id == null && $request->pembayaran == null) {
+        if ($request->dari == null && $request->sampai == null && $request->nota == null && $request->produk_id == null && $request->pembayaran == null && $request->marketplace_id == null) {
             // Jika hanya ada sorting tanpa filter lain
             if ($request->sort) {
                 $query = ProjectMp::orderBy('created_at', 'desc');
@@ -147,6 +147,9 @@ class ProjectMpController extends Controller
                 ->leftJoin('project_mp_details', 'project_mps.id', '=', 'project_mp_details.project_id')
                 ->when($request->dari && $request->sampai, function ($query) use ($request) {
                     $query->whereBetween('project_mps.created_at', [$request->dari, $request->sampai]);
+                })
+                ->when($request->marketplace_id, function ($query) use ($request) {
+                    $query->where('project_mps.marketplace_id', $request->marketplace_id);
                 })
                 ->when($request->nota, function ($query) use ($request) {
                     $query->where('project_mps.nota', 'LIKE', '%' . $request->nota . '%');
@@ -180,6 +183,7 @@ class ProjectMpController extends Controller
                 ->appends([
                     'dari' => $request->dari,
                     'sampai' => $request->sampai,
+                    'marketplace_id' => $request->marketplace_id,
                     'nota' => $request->nota,
                     'produk_id' => $request->produk_id,
                     'pembayaran' => $request->pembayaran,

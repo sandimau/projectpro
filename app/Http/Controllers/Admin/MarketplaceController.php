@@ -903,13 +903,18 @@ class MarketplaceController extends Controller
 
     public function analisa(Request $request)
     {
-        $marketplaces = Marketplace::with(['kontak' => function ($query) {
-            $query->whereNotNull('marketplace');
-        }])->get();
+        // Load semua kontak agar TikTok dan marketplace lain tetap punya kontak untuk lookup data
+        $marketplaces = Marketplace::with('kontak')->get();
 
-        // Ambil tahun pertama dari order
-        $tahunPertama = DB::table('orders')->min(DB::raw('YEAR(created_at)'));
-        $tahunPertama = $tahunPertama ?: date('Y');
+        // Kontak_id yang pakai data dari project_mp (Shopee) vs orders (TikTok/dll)
+        $shopeeMarketplaceIds = Marketplace::where('marketplace', 'shopee')->pluck('id')->toArray();
+        $shopeeKontakIds = Marketplace::where('marketplace', 'shopee')->pluck('kontak_id')->toArray();
+
+        // Ambil tahun pertama dari order dan project_mp
+        $tahunDariOrders = DB::table('orders')->min(DB::raw('YEAR(created_at)'));
+        $tahunDariProjectMp = DB::table('project_mps')->min(DB::raw('YEAR(created_at)'));
+        $tahunArr = array_filter([$tahunDariOrders, $tahunDariProjectMp]);
+        $tahunPertama = !empty($tahunArr) ? min($tahunArr) : date('Y');
         $tahunSekarang = date('Y');
 
         // Buat list tahun dari tahun pertama sampai tahun sekarang
@@ -925,31 +930,90 @@ class MarketplaceController extends Controller
         $bulan_skr = ($tahun_skr == $tahunSekarang) ? date('n') : 12;
         $data = [];
 
+        $produkIklan = DB::table('produks')
+            ->join('produk_models', 'produks.produk_model_id', '=', 'produk_models.id')
+            ->where('produks.status', 1)
+            ->where(function ($q) {
+                $q->where('produk_models.nama', 'like', '%Biaya Iklan%')
+                    ->orWhere('produk_models.nama', 'like', '%iklan%');
+            })
+            ->pluck('produks.id');
+
         for ($i = 1; $i <= $bulan_skr; $i++) {
             $bulan = str_pad($i, 2, '0', STR_PAD_LEFT);
             $bulan_nama = date('F', mktime(0, 0, 0, $i, 1));
 
-            $omzet = DB::table('orders')
+            // --- Data dari project_mp (Shopee) per marketplace_id ---
+            $omzetByMpId = [];
+            $bayarByMpId = [];
+            $totalByMpId = [];
+            $hppByMpId = [];
+
+            if (!empty($shopeeMarketplaceIds)) {
+                $omzetShopeeMp = DB::table('project_mps')
+                    ->selectRaw('sum(project_mps.total) as omzet, project_mps.marketplace_id')
+                    ->whereIn('project_mps.marketplace_id', $shopeeMarketplaceIds)
+                    ->whereYear('project_mps.created_at', $tahun_skr)
+                    ->whereMonth('project_mps.created_at', $i)
+                    ->groupBy('project_mps.marketplace_id')
+                    ->get()
+                    ->pluck('omzet', 'marketplace_id');
+
+                $bayarShopeeMp = DB::table('project_mps')
+                    ->selectRaw('sum(project_mps.bersih) as bayar, project_mps.marketplace_id')
+                    ->whereIn('project_mps.marketplace_id', $shopeeMarketplaceIds)
+                    ->whereYear('project_mps.created_at', $tahun_skr)
+                    ->whereMonth('project_mps.created_at', $i)
+                    ->groupBy('project_mps.marketplace_id')
+                    ->get()
+                    ->pluck('bayar', 'marketplace_id');
+
+                $hppShopeeMp = DB::table('project_mps')
+                    ->join('project_mp_details', 'project_mps.id', '=', 'project_mp_details.project_id')
+                    ->selectRaw('sum(project_mp_details.hpp * project_mp_details.jumlah) as hpp, project_mps.marketplace_id')
+                    ->whereIn('project_mps.marketplace_id', $shopeeMarketplaceIds)
+                    ->whereYear('project_mps.created_at', $tahun_skr)
+                    ->whereMonth('project_mps.created_at', $i)
+                    ->groupBy('project_mps.marketplace_id')
+                    ->get()
+                    ->pluck('hpp', 'marketplace_id');
+
+                foreach ($shopeeMarketplaceIds as $mpId) {
+                    $omzetByMpId[$mpId] = $omzetShopeeMp[$mpId] ?? 0;
+                    $bayarByMpId[$mpId] = $bayarShopeeMp[$mpId] ?? 0;
+                    $totalByMpId[$mpId] = $omzetShopeeMp[$mpId] ?? 0;
+                    $hppByMpId[$mpId] = $hppShopeeMp[$mpId] ?? 0;
+                }
+            }
+
+            // --- Data dari orders (TikTok: marketplace=1) per kontak_id, exclude soft-deleted ---
+            $omzetTikTok = DB::table('orders')
                 ->selectRaw('sum(total) as omzet, kontak_id')
+                ->whereNull('deleted_at')
+                ->where('marketplace', 1)
                 ->whereYear('created_at', $tahun_skr)
                 ->whereMonth('created_at', $i)
                 ->groupBy('kontak_id')
                 ->get()
                 ->pluck('omzet', 'kontak_id');
 
-            $bayar = DB::table('orders')
-                ->selectRaw('sum(total) as total,sum(bayar) as bayar, kontak_id')
+            $bayarResultTikTok = DB::table('orders')
+                ->selectRaw('sum(total) as total, sum(bayar) as bayar, kontak_id')
+                ->whereNull('deleted_at')
+                ->where('marketplace', 1)
                 ->whereYear('created_at', $tahun_skr)
                 ->whereMonth('created_at', $i)
                 ->where('bayar', '>', 0)
                 ->groupBy('kontak_id')
                 ->get();
-            $total = $bayar->pluck('total', 'kontak_id');
-            $bayar = $bayar->pluck('bayar', 'kontak_id');
+            $totalTikTok = $bayarResultTikTok->pluck('total', 'kontak_id');
+            $bayarTikTok = $bayarResultTikTok->pluck('bayar', 'kontak_id');
 
-            $hpp = DB::table('orders')
+            $hppTikTok = DB::table('orders')
                 ->join('order_details', 'orders.id', '=', 'order_details.order_id')
                 ->selectRaw('sum(order_details.hpp*order_details.jumlah) as hpp, orders.kontak_id')
+                ->whereNull('orders.deleted_at')
+                ->where('orders.marketplace', 1)
                 ->whereYear('orders.created_at', $tahun_skr)
                 ->whereMonth('orders.created_at', $i)
                 ->where('orders.bayar', '>', 0)
@@ -957,22 +1021,45 @@ class MarketplaceController extends Controller
                 ->get()
                 ->pluck('hpp', 'kontak_id');
 
-            $produkIklan = DB::table('produks')
-                ->join('produk_models', 'produks.produk_model_id', '=', 'produk_models.id')
-                ->where('produks.status', 1)
-                ->where('produk_models.nama', 'like', '%Biaya Iklan%')
-                ->orWhere('produk_models.nama', 'like', '%iklan%')
-                ->pluck('produks.id');
+            // --- Gabung per marketplace_id: Shopee dari project_mp, non-Shopee dari orders (TikTok) by kontak_id ---
+            $omzet = collect();
+            $bayar = collect();
+            $total = collect();
+            $hpp = collect();
 
-            $iklan = DB::table('belanjas')
+            foreach ($marketplaces as $mp) {
+                $mpId = $mp->id;
+                $kontakId = $mp->kontak_id;
+                $isShopee = strtolower($mp->marketplace ?? '') === 'shopee';
+
+                if ($isShopee) {
+                    $omzet[$mpId] = $omzetByMpId[$mpId] ?? 0;
+                    $bayar[$mpId] = $bayarByMpId[$mpId] ?? 0;
+                    $total[$mpId] = $totalByMpId[$mpId] ?? 0;
+                    $hpp[$mpId] = $hppByMpId[$mpId] ?? 0;
+                } else {
+                    $omzet[$mpId] = $omzetTikTok[$kontakId] ?? 0;
+                    $bayar[$mpId] = $bayarTikTok[$kontakId] ?? 0;
+                    $total[$mpId] = $totalTikTok[$kontakId] ?? 0;
+                    $hpp[$mpId] = $hppTikTok[$kontakId] ?? 0;
+                }
+            }
+
+            // Iklan per kontak_id, lalu map ke marketplace_id
+            $iklanByKontak = DB::table('belanjas')
                 ->selectRaw('sum(belanja_details.harga * belanja_details.jumlah) as potongan, belanjas.kontak_id as kontak_id')
                 ->join('belanja_details', 'belanjas.id', '=', 'belanja_details.belanja_id')
                 ->whereYear('belanjas.created_at', $tahun_skr)
                 ->whereMonth('belanjas.created_at', $i)
                 ->whereIn('belanja_details.produk_id', $produkIklan)
                 ->groupBy('belanjas.kontak_id')
-                ->get();
-            $iklan = $iklan->pluck('potongan', 'kontak_id');
+                ->get()
+                ->pluck('potongan', 'kontak_id');
+
+            $iklan = collect();
+            foreach ($marketplaces as $mp) {
+                $iklan[$mp->id] = $iklanByKontak[$mp->kontak_id] ?? 0;
+            }
 
             $data[$bulan] = [
                 'nama' => $bulan_nama,
