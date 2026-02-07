@@ -79,7 +79,7 @@
                                 <tbody>
                                     @foreach ($projectMpdetails as $detail)
                                         <tr>
-                                            <td>{{ $detail->produk->namaLengkap }}</td>
+                                            <td>{{ $detail->produk->namaLengkap ?? '-' }}</td>
                                             <td>{{ $detail->tema }}</td>
                                             <td>{{ $detail->jumlah }}</td>
                                             <td>{{ number_format($detail->harga) }}</td>
