@@ -187,9 +187,25 @@ class BufferController extends Controller
 
                     if (!empty($penarikanMp)) {
                         try {
-                            // Insert satu per satu agar trigger model BukuBesar berjalan (boot/saving)
+                            // Ambil detail_id yang sudah ada (dari data terbaru saja) agar tidak double
+                            $existingDetailIds = BukuBesar::where('akun_detail_id', $marketplace->penarikan_id)
+                                ->where('kode', 'trf')
+                                ->whereNotNull('detail_id')
+                                ->latest('id')
+                                ->limit(10)
+                                ->pluck('detail_id')
+                                ->flip()
+                                ->all();
+
                             foreach ($penarikanMp as $data) {
+                                $detailId = $data['detail_id'] ?? null;
+                                if ($detailId !== null && isset($existingDetailIds[$detailId])) {
+                                    continue; // sudah ada, skip
+                                }
                                 BukuBesar::create($data);
+                                if ($detailId !== null) {
+                                    $existingDetailIds[$detailId] = true; // catat agar batch ini tidak double
+                                }
                             }
                             // Tidak perlu update saldo manual ke AkunDetail, karena sudah dilakukan di BukuBesar::boot()
                         } catch (\Exception $e) {
