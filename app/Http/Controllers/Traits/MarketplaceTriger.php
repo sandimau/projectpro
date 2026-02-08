@@ -46,6 +46,12 @@ trait MarketplaceTriger
             $saldo = $this->getLastStok($produk_id);
         }
 
+        // Hanya update/insert jika produk masih ada (menghindari foreign key constraint)
+        $produkExists = DB::table('produks')->where('id', $produk_id)->exists();
+        if (!$produkExists) {
+            return;
+        }
+
         DB::table('produk_last_stoks')->updateOrInsert(
             ['produk_id' => $produk_id],
             ['saldo' => $saldo, 'updated_at' => now()]
