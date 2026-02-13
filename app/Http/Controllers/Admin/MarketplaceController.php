@@ -239,14 +239,22 @@ class MarketplaceController extends Controller
 
                         $tanggal = $baris[$marketplace->tanggal];
 
-                        BukuBesar::create([
-                            'akun_detail_id' => $config->penarikan_id,
-                            'kode' => 'trf',
-                            'created_at' => $tanggal,
-                            'detail_id' => 123,
-                            'ket' => 'penarikan dari ' . $config->nama,
-                            'debet' => $kredit
-                        ]);
+                        $sudahAda = BukuBesar::where('akun_detail_id', $config->penarikan_id)
+                            ->where('created_at', $tanggal)
+                            ->where('debet', $kredit)
+                            ->where('kode', 'trf')
+                            ->exists();
+
+                        if (!$sudahAda) {
+                            BukuBesar::create([
+                                'akun_detail_id' => $config->penarikan_id,
+                                'kode' => 'trf',
+                                'created_at' => $tanggal,
+                                'detail_id' => 123,
+                                'ket' => 'penarikan dari ' . $config->nama,
+                                'debet' => $kredit
+                            ]);
+                        }
                     }
 
 
@@ -415,14 +423,22 @@ class MarketplaceController extends Controller
 
                         $tanggal = $baris[$marketplace->tanggal];
 
-                        BukuBesar::create([
-                            'akun_detail_id' => $config->penarikan_id,
-                            'kode' => 'trf',
-                            'created_at' => $tanggal,
-                            'detail_id' => 123,
-                            'ket' => 'penarikan dari ' . $config->nama,
-                            'debet' => $kredit
-                        ]);
+                        $sudahAda = BukuBesar::where('akun_detail_id', $config->penarikan_id)
+                            ->where('created_at', $tanggal)
+                            ->where('debet', $kredit)
+                            ->where('kode', 'trf')
+                            ->exists();
+
+                        if (!$sudahAda) {
+                            BukuBesar::create([
+                                'akun_detail_id' => $config->penarikan_id,
+                                'kode' => 'trf',
+                                'created_at' => $tanggal,
+                                'detail_id' => 123,
+                                'ket' => 'penarikan dari ' . $config->nama,
+                                'debet' => $kredit
+                            ]);
+                        }
                     }
 
 
