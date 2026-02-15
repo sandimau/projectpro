@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AkunDetail;
+use App\Models\BukuBesar;
 use App\Models\Cuti;
+use App\Models\FreelanceTagihan;
 use App\Models\Gaji;
 use App\Models\Kasbon;
 use App\Models\Lembur;
@@ -12,6 +15,8 @@ use App\Models\Penggajian;
 use App\Models\Tunjangan;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class MemberController extends Controller
 {
@@ -51,7 +56,9 @@ class MemberController extends Controller
             'status' => 'required',
         ]);
 
-        $member = Member::create($request->all());
+        $data = $request->all();
+        $data['jenis'] = 'karyawan';
+        $member = Member::create($data);
 
         return redirect()->route('members.index')->withSuccess(__('Member created successfully.'));
     }
@@ -153,8 +160,25 @@ class MemberController extends Controller
 
     public function freelance()
     {
-        $members = Member::with(['user'])->freelance()->orderBy('id','asc')->get();
+        $members = Member::with(['user'])
+            ->freelance()
+            ->withSum(['freelanceTagihans as total_upah_belum_dibayar' => function ($q) {
+                $q->where('dibayar', 'belum');
+            }], 'nominal_upah')
+            ->orderBy('id', 'asc')
+            ->get();
         return view('admin.members.freelance', compact('members'));
+    }
+
+    public function freelanceTagihan(Member $member)
+    {
+        $member->load('user');
+        $tagihans = FreelanceTagihan::where('member_id', $member->id)
+            ->orderBy('tanggal', 'desc')
+            ->orderBy('id', 'desc')
+            ->paginate(20);
+        $totalBelumDibayar = FreelanceTagihan::where('member_id', $member->id)->where('dibayar', 'belum')->sum('nominal_upah');
+        return view('admin.members.freelance-tagihan', compact('member', 'tagihans', 'totalBelumDibayar'));
     }
 
     public function showFreelance(Member $member)
@@ -199,5 +223,140 @@ class MemberController extends Controller
     {
         $member->update($request->all());
         return redirect()->route('members.freelance')->withSuccess(__('Freelance updated successfully.'));
+    }
+
+    /** Form bayar satu tagihan (halaman terpisah) */
+    public function bayarTagihan(FreelanceTagihan $freelanceTagihan)
+    {
+        if ($freelanceTagihan->dibayar === 'sudah') {
+            return redirect()->route('members.freelanceTagihan', $freelanceTagihan->member_id)
+                ->withErrors(['message' => 'Tagihan ini sudah dibayar.']);
+        }
+        $freelanceTagihan->load('member');
+        $kas = AkunDetail::pluck('nama', 'id')->prepend('Pilih kas', '')->toArray();
+        return view('admin.members.freelance-tagihan-bayar', compact('freelanceTagihan', 'kas'));
+    }
+
+    /** Proses bayar satu tagihan → buat 1 penggajian */
+    public function storeBayarTagihan(Request $request)
+    {
+        $request->validate([
+            'freelance_tagihan_id' => 'required|exists:freelance_tagihans,id',
+            'akun_detail_id' => 'required|exists:akun_details,id',
+        ]);
+        $tagihan = FreelanceTagihan::findOrFail($request->freelance_tagihan_id);
+        if ($tagihan->dibayar === 'sudah') {
+            return back()->withErrors(['message' => 'Tagihan ini sudah dibayar.'])->withInput();
+        }
+        $total = $tagihan->nominal_upah;
+        $member = $tagihan->member;
+
+        DB::transaction(function () use ($tagihan, $request, $total, $member) {
+            $penggajian = Penggajian::create([
+                'member_id' => $member->id,
+                'jam_lembur' => 0,
+                'lembur' => 0,
+                'pokok' => 0,
+                'total' => $total,
+                'jumlah_lain' => 0,
+                'lain_lain' => 'Bayar tagihan ' . ($tagihan->tanggal ? \Carbon\Carbon::parse($tagihan->tanggal)->format('d/m/Y') : ''),
+                'akun_detail_id' => $request->akun_detail_id,
+            ]);
+            $tagihan->update(['dibayar' => 'sudah', 'penggajian_id' => $penggajian->id]);
+
+            $akunDetail = AkunDetail::findOrFail($request->akun_detail_id);
+            $update = $akunDetail->saldo - $total;
+            $akunDetail->update(['saldo' => $update]);
+
+            BukuBesar::insert([
+                'akun_detail_id' => $request->akun_detail_id,
+                'ket' => 'bayar tagihan upah ke ' . $member->nama_lengkap,
+                'kredit' => $total,
+                'kode' => 'gji',
+                'debet' => 0,
+                'saldo' => $update,
+                'created_at' => Carbon::now(),
+            ]);
+        });
+
+        return redirect()->route('members.freelanceTagihan', $tagihan->member_id)
+            ->withSuccess('Tagihan berhasil dibayar.');
+    }
+
+    /** Form bayar semua tagihan (halaman terpisah, bukan createFreelance) */
+    public function bayarSemuaTagihan(Member $member)
+    {
+        $totalBelumDibayar = FreelanceTagihan::where('member_id', $member->id)->where('dibayar', 'belum')->sum('nominal_upah');
+        $jmlLembur = Lembur::where([['member_id', $member->id], ['dibayar', 'belum']])->where('status', 'approved')->sum('jam');
+        $totalLembur = ($member->lembur ?? 0) * $jmlLembur;
+        $totalSemua = $totalBelumDibayar + $totalLembur;
+
+        if ($totalSemua <= 0) {
+            return redirect()->route('members.freelanceTagihan', $member->id)
+                ->withErrors(['message' => 'Tidak ada tagihan atau lembur yang belum dibayar.']);
+        }
+        $kas = AkunDetail::pluck('nama', 'id')->prepend('Pilih kas', '')->toArray();
+        return view('admin.members.freelance-tagihan-bayar-semua', compact('member', 'totalBelumDibayar', 'jmlLembur', 'totalLembur', 'totalSemua', 'kas'));
+    }
+
+    /** Proses bayar semua tagihan + lembur → 1 penggajian */
+    public function storeBayarSemuaTagihan(Request $request)
+    {
+        $request->validate([
+            'member_id' => 'required|exists:members,id',
+            'akun_detail_id' => 'required|exists:akun_details,id',
+        ]);
+        $member = Member::findOrFail($request->member_id);
+        $tagihans = FreelanceTagihan::where('member_id', $member->id)->where('dibayar', 'belum')->get();
+        $jmlLembur = Lembur::where([['member_id', $member->id], ['dibayar', 'belum']])->sum('jam');
+        $totalLembur = ($member->lembur ?? 0) * $jmlLembur;
+        $totalTagihan = $tagihans->sum('nominal_upah');
+        $total = $totalTagihan + $totalLembur;
+
+        if ($total <= 0) {
+            return back()->withErrors(['message' => 'Tidak ada tagihan atau lembur yang belum dibayar.'])->withInput();
+        }
+
+        DB::transaction(function () use ($tagihans, $request, $total, $totalLembur, $jmlLembur, $member) {
+            $ket = collect([]);
+            if ($tagihans->isNotEmpty()) {
+                $ket->push('Tagihan upah (' . $tagihans->count() . ' item)');
+            }
+            if ($jmlLembur > 0) {
+                $ket->push('Lembur ' . $jmlLembur . ' jam');
+            }
+
+            $penggajian = Penggajian::create([
+                'member_id' => $member->id,
+                'jam_lembur' => $jmlLembur,
+                'lembur' => $totalLembur,
+                'pokok' => $tagihans->count(),
+                'total' => $total,
+                'jumlah_lain' => 0,
+                'lain_lain' => 'Bayar ' . $ket->implode(' + '),
+                'akun_detail_id' => $request->akun_detail_id,
+            ]);
+            FreelanceTagihan::where('member_id', $member->id)->where('dibayar', 'belum')
+                ->update(['dibayar' => 'sudah', 'penggajian_id' => $penggajian->id]);
+            Lembur::where([['member_id', $member->id], ['dibayar', 'belum']])
+                ->update(['dibayar' => 'sudah']);
+
+            $akunDetail = AkunDetail::findOrFail($request->akun_detail_id);
+            $update = $akunDetail->saldo - $total;
+            $akunDetail->update(['saldo' => $update]);
+
+            BukuBesar::insert([
+                'akun_detail_id' => $request->akun_detail_id,
+                'ket' => 'bayar tagihan + lembur ke ' . $member->nama_lengkap,
+                'kredit' => $total,
+                'kode' => 'gji',
+                'debet' => 0,
+                'saldo' => $update,
+                'created_at' => Carbon::now(),
+            ]);
+        });
+
+        return redirect()->route('members.freelanceTagihan', $member->id)
+            ->withSuccess('Tagihan dan lembur berhasil dibayar.');
     }
 }

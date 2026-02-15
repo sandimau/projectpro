@@ -38,7 +38,8 @@ class Penggajian extends Model
             12 => 'Desember',
         ];
 
-        return $bulan[$this->attributes['bulan']];
+        $bulanKey = $this->attributes['bulan'] ?? null;
+        return $bulan[$bulanKey] ?? '';
     }
 
     public function member()

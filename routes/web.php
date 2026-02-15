@@ -47,6 +47,7 @@ Route::prefix('buffer')->name('buffer.')->group(function () {
     Route::get('/update', [\App\Http\Controllers\Webhook\BufferController::class, 'updateBuffer'])->name('update');
 });
 
+Route::get('/absensi/sync', [\App\Http\Controllers\Admin\AbsensiController::class, 'syncFromApi'])->name('absensi.sync');
 /**
  * Auth Routes
  */
@@ -62,6 +63,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
         Route::get('/profile', 'ProfileController@show')->name('profile.show');
         Route::get('/profile/{id}/cuti', 'ProfileController@cuti')->name('profile.cuti');
         Route::get('/profile/{id}/gaji', 'ProfileController@gaji')->name('profile.gaji');
+        Route::get('/profile/{id}/lembur', 'ProfileController@lembur')->name('profile.lembur');
         Route::patch('/profile/{id}/update', 'ProfileController@update')->name('profile.update');
 
         Route::get('/deleteOrders', 'HomeController@DeleteOrders')->name('deleteOrders');
@@ -120,6 +122,17 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::get('/freelance/{member}/edit', 'MemberController@editFreelance')->name('freelance.edit');
             Route::patch('/freelance/{member}/update', 'MemberController@updateFreelance')->name('freelance.update');
             Route::get('/freelance/penggajian/{member}', 'MemberController@penggajianFreelance')->name('members.penggajianFreelance');
+            Route::get('/freelance/{member}/tagihan', 'MemberController@freelanceTagihan')->name('members.freelanceTagihan');
+            Route::get('/freelance/tagihan/{freelanceTagihan}/bayar', 'MemberController@bayarTagihan')->name('members.freelanceTagihan.bayar');
+            Route::post('/freelance/tagihan/bayar', 'MemberController@storeBayarTagihan')->name('members.freelanceTagihan.storeBayar');
+            Route::get('/freelance/{member}/tagihan/bayar-semua', 'MemberController@bayarSemuaTagihan')->name('members.freelanceTagihan.bayarSemua');
+            Route::post('/freelance/{member}/tagihan/bayar-semua', 'MemberController@storeBayarSemuaTagihan')->name('members.freelanceTagihan.storeBayarSemua');
+
+            // absensi
+            Route::get('/absensi', 'AbsensiController@index')->name('absensi.index');
+            Route::get('/absensi/create', 'AbsensiController@create')->name('absensi.create');
+            Route::post('/absensi', 'AbsensiController@store')->name('absensi.store');
+            Route::delete('/absensi/{absensi}', 'AbsensiController@destroy')->name('absensi.destroy');
 
             //cuti
             Route::get('/members/{member}/cuti', 'CutiController@create')->name('cuti.create');
@@ -134,6 +147,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::post('/lembur/create', 'LemburController@store')->name('lembur.store');
             Route::get('/lembur/{lembur}/edit', 'LemburController@edit')->name('lembur.edit');
             Route::patch('/lembur/{lembur}/update', 'LemburController@update')->name('lembur.update');
+            Route::get('/lembur/{lembur}/approve', 'LemburController@approve')->name('lembur.approve');
+            Route::get('/lembur/{lembur}/reject', 'LemburController@reject')->name('lembur.reject');
 
             //kasbon
             Route::get('/members/{member}/kasbon', 'KasbonController@create')->name('kasbon.create');

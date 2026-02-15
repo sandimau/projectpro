@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cuti;
+use App\Models\Lembur;
 use App\Models\Member;
 use App\Models\Penggajian;
 use Illuminate\Support\Facades\Hash;
@@ -50,6 +51,16 @@ class ProfileController extends Controller
         if ($member) {
             $cutis = Cuti::where('member_id', $member->id)->paginate(10);
             return view('admin.members.cuti', compact('member', 'cutis'));
+        }
+        return redirect()->back()->with('error', 'Member not found.');
+    }
+
+    public function lembur($id)
+    {
+        $member = Member::where('user_id', $id)->first();
+        if ($member) {
+            $lemburs = Lembur::where('member_id', $member->id)->paginate(10);
+            return view('admin.members.lembur', compact('member', 'lemburs'));
         }
         return redirect()->back()->with('error', 'Member not found.');
     }

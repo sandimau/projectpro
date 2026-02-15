@@ -16,20 +16,6 @@ Create lembur
             @csrf
             <input type="hidden" name="member_id" value="{{ $lembur->member()->first()->id }}">
                 <div class="form-group">
-                    <label for="bulan">bulan</label>
-                    <select class="form-select {{ $errors->has('bulan') ? 'is-invalid' : '' }}" aria-label="Default select example" name="bulan" name="bulan">
-                        <option>pilih bulan</option>
-                        @foreach ($bulans as $key => $bulan)
-                            <option {{ $lembur->bulan === $bulan ? 'selected' : '' }} value="{{ $key }}">{{ $bulan }}</option>
-                        @endforeach
-                    </select>
-                    @if ($errors->has('bulan'))
-                        <div class="invalid-feedback">
-                            {{ $errors->first('bulan') }}
-                        </div>
-                    @endif
-                </div>
-                <div class="form-group">
                     <label for="jam">jam</label>
                     <input type="number" class="form-control" name="jam" value="{{ old('jam',$lembur->jam) }}" >
                     @if ($errors->has('jam'))

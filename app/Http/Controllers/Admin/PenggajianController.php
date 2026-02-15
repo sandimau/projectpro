@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\Absensi;
 use App\Models\Gaji;
 use App\Models\Level;
 use App\Models\Bagian;
@@ -50,7 +51,7 @@ class PenggajianController extends Controller
         $performance = $gaji->performance * 0.1 * $gapok;
         $lamaKerja = ($tahun_kerja * $level->lama_kerja * $gapok) / 100;
 
-        $jmlLembur = Lembur::where([['member_id', '=', $member->id], ['dibayar', '=', 'belum']])->sum('jam');
+        $jmlLembur = Lembur::where([['member_id', '=', $member->id], ['dibayar', '=', 'belum']])->where('status', 'approved')->sum('jam');
 
         $kasbon = Kasbon::where('member_id', '=', $member->id)
             ->orderBy('id', 'DESC')
@@ -68,8 +69,25 @@ class PenggajianController extends Controller
         // $totalLembur = ($gapok / 25 / 8) * 1.5 * $jmlLembur;
         $totalLembur = $level->harga_lembur * $jmlLembur;
 
+        // Tunjangan kehadiran berdasarkan absensi
+        // Cuti = aman. Sakit/ijin/terlambat/alpha = mengurangi
+        // 1x tidak masuk = 50%, 2x+ = hangus
+        $tunjanganKehadiranPenuh = $level->kehadiran ?? 150000;
+        $jumlahAbsenTidakCuti = Absensi::where('member_id', $member->id)
+            ->whereMonth('tanggal', date('n'))
+            ->whereYear('tanggal', date('Y'))
+            ->whereIn('jenis', Absensi::jenisYangMengurangiTunjangan())
+            ->count();
+        if ($jumlahAbsenTidakCuti >= 2) {
+            $tunjanganKehadiran = 0;
+        } elseif ($jumlahAbsenTidakCuti == 1) {
+            $tunjanganKehadiran = (int) ($tunjanganKehadiranPenuh * 0.5);
+        } else {
+            $tunjanganKehadiran = $tunjanganKehadiranPenuh;
+        }
+
         $kas = AkunDetail::pluck('nama', 'id')->prepend('select kas', '')->toArray();
-        return view('admin.penggajians.create', compact('member', 'kas', 'bagian', 'level', 'lamaKerja', 'tBagian', 'performance', 'transportasi', 'gaji', 'jmlLembur', 'totalLembur','totalKasbon'));
+        return view('admin.penggajians.create', compact('member', 'kas', 'bagian', 'level', 'lamaKerja', 'tBagian', 'performance', 'transportasi', 'gaji', 'jmlLembur', 'totalLembur', 'totalKasbon', 'tunjanganKehadiran', 'jumlahAbsenTidakCuti'));
     }
 
     public function store(Request $request)
@@ -159,7 +177,7 @@ class PenggajianController extends Controller
 
     public function createFreelance(Member $member)
     {
-        $jmlLembur = Lembur::where([['member_id', '=', $member->id], ['dibayar', '=', 'belum']])->sum('jam');
+        $jmlLembur = Lembur::where([['member_id', '=', $member->id], ['dibayar', '=', 'belum']])->where('status', 'approved')->sum('jam');
         $totalLembur = $member->lembur * $jmlLembur;
 
         $kas = AkunDetail::pluck('nama', 'id')->prepend('select kas', '')->toArray();
@@ -170,20 +188,18 @@ class PenggajianController extends Controller
     {
         $request->validate([
             'akun_detail_id' => 'required',
-            'jumlah_hari' => 'required|numeric|min:1',
-
+            'jumlah_hari' => 'required|numeric|min:0',
         ]);
         DB::transaction(function () use($request) {
             //insert into penggajian
-            penggajian::insert([
+            $penggajian = Penggajian::create([
                 'member_id' => $request->member_id,
-                'jam_lembur' => $request->jam_lembur,
-                'lembur' => $request->lembur,
-                'pokok' => $request->jumlah_hari,
+                'jam_lembur' => $request->jam_lembur ?? 0,
+                'lembur' => $request->lembur ?? 0,
+                'pokok' => $request->jumlah_hari ?? 0,
                 'total' => $request->total,
-                'jumlah_lain' => $request->jumlah_lain,
-                'lain_lain' => $request->lain_lain,
-                'created_at' => Carbon::now(),
+                'jumlah_lain' => $request->jumlah_lain ?? 0,
+                'lain_lain' => $request->lain_lain ?? null,
                 'akun_detail_id' => $request->akun_detail_id,
             ]);
 

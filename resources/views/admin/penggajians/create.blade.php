@@ -84,8 +84,11 @@
                 </div>
                 <div class="form-group mb-3">
                     <label class="control-label ">tunjangan kehadiran</label>
+                    @if(isset($jumlahAbsenTidakCuti) && $jumlahAbsenTidakCuti > 0)
+                        <small class="text-muted d-block">({{ $jumlahAbsenTidakCuti }}x absen sakit/ijin/terlambat - cuti tidak mengurangi)</small>
+                    @endif
                     <input onchange="getTotal()" type="number" class="form-control" name="kehadiran" id="kehadiran"
-                        value="{{ $level->kehadiran }}">
+                        value="{{ $tunjanganKehadiran ?? $level->kehadiran }}">
                 </div>
                 <div class="form-group mb-3">
                     <label class="control-label ">potong kasbon</label>

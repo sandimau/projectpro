@@ -20,22 +20,13 @@
                 @csrf
                 <input type="hidden" name="member_id" value="{{ $member->id }}">
                 <div class="form-group">
-                    <label for="bulan">bulan</label>
-                    <select class="form-select {{ $errors->has('bulan') ? 'is-invalid' : '' }}" aria-label="Default select example" name="bulan" name="bulan">
-                        <option>pilih bulan</option>
-                        @foreach ($bulans as $key => $bulan)
-                            <option value="{{ $key }}" {{ old('bulan', '') == $key ? 'selected' : '' }}>{{ $bulan }}</option>
+                    <label for="jam">jam</label>
+                    <select class="form-select {{ $errors->has('jam') ? 'is-invalid' : '' }}" name="jam" id="jam">
+                        <option value="">pilih jam</option>
+                        @foreach ([0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6] as $jam)
+                            <option value="{{ $jam }}" {{ old('jam', '') == $jam ? 'selected' : '' }}>{{ $jam }} jam</option>
                         @endforeach
                     </select>
-                    @if ($errors->has('bulan'))
-                        <div class="invalid-feedback">
-                            {{ $errors->first('bulan') }}
-                        </div>
-                    @endif
-                </div>
-                <div class="form-group">
-                    <label for="jam">jam</label>
-                    <input type="number" class="form-control" name="jam" value="{{ old('jam', '') }}">
                     @if ($errors->has('jam'))
                         <div class="invalid-feedback">
                             {{ $errors->first('jam') }}

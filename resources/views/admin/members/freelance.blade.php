@@ -31,6 +31,7 @@
                                 <th>lama kerja</th>
                                 <th>upah</th>
                                 <th>lembur</th>
+                                <th>upah <br>belum dibayar</th>
                                 <th>gaji</th>
                                 <th>whattodo</th>
                             </tr>
@@ -62,16 +63,30 @@
                                         {{ number_format($member->lembur) ?? '' }}
                                     </td>
                                     <td>
+                                        @php
+                                            $totalBelumDibayar = $member->total_upah_belum_dibayar ?? 0;
+                                        @endphp
                                         @can('penggajian_access')
-                                            <a
-                                                href={{ route('penggajian.createFreelance', $member->id) }}>penggajian</a>
+                                            @if ($totalBelumDibayar > 0)
+                                                <a
+                                                    href="{{ route('members.freelanceTagihan', $member->id) }}">{{ number_format($totalBelumDibayar) }}</a>
+                                            @else
+                                                <a href="{{ route('members.freelanceTagihan', $member->id) }}">0</a>
+                                            @endif
+                                        @endcan
+                                    </td>
+                                    <td>
+                                        @can('penggajian_access')
+                                            <a href="{{ route('members.penggajianFreelance', $member->id) }}">Penggajian</a>
                                         @elsecan('member_access')
                                             -
                                         @endcan
                                     </td>
-                                    <td><a href="{{ route('whattodo.create', ['member_id' => $member->id]) }}"
+                                    <td>
+                                        <a href="{{ route('whattodo.create', ['member_id' => $member->id]) }}"
                                             class="btn btn-info btn-sm me-1 text-white"><i class='bx bxs-add-to-queue'></i>
-                                            add</a></a></td>
+                                            add</a>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>

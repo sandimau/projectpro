@@ -1,0 +1,73 @@
+@extends('layouts.app')
+
+@section('title')
+    Tagihan Upah Freelance
+@endsection
+
+@section('content')
+    <div class="bg-light rounded">
+        <div class="mt-2">
+            @include('layouts.includes.messages')
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title">Tagihan Upah - {{ $member->nama_lengkap }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">Daftar tagihan upah dari absensi (belum dibayar akan masuk saat penggajian)</h6>
+                    </div>
+                    <a href="{{ route('members.freelance') }}" class="btn btn-secondary"><i class='bx bx-arrow-back'></i> Kembali</a>
+                </div>
+            </div>
+            <div class="card-body">
+                @if($totalBelumDibayar > 0)
+                    <div class="alert alert-info mb-3 d-flex justify-content-between align-items-center">
+                        <span><strong>Total upah belum dibayar:</strong> {{ number_format($totalBelumDibayar) }}</span>
+                        <a href="{{ route('members.freelanceTagihan.bayarSemua', $member->id) }}" class="btn btn-sm btn-success">Bayar Semua</a>
+                    </div>
+                @endif
+                {{ $tagihans->links() }}
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Nominal Upah</th>
+                                <th>Keterangan</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($tagihans as $item)
+                                <tr>
+                                    <td>{{ $item->tanggal ? \Carbon\Carbon::parse($item->tanggal)->format('d/m/Y') : '-' }}</td>
+                                    <td>{{ number_format($item->nominal_upah) }}</td>
+                                    <td>{{ $item->keterangan ?? '-' }}</td>
+                                    <td>
+                                        @if($item->dibayar === 'sudah')
+                                            <span class="badge bg-success">Sudah dibayar</span>
+                                        @else
+                                            <span class="badge bg-warning text-dark">Belum dibayar</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($item->dibayar === 'belum')
+                                            <a href="{{ route('members.freelanceTagihan.bayar', $item->id) }}" class="btn btn-sm btn-primary">Bayar</a>
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">Belum ada data tagihan.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection

@@ -81,6 +81,16 @@ class Member extends Model
         return $this->hasMany(Tunjangan::class);
     }
 
+    public function absensi()
+    {
+        return $this->hasMany(Absensi::class);
+    }
+
+    public function freelanceTagihans()
+    {
+        return $this->hasMany(FreelanceTagihan::class, 'member_id');
+    }
+
     public function getUmurAttribute()
     {
         $now = Carbon::now();

@@ -99,12 +99,12 @@
     </style>
     <script>
         function getTotal() {
-            let upah = document.getElementById("upah").value;
-            let lembur = document.getElementById("lembur").value;
-            let jumlah_hari = document.getElementById("jumlah_hari").value;
-            let jumlah_lain = document.getElementById("jumlah_lain").value;
+            let upah = parseInt(document.getElementById("upah").value) || 0;
+            let lembur = parseInt(document.getElementById("lembur").value) || 0;
+            let jumlah_hari = parseInt(document.getElementById("jumlah_hari").value) || 0;
+            let jumlah_lain = parseInt(document.getElementById("jumlah_lain").value) || 0;
             let totalSemua = document.getElementById('total');
-            let total = (parseInt(upah) * parseInt(jumlah_hari)) + parseInt(lembur) + parseInt(jumlah_lain);
+            let total = (upah * jumlah_hari) + lembur + jumlah_lain;
             totalSemua.value = total;
         }
         getTotal()

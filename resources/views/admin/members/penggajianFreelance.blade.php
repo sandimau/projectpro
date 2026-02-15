@@ -14,7 +14,13 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h5 class="card-title">Penggajian {{ $member->nama_lengkap }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">List penggajian freelance</h6>
                     </div>
+                    @can('penggajian_access')
+                        <a href="{{ route('penggajian.createFreelance', $member->id) }}" class="btn btn-success text-white">
+                            <i class='bx bx-plus-circle'></i> Tambah Penggajian
+                        </a>
+                    @endcan
                 </div>
             </div>
             <div class="card-body">
@@ -59,7 +65,7 @@
                                     <td>{{ number_format($item->pokok) }}</td>
                                     <td>{{ number_format($member->upah) }}</td>
                                     <td>{{ number_format($item->jumlah_lain) }}</td>
-                                    <td>{{ number_format($item->lain_lain) }}</td>
+                                    <td>{{ $item->lain_lain }}</td>
                                     <td>{{ number_format($item->jam_lembur) }}</td>
                                     <td>{{ number_format($item->lembur) }}</td>
                                     <td>{{ number_format($item->total) }}</td>

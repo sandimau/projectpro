@@ -41,18 +41,20 @@
                                 <th>
                                     Nilai Tunjangan Lain
                                 </th>
+                                <th>total</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($gajis as $item)
                                 <tr>
                                     <td>{{ $item->created_at }}</td>
-                                    <td>{{ $item->bagian->nama }}</td>
-                                    <td>{{ $item->level->nama }}</td>
+                                    <td>{{ $item->bagian->nama?? '-' }}</td>
+                                    <td>{{ $item->level->nama?? '-' }}</td>
                                     <td>{{ $item->performance }}</td>
                                     <td>{{ $item->transportasi == 1 ? 'ya' : 'tidak' }}</td>
                                     <td>{{ $item->lain_lain }}</td>
-                                    <td>{{ $item->jumlah_lain }}</td>
+                                    <td>{{ number_format($item->jumlah_lain) }}</td>
+                                    <td>{{ number_format($item->total) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

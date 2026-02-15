@@ -287,7 +287,14 @@
                         Freelance
                     </a>
                 </li>
-
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->is('absensi*') ? 'active' : '' }}" href="{{ route('absensi.index') }}">
+                        <svg class="nav-icon">
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-calendar') }}"></use>
+                        </svg>
+                        Absensi
+                    </a>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('member*') ? 'active' : '' }}"
                         href="{{ route('members.nonaktif') }}">

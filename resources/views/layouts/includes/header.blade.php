@@ -61,6 +61,13 @@
                             {{ __('Gaji') }}
                         </a>
 
+                        <a class="dropdown-item" href="{{ route('profile.lembur', Auth::user()->id) }}">
+                            <svg class="icon me-2">
+                                <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
+                            </svg>
+                            {{ __('Lembur') }}
+                        </a>
+
                         <a class="dropdown-item" href="{{ route('profile.show', Auth::user()->id) }}">
                             <svg class="icon me-2">
                                 <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
