@@ -57,8 +57,9 @@
                                 <th>Tanggal</th>
                                 <th>Member</th>
                                 <th>Jenis</th>
+                                <th>Absensi</th>
                                 <th>Keterangan</th>
-                                <th>Sumber</th>
+                                <th>Jam Masuk</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -67,9 +68,10 @@
                                 <tr>
                                     <td>{{ $item->tanggal ? \Carbon\Carbon::parse($item->tanggal)->format('d/m/Y') : '-' }}</td>
                                     <td>{{ $item->member->nama_lengkap ?? '-' }}</td>
+                                    <td>{{ $item->member->jenis }}</td>
                                     <td><span class="badge bg-{{ $item->jenis == 'cuti' ? 'info' : ($item->jenis == 'terlambat' ? 'warning' : 'secondary') }}">{{ ucfirst($item->jenis) }}</span></td>
                                     <td>{{ $item->keterangan ?? '-' }}</td>
-                                    <td>{{ ucfirst($item->sumber) }}</td>
+                                    <td>{{ $item->jam_masuk ?? '-' }}</td>
                                     <td>
                                         <form action="{{ route('absensi.destroy', $item) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus absensi ini?')">
                                             @csrf

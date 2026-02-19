@@ -70,7 +70,7 @@ class AbsensiController extends Controller
             }
 
             $tanggal = $row['_tanggal'] ?? Carbon::parse($row['attendance_date'])->format('Y-m-d');
-
+            $jamMasuk = $row['attendance_time'] ?? null;
             $minutesLate = (float) ($row['minutes_late'] ?? 0);
             $status = $row['status'] ?? null;
 
@@ -99,6 +99,7 @@ class AbsensiController extends Controller
                 'keterangan' => $keterangan,
                 'sumber' => 'api',
                 'minutes_late' => $minutesLate,
+                'jam_masuk' => $jamMasuk,
             ]);
             if ($result) {
                 $saved++;
