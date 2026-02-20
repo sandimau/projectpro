@@ -129,16 +129,14 @@ class DashboardController extends Controller
                 p.nama as nama_produk,
                 pm.nama as model_nama,
                 pk.nama as kategori_nama,
-                SUM(od.jumlah) as total,
-                SUM(od.jumlah * od.harga) as omzet
-            FROM order_details od
-            INNER JOIN orders o ON od.order_id = o.id
-            INNER JOIN produks p ON od.produk_id = p.id
+                SUM(pmd.jumlah) as total,
+                SUM(pmd.jumlah * pmd.harga) as omzet
+            FROM project_mp_details pmd
+            INNER JOIN project_mps o ON pmd.project_id = o.id
+            INNER JOIN produks p ON pmd.produk_id = p.id
             INNER JOIN produk_models pm ON p.produk_model_id = pm.id
             INNER JOIN produk_kategoris pk ON pm.kategori_id = pk.id
-            WHERE o.deleted_at IS NULL
-            AND od.deleted_at IS NULL
-            AND o.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+            WHERE o.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
             GROUP BY p.id, p.nama, pm.nama, pk.nama
             ORDER BY omzet DESC
             LIMIT 10
@@ -166,16 +164,14 @@ class DashboardController extends Controller
                 p.nama as nama_produk,
                 pm.nama as model_nama,
                 pk.nama as kategori_nama,
-                SUM(od.jumlah) as total,
-                SUM(od.jumlah * od.harga) as omzet
-            FROM order_details od
-            INNER JOIN orders o ON od.order_id = o.id
-            INNER JOIN produks p ON od.produk_id = p.id
+                SUM(pmd.jumlah) as total,
+                SUM(pmd.jumlah * pmd.harga) as omzet
+            FROM project_mp_details pmd
+            INNER JOIN project_mps o ON pmd.project_id = o.id
+            INNER JOIN produks p ON pmd.produk_id = p.id
             INNER JOIN produk_models pm ON p.produk_model_id = pm.id
             INNER JOIN produk_kategoris pk ON pm.kategori_id = pk.id
-            WHERE o.deleted_at IS NULL
-            AND od.deleted_at IS NULL
-            AND DATE(o.created_at) = CURDATE()
+            WHERE DATE(o.created_at) = CURDATE()
             GROUP BY p.id, p.nama, pm.nama, pk.nama
             ORDER BY omzet DESC
             LIMIT 10
