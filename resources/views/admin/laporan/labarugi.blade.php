@@ -82,7 +82,7 @@
                             <tr class="table-success">
                                 <td>saldo</td>
                                 <td>0</td>
-                                <td>{{ number_format($omzet - abs($hpp) - $opname - $beban - $gaji - $tunjangan, 0, ',', '.') }}</td>
+                                <td>{{ number_format($omzet - abs($hpp) - $opname - $beban - $gaji - $tunjangan - $total_potonganMP, 0, ',', '.') }}</td>
                             </tr>
                         </tbody>
                     </table>

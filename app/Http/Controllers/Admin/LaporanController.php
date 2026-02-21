@@ -2,17 +2,19 @@
 
 namespace App\Http\Controllers\Admin;
 
+use DateTime;
 use App\Models\Order;
 use App\Models\Hutang;
 use App\Models\Produk;
+use App\Models\ProjectMp;
 use App\Models\Tunjangan;
 use App\Models\AkunDetail;
 use App\Models\Penggajian;
 use App\Models\ProdukStok;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use DateTime;
+use SebastianBergmann\CodeCoverage\Report\Xml\Project;
 
 class LaporanController extends Controller
 {
@@ -71,23 +73,45 @@ class LaporanController extends Controller
         $thn = $pilihan_parts[0];
         $bln = $pilihan_parts[1];
 
-        $potongan = Order::selectRaw('sum(ongkir-diskon) as total_omzet')->whereYear('created_at', $thn)->whereMonth('created_at', $bln)->first()->total_omzet;
+        // Omzet dari Order (total sudah include ongkir-diskon, exclude produksi batal)
+        $total_omzet = Order::whereYear('created_at', $thn)
+            ->whereMonth('created_at', $bln)
+            ->sum('total');
 
-        $penjualan = DB::table('order_details')
-            ->selectRaw('sum(jumlah*harga) as total_omzet,sum(hpp * jumlah) as total_hpp')
+        // HPP tetap dari order_details (produksi_id <> 4)
+        $total_hpp = DB::table('order_details')
+            ->selectRaw('sum(hpp * jumlah) as total_hpp')
             ->join('produksis', 'produksi_id', '=', 'produksis.id')
             ->join('orders', 'order_id', '=', 'orders.id')
             ->where('order_details.harga', '>', 0)
             ->where('produksis.id', '<>', 4)
             ->whereYear('orders.created_at', $thn)
             ->whereMonth('orders.created_at', $bln)
-            ->first();
+            ->value('total_hpp') ?? 0;
+
+        // Omzet dari ProjectMP (total sudah include ongkir-diskon, exclude produksi batal)
+        $total_omzetMp = ProjectMp::whereYear('created_at', $thn)
+            ->whereMonth('created_at', $bln)
+            ->sum('total');
+
+        // HPP tetap dari project_mp_details (produksi_id <> 4)
+        $total_hppMp = DB::table('project_mp_details')
+            ->selectRaw('sum(hpp * jumlah) as total_hpp')
+            ->join('produksis', 'produksi_id', '=', 'produksis.id')
+            ->join('project_mps', 'project_id', '=', 'project_mps.id')
+            ->where('project_mp_details.harga', '>', 0)
+            ->where('produksis.id', '<>', 4)
+            ->whereYear('project_mps.created_at', $thn)
+            ->whereMonth('project_mps.created_at', $bln)
+            ->value('total_hpp') ?? 0;
 
         $opname = ProdukStok::selectRaw('sum(hpp * COALESCE(tambah,0) - hpp * COALESCE(kurang,0)) as total_opname')
             ->where('kode', 'opn')
             ->whereYear('created_at', $thn)
             ->whereMonth('created_at', $bln)
-            ->first()->total_opname;
+            ->first();
+
+        $opname = abs( $opname->total_opname );
 
         $beban = DB::table('produks')
             ->selectRaw('sum(belanja_details.harga*jumlah) as total,
@@ -102,7 +126,7 @@ class LaporanController extends Controller
             ->whereNull('produk_models.stok')
             ->first()->total;
 
-        $potonganMP = Order::select('id', 'total', 'bayar', DB::raw('(total - bayar) AS sisa_pembayaran'))
+        $potongan = Order::select('id', 'total', 'bayar', DB::raw('(total - bayar) AS sisa_pembayaran'))
             ->whereRaw('(total - bayar) > 0')
             ->whereNotNull('marketplace')
             ->where('bayar', '>', 0)
@@ -110,10 +134,15 @@ class LaporanController extends Controller
             ->whereMonth('created_at', $bln)
             ->get();
 
+        $potonganMp = ProjectMp::select('id', 'total', 'bersih', DB::raw('(total - bersih) AS sisa_pembayaran'))
+            ->whereRaw('(total - bersih) > 0')
+            ->where('bersih', '>', 0)
+            ->whereYear('created_at', $thn)
+            ->whereMonth('created_at', $bln)
+            ->get();
+
         $total_potonganMP = 0;
-        foreach ($potonganMP as $item) {
-            $total_potonganMP += $item->sisa_pembayaran;
-        }
+        $total_potonganMP = $potongan->sum('sisa_pembayaran') + $potonganMp->sum('sisa_pembayaran');
 
         $gaji = Penggajian::selectRaw('sum(total+kasbon) as total_gaji')
             ->whereYear('created_at', $thn)
@@ -125,8 +154,8 @@ class LaporanController extends Controller
             ->whereMonth('created_at', $bln)
             ->first()->total_tunjangan;
 
-        $omzet = $penjualan->total_omzet + $potongan;
-        $hpp = $penjualan->total_hpp;
+        $omzet = $total_omzet + $total_omzetMp;
+        $hpp = $total_hpp + $total_hppMp;
 
         $bulan = [];
         $tahun_skr = date('Y');
@@ -152,23 +181,40 @@ class LaporanController extends Controller
         $view_type = $request->view_type ?? 'kategori';
 
         if ($view_type == 'kategori') {
-            // Get data per kategori
-            $data = DB::table('order_details as od')
+            // Get data per kategori - gabung Order (order_details) + ProjectMp (project_mp_details) seperti labarugi
+            $orderQuery = DB::table('order_details as od')
                 ->join('orders as o', 'o.id', '=', 'od.order_id')
                 ->join('produks as p', 'p.id', '=', 'od.produk_id')
-                ->join('produk_models as pm', 'pm.id', '=', 'p.produk_model_id')
-                ->join('produk_kategoris as pk', 'pk.id', '=', 'pm.kategori_id')
+                ->join('produk_models as pmo', 'pmo.id', '=', 'p.produk_model_id')
+                ->join('produk_kategoris as pk', 'pk.id', '=', 'pmo.kategori_id')
                 ->join('produk_kategori_utamas as pku', 'pku.id', '=', 'pk.kategori_utama_id')
                 ->where('od.harga', '>', 0)
                 ->where('od.produksi_id', '<>', 4)
                 ->whereYear('o.created_at', $thn)
                 ->whereMonth('o.created_at', $bln)
+                ->select('pku.nama as kategori_utama', 'pk.nama as kategori', 'pk.id as kategori_id', 'od.jumlah', 'od.harga', 'od.hpp');
+
+            $mpQuery = DB::table('project_mp_details as pmd')
+                ->join('project_mps as pmp', 'pmp.id', '=', 'pmd.project_id')
+                ->join('produks as p', 'p.id', '=', 'pmd.produk_id')
+                ->join('produk_models as pmo', 'pmo.id', '=', 'p.produk_model_id')
+                ->join('produk_kategoris as pk', 'pk.id', '=', 'pmo.kategori_id')
+                ->join('produk_kategori_utamas as pku', 'pku.id', '=', 'pk.kategori_utama_id')
+                ->where('pmd.harga', '>', 0)
+                ->where('pmd.produksi_id', '<>', 4)
+                ->whereYear('pmp.created_at', $thn)
+                ->whereMonth('pmp.created_at', $bln)
+                ->select('pku.nama as kategori_utama', 'pk.nama as kategori', 'pk.id as kategori_id', 'pmd.jumlah', 'pmd.harga', 'pmd.hpp');
+
+            $unionQuery = $orderQuery->unionAll($mpQuery);
+            $data = DB::table(DB::raw("({$unionQuery->toSql()}) as combined"))
+                ->mergeBindings($unionQuery)
                 ->select(
-                    'pku.nama as kategori_utama',
-                    'pk.nama as kategori',
-                    'pk.id as kategori_id',
-                    DB::raw('SUM(od.jumlah * od.harga) as omzet'),
-                    DB::raw('SUM(od.hpp * od.jumlah) as hpp'),
+                    'kategori_utama',
+                    'kategori',
+                    'kategori_id',
+                    DB::raw('SUM(jumlah * harga) as omzet'),
+                    DB::raw('SUM(hpp * jumlah) as hpp'),
                     DB::raw('COALESCE((
                         SELECT SUM(ps.hpp * COALESCE(ps.tambah,0) - ps.hpp * COALESCE(ps.kurang,0))
                         FROM produk_stoks ps
@@ -176,13 +222,13 @@ class LaporanController extends Controller
                         JOIN produk_models pm2 ON pm2.id = p2.produk_model_id
                         JOIN produk_kategoris pk2 ON pk2.id = pm2.kategori_id
                         WHERE ps.kode = "opn"
-                        AND pk2.id = pk.id
-                        AND YEAR(ps.created_at) = ' . $thn . '
-                        AND MONTH(ps.created_at) = ' . $bln . '
+                        AND pk2.id = combined.kategori_id
+                        AND YEAR(ps.created_at) = ' . (int) $thn . '
+                        AND MONTH(ps.created_at) = ' . (int) $bln . '
                     ), 0) as opname'),
                     DB::raw('(
-                        SUM(od.jumlah * od.harga) -
-                        SUM(od.hpp * od.jumlah) +
+                        SUM(jumlah * harga) -
+                        SUM(hpp * jumlah) +
                         COALESCE((
                             SELECT SUM(ps.hpp * COALESCE(ps.tambah,0) - ps.hpp * COALESCE(ps.kurang,0))
                             FROM produk_stoks ps
@@ -190,70 +236,103 @@ class LaporanController extends Controller
                             JOIN produk_models pm2 ON pm2.id = p2.produk_model_id
                             JOIN produk_kategoris pk2 ON pk2.id = pm2.kategori_id
                             WHERE ps.kode = "opn"
-                            AND pk2.id = pk.id
-                            AND YEAR(ps.created_at) = ' . $thn . '
-                            AND MONTH(ps.created_at) = ' . $bln . '
+                            AND pk2.id = combined.kategori_id
+                            AND YEAR(ps.created_at) = ' . (int) $thn . '
+                            AND MONTH(ps.created_at) = ' . (int) $bln . '
                         ), 0)
                     ) as laba_kotor'),
                     DB::raw('CASE
-                        WHEN SUM(od.jumlah * od.harga) > 0
-                        THEN ((SUM(od.jumlah * od.harga) - SUM(od.hpp * od.jumlah)) / SUM(od.jumlah * od.harga)) * 100
+                        WHEN SUM(jumlah * harga) > 0
+                        THEN ((SUM(jumlah * harga) - SUM(hpp * jumlah)) / SUM(jumlah * harga)) * 100
                         ELSE 0
                     END as persen')
                 )
-                ->groupBy('pku.nama', 'pk.nama')
-                ->orderBy('pku.nama')
-                ->orderBy('pk.nama')
+                ->groupBy('kategori_utama', 'kategori', 'kategori_id')
+                ->orderBy('kategori_utama')
+                ->orderBy('kategori')
                 ->get();
         } else {
-            // Get data per produk
-            $data = DB::table('order_details as od')
+            // Get data per produk - gabung Order + ProjectMp seperti labarugi
+            $orderQuery = DB::table('order_details as od')
                 ->join('orders as o', 'o.id', '=', 'od.order_id')
                 ->join('produks as p', 'p.id', '=', 'od.produk_id')
-                ->join('produk_models as pm', 'pm.id', '=', 'p.produk_model_id')
-                ->join('produk_kategoris as pk', 'pk.id', '=', 'pm.kategori_id')
+                ->join('produk_models as pmo', 'pmo.id', '=', 'p.produk_model_id')
+                ->join('produk_kategoris as pk', 'pk.id', '=', 'pmo.kategori_id')
                 ->join('produk_kategori_utamas as pku', 'pku.id', '=', 'pk.kategori_utama_id')
                 ->where('od.harga', '>', 0)
                 ->where('od.produksi_id', '<>', 4)
                 ->whereYear('o.created_at', $thn)
                 ->whereMonth('o.created_at', $bln)
+                ->select('pku.nama as kategori_utama', 'pk.nama as kategori', 'p.nama as produk', 'p.id as produk_id', 'od.jumlah', 'od.harga', 'od.hpp');
+
+            $mpQuery = DB::table('project_mp_details as pmd')
+                ->join('project_mps as pmp', 'pmp.id', '=', 'pmd.project_id')
+                ->join('produks as p', 'p.id', '=', 'pmd.produk_id')
+                ->join('produk_models as pmo', 'pmo.id', '=', 'p.produk_model_id')
+                ->join('produk_kategoris as pk', 'pk.id', '=', 'pmo.kategori_id')
+                ->join('produk_kategori_utamas as pku', 'pku.id', '=', 'pk.kategori_utama_id')
+                ->where('pmd.harga', '>', 0)
+                ->where('pmd.produksi_id', '<>', 4)
+                ->whereYear('pmp.created_at', $thn)
+                ->whereMonth('pmp.created_at', $bln)
+                ->select('pku.nama as kategori_utama', 'pk.nama as kategori', 'p.nama as produk', 'p.id as produk_id', 'pmd.jumlah', 'pmd.harga', 'pmd.hpp');
+
+            $unionQuery = $orderQuery->unionAll($mpQuery);
+            $data = DB::table(DB::raw("({$unionQuery->toSql()}) as combined"))
+                ->mergeBindings($unionQuery)
                 ->select(
-                    'pku.nama as kategori_utama',
-                    'pk.nama as kategori',
-                    'p.nama as produk',
-                    DB::raw('SUM(od.jumlah * od.harga) as omzet'),
-                    DB::raw('SUM(od.hpp * od.jumlah) as hpp'),
+                    'kategori_utama',
+                    'kategori',
+                    'produk',
+                    'produk_id',
+                    DB::raw('SUM(jumlah * harga) as omzet'),
+                    DB::raw('SUM(hpp * jumlah) as hpp'),
                     DB::raw('COALESCE((
                         SELECT sum(hpp * COALESCE(tambah,0) - hpp * COALESCE(kurang,0))
                         FROM produk_stoks ps
                         WHERE ps.kode = "opn"
-                        AND ps.produk_id = p.id
-                        AND YEAR(ps.created_at) = ' . $thn . '
-                        AND MONTH(ps.created_at) = ' . $bln . '
+                        AND ps.produk_id = combined.produk_id
+                        AND YEAR(ps.created_at) = ' . (int) $thn . '
+                        AND MONTH(ps.created_at) = ' . (int) $bln . '
                     ), 0) as opname'),
                     DB::raw('(
-                        SUM(od.jumlah * od.harga) -
-                        SUM(od.hpp * od.jumlah) +
+                        SUM(jumlah * harga) -
+                        SUM(hpp * jumlah) +
                         COALESCE((
                             SELECT sum(hpp * COALESCE(tambah,0) - hpp * COALESCE(kurang,0))
                             FROM produk_stoks ps
                             WHERE ps.kode = "opn"
-                            AND ps.produk_id = p.id
-                            AND YEAR(ps.created_at) = ' . $thn . '
-                            AND MONTH(ps.created_at) = ' . $bln . '
+                            AND ps.produk_id = combined.produk_id
+                            AND YEAR(ps.created_at) = ' . (int) $thn . '
+                            AND MONTH(ps.created_at) = ' . (int) $bln . '
                         ), 0)
                     ) as laba_kotor'),
                     DB::raw('CASE
-                        WHEN SUM(od.jumlah * od.harga) > 0
-                        THEN ((SUM(od.jumlah * od.harga) - SUM(od.hpp * od.jumlah)) / SUM(od.jumlah * od.harga)) * 100
+                        WHEN SUM(jumlah * harga) > 0
+                        THEN ((SUM(jumlah * harga) - SUM(hpp * jumlah)) / SUM(jumlah * harga)) * 100
                         ELSE 0
                     END as persen')
                 )
-                ->groupBy('pku.nama', 'pk.nama', 'p.nama', 'p.id')
-                ->orderBy('pku.nama')
-                ->orderBy('pk.nama')
-                ->orderBy('p.nama')
+                ->groupBy('kategori_utama', 'kategori', 'produk', 'produk_id')
+                ->orderBy('kategori_utama')
+                ->orderBy('kategori')
+                ->orderBy('produk')
                 ->get();
+        }
+
+        // Samakan total omzet dengan labarugi: alokasikan (ongkir-diskon) proporsional
+        $total_omzet_labarugi = Order::whereYear('created_at', $thn)->whereMonth('created_at', $bln)->sum('total')
+            + ProjectMp::whereYear('created_at', $thn)->whereMonth('created_at', $bln)->sum('total');
+        $total_item_omzet = $data->sum('omzet');
+        $penyesuaian = $total_omzet_labarugi - $total_item_omzet;
+
+        if ($total_item_omzet > 0 && abs($penyesuaian) > 0.01) {
+            foreach ($data as $item) {
+                $alokasi = $penyesuaian * ($item->omzet / $total_item_omzet);
+                $item->omzet = $item->omzet + $alokasi;
+                $item->laba_kotor = $item->laba_kotor + $alokasi;
+                $item->persen = $item->omzet > 0 ? (($item->laba_kotor / $item->omzet) * 100) : 0;
+            }
         }
 
         // Generate months for dropdown
@@ -288,62 +367,117 @@ class LaporanController extends Controller
                 ->with('error', 'Kategori harus dipilih');
         }
 
-        // Base query starting from products to show all products
-        $query = DB::table('produks as p')
+        // Base query - gabung Order + ProjectMp seperti labarugi, filter produk by kategori
+        $orderQuery = DB::table('order_details as od')
+            ->join('orders as o', 'o.id', '=', 'od.order_id')
+            ->join('produks as p', 'p.id', '=', 'od.produk_id')
             ->join('produk_models as pm', 'pm.id', '=', 'p.produk_model_id')
             ->join('produk_kategoris as pk', 'pk.id', '=', 'pm.kategori_id')
             ->join('produk_kategori_utamas as pku', 'pku.id', '=', 'pk.kategori_utama_id')
-            ->leftJoin('order_details as od', 'od.produk_id', '=', 'p.id')
-            ->leftJoin('orders as o', function ($join) use ($thn, $bln) {
-                $join->on('o.id', '=', 'od.order_id')
-                    ->whereYear('o.created_at', '=', $thn)
-                    ->whereMonth('o.created_at', '=', $bln);
-            })
             ->where('od.harga', '>', 0)
+            ->where('od.produksi_id', '<>', 4)
             ->where('pk.id', $kategori_id)
-            ->where(function ($query) {
-                $query->where('od.produksi_id', '<>', 4)
-                    ->orWhereNull('od.produksi_id');
-            });
+            ->whereYear('o.created_at', $thn)
+            ->whereMonth('o.created_at', $bln)
+            ->select(
+                DB::raw('CONCAT(COALESCE(pm.nama, ""), " ", COALESCE(p.nama, "")) as produk'),
+                'p.id as produk_id',
+                'od.jumlah',
+                'od.harga',
+                'od.hpp'
+            );
 
-        $data = $query->select(
-            DB::raw('CONCAT(COALESCE(pm.nama, ""), " ", COALESCE(p.nama, "")) as produk'),
-            'p.id as produk_id',
-            DB::raw('COALESCE(SUM(CASE WHEN o.id IS NOT NULL THEN od.jumlah * od.harga ELSE 0 END), 0) as omzet'),
-            DB::raw('COALESCE(SUM(CASE WHEN o.id IS NOT NULL THEN od.hpp * od.jumlah ELSE 0 END), 0) as hpp'),
-            DB::raw('COALESCE((
-                SELECT sum(hpp * COALESCE(tambah,0) - hpp * COALESCE(kurang,0))
-                FROM produk_stoks ps
-                WHERE ps.kode = "opn"
-                AND ps.produk_id = p.id
-                AND YEAR(ps.created_at) = ' . $thn . '
-                AND MONTH(ps.created_at) = ' . $bln . '
-            ), 0) as opname')
-        )
-            ->addSelect(
-                DB::raw('(
-                COALESCE(SUM(CASE WHEN o.id IS NOT NULL THEN od.jumlah * od.harga ELSE 0 END), 0) -
-                COALESCE(SUM(CASE WHEN o.id IS NOT NULL THEN od.hpp * od.jumlah ELSE 0 END), 0) +
-                COALESCE((
+        $mpQuery = DB::table('project_mp_details as pmd')
+            ->join('project_mps as pmp', 'pmp.id', '=', 'pmd.project_id')
+            ->join('produks as p', 'p.id', '=', 'pmd.produk_id')
+            ->join('produk_models as pm', 'pm.id', '=', 'p.produk_model_id')
+            ->join('produk_kategoris as pk', 'pk.id', '=', 'pm.kategori_id')
+            ->join('produk_kategori_utamas as pku', 'pku.id', '=', 'pk.kategori_utama_id')
+            ->where('pmd.harga', '>', 0)
+            ->where('pmd.produksi_id', '<>', 4)
+            ->where('pk.id', $kategori_id)
+            ->whereYear('pmp.created_at', $thn)
+            ->whereMonth('pmp.created_at', $bln)
+            ->select(
+                DB::raw('CONCAT(COALESCE(pm.nama, ""), " ", COALESCE(p.nama, "")) as produk'),
+                'p.id as produk_id',
+                'pmd.jumlah',
+                'pmd.harga',
+                'pmd.hpp'
+            );
+
+        $unionQuery = $orderQuery->unionAll($mpQuery);
+        $data = DB::table(DB::raw("({$unionQuery->toSql()}) as combined"))
+            ->mergeBindings($unionQuery)
+            ->select(
+                'produk',
+                'produk_id',
+                DB::raw('SUM(jumlah * harga) as omzet'),
+                DB::raw('SUM(hpp * jumlah) as hpp'),
+                DB::raw('COALESCE((
                     SELECT sum(hpp * COALESCE(tambah,0) - hpp * COALESCE(kurang,0))
                     FROM produk_stoks ps
                     WHERE ps.kode = "opn"
-                    AND ps.produk_id = p.id
-                    AND YEAR(ps.created_at) = ' . $thn . '
-                    AND MONTH(ps.created_at) = ' . $bln . '
-                ), 0)
-            ) as laba_kotor'),
+                    AND ps.produk_id = combined.produk_id
+                    AND YEAR(ps.created_at) = ' . (int) $thn . '
+                    AND MONTH(ps.created_at) = ' . (int) $bln . '
+                ), 0) as opname'),
+                DB::raw('(
+                    SUM(jumlah * harga) -
+                    SUM(hpp * jumlah) +
+                    COALESCE((
+                        SELECT sum(hpp * COALESCE(tambah,0) - hpp * COALESCE(kurang,0))
+                        FROM produk_stoks ps
+                        WHERE ps.kode = "opn"
+                        AND ps.produk_id = combined.produk_id
+                        AND YEAR(ps.created_at) = ' . (int) $thn . '
+                        AND MONTH(ps.created_at) = ' . (int) $bln . '
+                    ), 0)
+                ) as laba_kotor'),
                 DB::raw('CASE
-                WHEN COALESCE(SUM(CASE WHEN o.id IS NOT NULL THEN od.jumlah * od.harga ELSE 0 END), 0) > 0
-                THEN ((COALESCE(SUM(CASE WHEN o.id IS NOT NULL THEN od.jumlah * od.harga ELSE 0 END), 0) -
-                      COALESCE(SUM(CASE WHEN o.id IS NOT NULL THEN od.hpp * od.jumlah ELSE 0 END), 0)) /
-                      COALESCE(SUM(CASE WHEN o.id IS NOT NULL THEN od.jumlah * od.harga ELSE 0 END), 0)) * 100
-                ELSE 0
-            END as persen')
+                    WHEN SUM(jumlah * harga) > 0
+                    THEN ((SUM(jumlah * harga) - SUM(hpp * jumlah)) / SUM(jumlah * harga)) * 100
+                    ELSE 0
+                END as persen')
             )
-            ->groupBy('p.nama', 'p.id')
-            ->orderBy('p.nama')
+            ->groupBy('produk', 'produk_id')
+            ->orderBy('produk')
             ->get();
+
+        // Samakan total omzet dengan labarugi: alokasikan (ongkir-diskon) proporsional per kategori
+        $total_omzet_labarugi = Order::whereYear('created_at', $thn)->whereMonth('created_at', $bln)->sum('total')
+            + ProjectMp::whereYear('created_at', $thn)->whereMonth('created_at', $bln)->sum('total');
+        $order_item_omzet = DB::table('order_details as od')
+            ->join('orders as o', 'o.id', '=', 'od.order_id')
+            ->join('produksis as pr', 'pr.id', '=', 'od.produksi_id')
+            ->where('od.harga', '>', 0)
+            ->where('pr.id', '<>', 4)
+            ->whereYear('o.created_at', $thn)
+            ->whereMonth('o.created_at', $bln)
+            ->selectRaw('COALESCE(SUM(od.jumlah * od.harga), 0) as tot')
+            ->value('tot') ?? 0;
+        $mp_item_omzet = DB::table('project_mp_details as pmd')
+            ->join('project_mps as pmp', 'pmp.id', '=', 'pmd.project_id')
+            ->join('produksis as pr', 'pr.id', '=', 'pmd.produksi_id')
+            ->where('pmd.harga', '>', 0)
+            ->where('pr.id', '<>', 4)
+            ->whereYear('pmp.created_at', $thn)
+            ->whereMonth('pmp.created_at', $bln)
+            ->selectRaw('COALESCE(SUM(pmd.jumlah * pmd.harga), 0) as tot')
+            ->value('tot') ?? 0;
+        $total_item_omzet_all = $order_item_omzet + $mp_item_omzet;
+        $kategori_item_omzet = $data->sum('omzet');
+        $penyesuaian_total = $total_omzet_labarugi - $total_item_omzet_all;
+        $penyesuaian_kategori = $total_item_omzet_all > 0 ? $penyesuaian_total * ($kategori_item_omzet / $total_item_omzet_all) : 0;
+
+        if ($kategori_item_omzet > 0 && abs($penyesuaian_kategori) > 0.01) {
+            foreach ($data as $item) {
+                $alokasi = $penyesuaian_kategori * ($item->omzet / $kategori_item_omzet);
+                $item->omzet = $item->omzet + $alokasi;
+                $item->laba_kotor = $item->laba_kotor + $alokasi;
+                $item->persen = $item->omzet > 0 ? (($item->laba_kotor / $item->omzet) * 100) : 0;
+            }
+        }
 
         // Generate months for dropdown
         $bulanList = [];

@@ -54,27 +54,27 @@
                             @foreach($data as $item)
                                 <tr>
                                     <td>{{ $item->produk }}</td>
-                                    <td>{{ number_format($item->omzet, 2, ',', '.') }}</td>
-                                    <td>{{ number_format($item->hpp, 2, ',', '.') }}</td>
-                                    <td>{{ number_format($item->opname, 2, ',', '.') }}</td>
-                                    <td>{{ number_format($item->laba_kotor, 2, ',', '.') }}</td>
-                                    <td>{{ number_format($item->persen, 2, ',', '.') }}%</td>
+                                    <td>{{ number_format($item->omzet, 0, ',', '.') }}</td>
+                                    <td>{{ number_format($item->hpp, 0, ',', '.') }}</td>
+                                    <td>{{ number_format(abs($item->opname), 0, ',', '.') }}</td>
+                                    <td>{{ number_format($item->laba_kotor, 0, ',', '.') }}</td>
+                                    <td>{{ number_format($item->persen, 0, ',', '.') }}%</td>
                                 </tr>
 
                                 @php
                                     $totalOmzet += $item->omzet;
                                     $totalHpp += $item->hpp;
-                                    $totalOpname += $item->opname;
+                                    $totalOpname += abs($item->opname);
                                     $totalLabaKotor += $item->laba_kotor;
                                 @endphp
                             @endforeach
 
                             <tr class="table-primary">
                                 <td><strong>Total Keseluruhan</strong></td>
-                                <td><strong>{{ number_format($totalOmzet, 2, ',', '.') }}</strong></td>
-                                <td><strong>{{ number_format($totalHpp, 2, ',', '.') }}</strong></td>
-                                <td><strong>{{ number_format($totalOpname, 2, ',', '.') }}</strong></td>
-                                <td><strong>{{ number_format($totalLabaKotor, 2, ',', '.') }}</strong></td>
+                                <td><strong>{{ number_format($totalOmzet, 0, ',', '.') }}</strong></td>
+                                <td><strong>{{ number_format($totalHpp, 0, ',', '.') }}</strong></td>
+                                <td><strong>{{ number_format($totalOpname, 0, ',', '.') }}</strong></td>
+                                <td><strong>{{ number_format($totalLabaKotor, 0, ',', '.') }}</strong></td>
                                 <td><strong>{{ $totalOmzet > 0 ? number_format(($totalLabaKotor/$totalOmzet)*100, 2, ',', '.') : 0 }}%</strong></td>
                             </tr>
                         </tbody>

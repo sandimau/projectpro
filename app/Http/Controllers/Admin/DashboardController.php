@@ -26,6 +26,7 @@ class DashboardController extends Controller
         $data['orderTerbesarOffline'] = Order::select('id', 'total', 'created_at', 'kontak_id')
             ->with('kontak:id,nama')
             ->whereNull('marketplace')
+            ->where('total', '>', 0)
             ->whereBetween('created_at', [now()->subDays(7), now()])
             ->orderBy('total', 'desc')
             ->limit(10)
@@ -67,10 +68,12 @@ class DashboardController extends Controller
         $data = collect();
         foreach ($dateRange as $date) {
             $found = collect($results)->firstWhere('date', $date);
-            $data[$date] = (object)[
-                'date' => $date,
-                'offline' => $found ? $found->total_omzet : 0
-            ];
+            if ($found && $found->total_omzet > 0) {
+                $data[$date] = (object)[
+                    'date' => $date,
+                    'offline' => $found->total_omzet
+                ];
+            }
         }
 
         return $data;

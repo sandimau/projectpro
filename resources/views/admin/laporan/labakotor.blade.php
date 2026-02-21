@@ -76,7 +76,7 @@
                                     </td>
                                     <td>{{ number_format($item->omzet, 0, ',', '.') }}</td>
                                     <td>{{ number_format($item->hpp, 0, ',', '.') }}</td>
-                                    <td>{{ number_format($item->opname, 0, ',', '.') }}</td>
+                                    <td>{{ number_format(abs($item->opname), 0, ',', '.') }}</td>
                                     <td>{{ number_format($item->laba_kotor, 0, ',', '.') }}</td>
                                     <td>{{ number_format($item->persen, 0, ',', '.') }}%</td>
                                 </tr>
@@ -88,7 +88,7 @@
                                     $totalLabaKotor += $item->laba_kotor;
                                     $subTotalOmzet += $item->omzet;
                                     $subTotalHpp += $item->hpp;
-                                    $subTotalOpname += $item->opname;
+                                    $subTotalOpname += abs($item->opname);
                                     $subTotalLabaKotor += $item->laba_kotor;
                                 @endphp
 
