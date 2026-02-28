@@ -19,6 +19,7 @@ use App\Models\ProdukMarketplace;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\ShopeeApi;
 use App\Http\Controllers\Traits\MarketplaceTriger;
+use Illuminate\Support\Facades\DB;
 
 class BufferController extends Controller
 {
@@ -187,26 +188,29 @@ class BufferController extends Controller
 
                     if (!empty($penarikanMp)) {
                         try {
-                            // Ambil detail_id yang sudah ada (dari data terbaru saja) agar tidak double
-                            $existingDetailIds = BukuBesar::where('akun_detail_id', $marketplace->penarikan_id)
-                                ->where('kode', 'trf')
-                                ->whereNotNull('detail_id')
-                                ->latest('id')
-                                ->limit(10)
-                                ->pluck('detail_id')
-                                ->flip()
-                                ->all();
+                            DB::transaction(function () use ($penarikanMp, $marketplace) {
+                                // Lock marketplace untuk mencegah race condition (double input saat webhook/cron bersamaan)
+                                Marketplace::where('id', $marketplace->id)->lockForUpdate()->first();
 
-                            foreach ($penarikanMp as $data) {
-                                $detailId = $data['detail_id'] ?? null;
-                                if ($detailId !== null && isset($existingDetailIds[$detailId])) {
-                                    continue; // sudah ada, skip
+                                // Ambil SEMUA detail_id yang sudah ada (tanpa limit) agar tidak double
+                                $existingDetailIds = BukuBesar::where('akun_detail_id', $marketplace->penarikan_id)
+                                    ->where('kode', 'trf')
+                                    ->whereNotNull('detail_id')
+                                    ->pluck('detail_id')
+                                    ->flip()
+                                    ->all();
+
+                                foreach ($penarikanMp as $data) {
+                                    $detailId = $data['detail_id'] ?? null;
+                                    if ($detailId !== null && isset($existingDetailIds[$detailId])) {
+                                        continue; // sudah ada di DB, skip
+                                    }
+                                    BukuBesar::create($data);
+                                    if ($detailId !== null) {
+                                        $existingDetailIds[$detailId] = true; // catat agar batch ini tidak double
+                                    }
                                 }
-                                BukuBesar::create($data);
-                                if ($detailId !== null) {
-                                    $existingDetailIds[$detailId] = true; // catat agar batch ini tidak double
-                                }
-                            }
+                            });
                             // Tidak perlu update saldo manual ke AkunDetail, karena sudah dilakukan di BukuBesar::boot()
                         } catch (\Exception $e) {
                             $this->logError($marketplace, 'insert penarikan', $e->getMessage());
