@@ -161,13 +161,15 @@ class LaporanController extends Controller
         $tahun_skr = date('Y');
         $bulan_skr = date('n');
 
-        // Tambahkan bulan-bulan dari 2 tahun sebelumnya
+        // Tambahkan bulan-bulan dari 2 tahun sebelumnya, urutkan paling awal di atas
         for ($tahun = $tahun_skr - 1; $tahun <= $tahun_skr; $tahun++) {
             $bulan_akhir = ($tahun == $tahun_skr) ? $bulan_skr : 12;
             for ($i = 1; $i <= $bulan_akhir; $i++) {
-                $bulan[$tahun . '-' . str_pad($i, 2, '0', STR_PAD_LEFT)] = date('F', mktime(0, 0, 0, $i, 1)) . ' ' . $tahun;
+                $bulan_tmp[$tahun . '-' . str_pad($i, 2, '0', STR_PAD_LEFT)] = date('F', mktime(0, 0, 0, $i, 1)) . ' ' . $tahun;
             }
         }
+        // Reverse supaya bulan paling awal ada di atas
+        $bulan = array_reverse($bulan_tmp, true);
 
         return view('admin.laporan.labarugi', compact('omzet', 'hpp', 'opname', 'beban', 'gaji', 'tunjangan', 'bulan', 'total_potonganMP'));
     }
