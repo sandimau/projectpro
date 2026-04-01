@@ -78,7 +78,7 @@ class ProjectMpController extends Controller
         return $hasil;
     }
 
-    public function storeChat(Request $request, ProjectMpDetail $projectmp)
+    public function storeChat(Request $request, ProjectMp $projectmp)
     {
         $member = Member::where('user_id', auth()->user()->id)->first();
 

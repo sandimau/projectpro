@@ -278,7 +278,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             // Project Marketplace Dashboard
             Route::get('/projectmp/dashboard', 'ProjectMpController@dashboard')->name('projectmp.dashboard');
             Route::get('/projectmp/packing', 'ProjectMpController@packing')->name('projectmp.packing');
-            Route::post('/projectmp/{projectmp}/chat', 'ProjectMpController@storeChat')->name('projectMp.chatStore');
+            Route::post('/projectmpDetail/{projectmp}/chat', 'ProjectMpController@storeChat')->name('projectMp.chatStore');
             Route::get('/projectmp', 'ProjectMpController@index')->name('projectmp.index');
 
             // ProjectMpDetail
