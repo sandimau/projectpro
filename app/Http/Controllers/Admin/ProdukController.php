@@ -124,21 +124,20 @@ class ProdukController extends Controller
 
     public function omzet(Request $request)
     {
-        // Get selected year, default to current year if not specified
         $selectedYear = $request->input('year', date('Y'));
 
-        // Get all available years for the dropdown
         $years = DB::table('orders')
-            ->select(DB::raw('DISTINCT YEAR(created_at) as year'))
+            ->selectRaw('DISTINCT YEAR(created_at) as year')
+            ->unionAll(DB::table('project_mps')->selectRaw('DISTINCT YEAR(created_at) as year'))
             ->orderBy('year', 'desc')
-            ->pluck('year');
+            ->pluck('year')
+            ->unique()
+            ->values();
 
         $asets = DB::table('produk_last_stoks as t')
             ->join(
                 DB::raw('(SELECT produk_id FROM produk_last_stoks GROUP BY produk_id) as subquery'),
-                't.produk_id',
-                '=',
-                'subquery.produk_id'
+                't.produk_id', '=', 'subquery.produk_id'
             )
             ->join('produks as p', 'p.id', '=', 't.produk_id')
             ->join('produk_models as pm', 'pm.id', '=', 'p.produk_model_id')
@@ -155,84 +154,108 @@ class ProdukController extends Controller
             ->orderBy('k.nama')
             ->get();
 
-        // Get categories first
         $categories = DB::table('produk_kategoris as k')
             ->join('produk_kategori_utamas as ku', 'ku.id', '=', 'k.kategori_utama_id')
-            ->select(
-                'k.id as kategori_id',
-                'ku.nama as namaKategoriUtama',
-                'k.nama as namaKategori'
-            )
+            ->select('k.id as kategori_id', 'ku.nama as namaKategoriUtama', 'k.nama as namaKategori')
             ->where('ku.jual', 1)
             ->orderBy('ku.nama')
             ->orderBy('k.nama')
             ->get();
 
-        // Get produksi batal ID for exclusion
         $batalProduksiId = DB::table('produksis')->where('nama', 'batal')->first()->id ?? null;
 
-                // Get omzet data for the selected year
-        // Menghitung proporsi omzet per kategori dari total order dengan benar
+        // Gunakan window function untuk menghitung proporsi omzet per kategori per bulan
+        // dalam satu query (mengganti N+1 queries sebelumnya)
+        $orderBindings = [$selectedYear];
+        $orderBatalSql = '';
+        if ($batalProduksiId) {
+            $orderBatalSql = 'AND od.produksi_id != ?';
+            $orderBindings[] = $batalProduksiId;
+        }
 
-        // Pertama, dapatkan semua order dengan total order dan subtotal per kategori
-        $orderData = DB::table('orders as o')
-            ->select('o.id as order_id', 'o.total', 'o.created_at')
-            ->whereYear('o.created_at', $selectedYear)
-            ->whereRaw('o.total > 0')
-            ->get();
+        $orderOmzetRows = DB::select("
+            SELECT kategori_id, namaKategoriUtama, namaKategori, bulan,
+                   SUM(omzet_kontribusi) as omzet
+            FROM (
+                SELECT
+                    k.id               AS kategori_id,
+                    ku.nama            AS namaKategoriUtama,
+                    k.nama             AS namaKategori,
+                    MONTH(o.created_at) AS bulan,
+                    COALESCE(
+                        (od.jumlah * od.harga)
+                        / NULLIF(SUM(od.jumlah * od.harga) OVER (PARTITION BY o.id), 0)
+                        * o.total,
+                        0
+                    ) AS omzet_kontribusi
+                FROM orders o
+                JOIN order_details od ON od.order_id = o.id AND od.deleted_at IS NULL
+                JOIN produks p        ON p.id = od.produk_id
+                JOIN produk_models pm ON pm.id = p.produk_model_id
+                JOIN produk_kategoris k ON k.id = pm.kategori_id
+                JOIN produk_kategori_utamas ku ON ku.id = k.kategori_utama_id
+                WHERE YEAR(o.created_at) = ?
+                  AND o.total > 0
+                  AND o.deleted_at IS NULL
+                  $orderBatalSql
+            ) AS subq
+            GROUP BY kategori_id, namaKategoriUtama, namaKategori, bulan
+        ", $orderBindings);
 
+        $mpBindings = [$selectedYear];
+        $mpBatalSql = '';
+        if ($batalProduksiId) {
+            $mpBatalSql = 'AND od.produksi_id != ?';
+            $mpBindings[] = $batalProduksiId;
+        }
+
+        $mpOmzetRows = DB::select("
+            SELECT kategori_id, namaKategoriUtama, namaKategori, bulan,
+                   SUM(omzet_kontribusi) as omzet
+            FROM (
+                SELECT
+                    k.id               AS kategori_id,
+                    ku.nama            AS namaKategoriUtama,
+                    k.nama             AS namaKategori,
+                    MONTH(o.created_at) AS bulan,
+                    COALESCE(
+                        (od.jumlah * od.harga)
+                        / NULLIF(SUM(od.jumlah * od.harga) OVER (PARTITION BY o.id), 0)
+                        * o.total,
+                        0
+                    ) AS omzet_kontribusi
+                FROM project_mps o
+                JOIN project_mp_details od ON od.project_id = o.id
+                JOIN produks p        ON p.id = od.produk_id
+                JOIN produk_models pm ON pm.id = p.produk_model_id
+                JOIN produk_kategoris k ON k.id = pm.kategori_id
+                JOIN produk_kategori_utamas ku ON ku.id = k.kategori_utama_id
+                WHERE YEAR(o.created_at) = ?
+                  AND o.total > 0
+                  AND (o.retur != 1 OR o.retur IS NULL)
+                  $mpBatalSql
+            ) AS subq
+            GROUP BY kategori_id, namaKategoriUtama, namaKategori, bulan
+        ", $mpBindings);
+
+        // Gabungkan hasil kedua sumber ke dalam satu array
         $omzetDataArray = [];
-
-        foreach ($orderData as $order) {
-            // Hitung subtotal per kategori untuk order ini
-            $categorySubtotals = DB::table('order_details as od')
-                ->join('produks as p', 'p.id', '=', 'od.produk_id')
-                ->join('produk_models as pm', 'pm.id', '=', 'p.produk_model_id')
-                ->join('produk_kategoris as k', 'k.id', '=', 'pm.kategori_id')
-                ->join('produk_kategori_utamas as ku', 'ku.id', '=', 'k.kategori_utama_id')
-                ->where('od.order_id', $order->order_id)
-                ->when($batalProduksiId, function($query) use ($batalProduksiId) {
-                    return $query->where('od.produksi_id', '!=', $batalProduksiId);
-                })
-                ->select(
-                    'k.id as kategori_id',
-                    'ku.nama as namaKategoriUtama',
-                    'k.nama as namaKategori',
-                    DB::raw('SUM(od.jumlah * od.harga) as subtotal_kategori')
-                )
-                ->groupBy('k.id', 'ku.nama', 'k.nama')
-                ->get();
-
-            // Hitung total subtotal untuk order ini (untuk menghitung proporsi)
-            $totalSubtotal = $categorySubtotals->sum('subtotal_kategori');
-
-            if ($totalSubtotal > 0) {
-                foreach ($categorySubtotals as $catData) {
-                    $proporsi = $catData->subtotal_kategori / $totalSubtotal;
-                    $omzetKategori = $proporsi * $order->total;
-
-                    $bulan = date('n', strtotime($order->created_at));
-
-                    $key = $catData->kategori_id . '_' . $bulan;
-
-                    if (!isset($omzetDataArray[$key])) {
-                        $omzetDataArray[$key] = (object)[
-                            'kategori_id' => $catData->kategori_id,
-                            'namaKategoriUtama' => $catData->namaKategoriUtama,
-                            'namaKategori' => $catData->namaKategori,
-                            'bulan' => $bulan,
-                            'omzet' => 0
-                        ];
-                    }
-
-                    $omzetDataArray[$key]->omzet += $omzetKategori;
-                }
+        foreach (array_merge($orderOmzetRows, $mpOmzetRows) as $row) {
+            $key = $row->kategori_id . '_' . $row->bulan;
+            if (!isset($omzetDataArray[$key])) {
+                $omzetDataArray[$key] = (object)[
+                    'kategori_id'       => $row->kategori_id,
+                    'namaKategoriUtama' => $row->namaKategoriUtama,
+                    'namaKategori'      => $row->namaKategori,
+                    'bulan'             => $row->bulan,
+                    'omzet'             => 0,
+                ];
             }
+            $omzetDataArray[$key]->omzet += $row->omzet;
         }
 
         $omzetData = collect(array_values($omzetDataArray));
 
-        // Create complete dataset with all months
         $omzet = collect();
         foreach ($categories as $category) {
             for ($month = 1; $month <= 12; $month++) {
@@ -242,12 +265,12 @@ class ProdukController extends Controller
                     ->first();
 
                 $omzet->push((object)[
-                    'kategori_id' => $category->kategori_id,
+                    'kategori_id'       => $category->kategori_id,
                     'namaKategoriUtama' => $category->namaKategoriUtama,
-                    'namaKategori' => $category->namaKategori,
-                    'bulan' => $month,
-                    'tahun' => $selectedYear,
-                    'omzet' => $monthlyData ? $monthlyData->omzet : 0
+                    'namaKategori'      => $category->namaKategori,
+                    'bulan'             => $month,
+                    'tahun'             => $selectedYear,
+                    'omzet'             => $monthlyData ? $monthlyData->omzet : 0,
                 ]);
             }
         }
@@ -266,102 +289,107 @@ class ProdukController extends Controller
 
         // Get all available years for the dropdown
         $years = DB::table('orders')
-            ->select(DB::raw('DISTINCT YEAR(created_at) as year'))
+            ->selectRaw('DISTINCT YEAR(created_at) as year')
+            ->unionAll(DB::table('project_mps')->selectRaw('DISTINCT YEAR(created_at) as year'))
             ->orderBy('year', 'desc')
-            ->pluck('year');
+            ->pluck('year')
+            ->unique()
+            ->values();
 
         // Get products with their daily sales for the selected month
         $products = DB::table('produks as p')
             ->join('produk_models as pm', 'pm.id', '=', 'p.produk_model_id')
-            ->leftJoin('produk_last_stoks as pls', 'pls.produk_id', '=', 'p.id')
+            ->leftJoin(
+                DB::raw('(SELECT produk_id, saldo FROM produk_last_stoks WHERE deleted_at IS NULL ORDER BY id DESC) as pls'),
+                'pls.produk_id', '=', 'p.id'
+            )
             ->where('pm.kategori_id', $kategori->id)
             ->select(
                 'p.id',
-                DB::raw("CONCAT(pm.nama) as nama_produk"),
+                DB::raw("pm.nama as nama_produk"),
                 'p.nama as varian',
-                'pls.saldo as stok'
+                DB::raw('MAX(pls.saldo) as stok')
             )
+            ->groupBy('p.id', 'pm.nama', 'p.nama')
             ->get();
 
-        // Get daily sales data
+        // Calculate days in selected month for average calculation
+        $currentYear = date('Y');
+        $currentMonth = date('n');
+        $daysForAverage = ($selectedYear == $currentYear && $selectedMonth == $currentMonth)
+            ? date('j')
+            : cal_days_in_month(CAL_GREGORIAN, $selectedMonth, $selectedYear);
+
+        $productIds = $products->pluck('id')->toArray();
+
+        // Bulk query: penjualan harian per produk dari orders (1 query mengganti N queries)
+        $orderDailyQuery = DB::table('order_details as od')
+            ->join('orders as o', 'o.id', '=', 'od.order_id')
+            ->whereIn('od.produk_id', $productIds)
+            ->whereYear('o.created_at', $selectedYear)
+            ->whereMonth('o.created_at', $selectedMonth)
+            ->whereRaw('o.total > 0')
+            ->whereNull('o.deleted_at')
+            ->whereNull('od.deleted_at');
+        if ($batalProduksiId) {
+            $orderDailyQuery->where('od.produksi_id', '!=', $batalProduksiId);
+        }
+        $orderDailyAll = $orderDailyQuery
+            ->select(
+                'od.produk_id',
+                DB::raw('DAY(o.created_at) as day'),
+                DB::raw('SUM(od.jumlah) as total_sales'),
+                DB::raw('COUNT(DISTINCT o.id) as order_count')
+            )
+            ->groupBy('od.produk_id', DB::raw('DAY(o.created_at)'))
+            ->get()
+            ->groupBy('produk_id');
+
+        // Bulk query: penjualan harian per produk dari project_mps (1 query mengganti N queries)
+        $mpDailyQuery = DB::table('project_mp_details as od')
+            ->join('project_mps as o', 'o.id', '=', 'od.project_id')
+            ->whereIn('od.produk_id', $productIds)
+            ->whereYear('o.created_at', $selectedYear)
+            ->whereMonth('o.created_at', $selectedMonth)
+            ->whereRaw('o.total > 0')
+            ->where(fn($q) => $q->where('o.retur', '!=', 1)->orWhereNull('o.retur'));
+        if ($batalProduksiId) {
+            $mpDailyQuery->where('od.produksi_id', '!=', $batalProduksiId);
+        }
+        $mpDailyAll = $mpDailyQuery
+            ->select(
+                'od.produk_id',
+                DB::raw('DAY(o.created_at) as day'),
+                DB::raw('SUM(od.jumlah) as total_sales'),
+                DB::raw('COUNT(DISTINCT o.id) as order_count')
+            )
+            ->groupBy('od.produk_id', DB::raw('DAY(o.created_at)'))
+            ->get()
+            ->groupBy('produk_id');
+
+        // Proses di PHP — tidak ada query tambahan di dalam loop ini
         foreach ($products as $product) {
-            // Calculate average sales per day for selected month (exclude cancelled orders)
-            $totalSalesQuery = DB::table('order_details as od')
-                ->join('orders as o', 'o.id', '=', 'od.order_id')
-                ->where('od.produk_id', $product->id)
-                ->whereYear('o.created_at', $selectedYear)
-                ->whereMonth('o.created_at', $selectedMonth)
-                ->whereRaw('o.total > 0'); // Only count orders with valid total
+            $orderByDay = ($orderDailyAll->get($product->id) ?? collect())->keyBy('day');
+            $mpByDay    = ($mpDailyAll->get($product->id) ?? collect())->keyBy('day');
 
-            // Exclude cancelled production if exists
-            if ($batalProduksiId) {
-                $totalSalesQuery->where('od.produksi_id', '!=', $batalProduksiId);
-            }
-
-            $totalSales = $totalSalesQuery->sum('od.jumlah'); // Total penjualan
-
-            // Calculate days in selected month for average calculation
-            $currentYear = date('Y');
-            $currentMonth = date('n');
-            $currentDay = date('j');
-
-            if ($selectedYear == $currentYear && $selectedMonth == $currentMonth) {
-                // Jika bulan yang dipilih adalah bulan sekarang, hitung sampai hari ini
-                $daysForAverage = $currentDay;
-            } else {
-                // Jika bulan lain, hitung seluruh hari dalam bulan tersebut
-                $daysForAverage = cal_days_in_month(CAL_GREGORIAN, $selectedMonth, $selectedYear);
-            }
-
-            $product->rata_penjualan = $daysForAverage > 0 ? round($totalSales / $daysForAverage, 0) : 0;
-
-            // Calculate number of unique orders for this product in selected month
-            $orderCountQuery = DB::table('order_details as od')
-                ->join('orders as o', 'o.id', '=', 'od.order_id')
-                ->where('od.produk_id', $product->id)
-                ->whereYear('o.created_at', $selectedYear)
-                ->whereMonth('o.created_at', $selectedMonth)
-                ->whereRaw('o.total > 0');
-
-            if ($batalProduksiId) {
-                $orderCountQuery->where('od.produksi_id', '!=', $batalProduksiId);
-            }
-
-            $orderCount = $orderCountQuery->distinct('o.id')->count('o.id');
-            $product->rata_order_per_hari = $daysForAverage > 0 ? round($orderCount / $daysForAverage, 2) : 0;
-
-            // Get daily sales for the selected month (exclude cancelled orders)
-            $dailySalesQuery = DB::table('order_details as od')
-                ->join('orders as o', 'o.id', '=', 'od.order_id')
-                ->where('od.produk_id', $product->id)
-                ->whereYear('o.created_at', $selectedYear)
-                ->whereMonth('o.created_at', $selectedMonth)
-                ->whereRaw('o.total > 0'); // Only count valid orders
-
-            // Exclude cancelled production if exists
-            if ($batalProduksiId) {
-                $dailySalesQuery->where('od.produksi_id', '!=', $batalProduksiId);
-            }
-
-            $dailySales = $dailySalesQuery
-                ->select(
-                    DB::raw('DAY(o.created_at) as day'),
-                    DB::raw('SUM(od.jumlah) as total_sales'),
-                    DB::raw('COUNT(DISTINCT o.id) as order_count')
-                )
-                ->groupBy(DB::raw('DAY(o.created_at)'))
-                ->get()
-                ->keyBy('day');
-
-            // Create arrays for daily sales and order counts
+            $totalSales = 0;
+            $totalOrderCount = 0;
             $product->daily_sales = [];
             $product->daily_order_count = [];
 
             for ($day = 1; $day <= 31; $day++) {
-                $dayData = $dailySales->get($day);
-                $product->daily_sales[$day] = $dayData ? $dayData->total_sales : 0;
-                $product->daily_order_count[$day] = $dayData ? $dayData->order_count : 0;
+                $fromOrder = $orderByDay->get($day);
+                $fromMp    = $mpByDay->get($day);
+                $daySales  = ($fromOrder ? $fromOrder->total_sales : 0) + ($fromMp ? $fromMp->total_sales : 0);
+                $dayOrders = ($fromOrder ? $fromOrder->order_count : 0) + ($fromMp ? $fromMp->order_count : 0);
+                $product->daily_sales[$day]       = $daySales;
+                $product->daily_order_count[$day] = $dayOrders;
+                $totalSales      += $daySales;
+                $totalOrderCount += $dayOrders;
             }
+
+            $product->rata_penjualan      = $daysForAverage > 0 ? round($totalSales / $daysForAverage, 0) : 0;
+            $product->rata_order_per_hari = $daysForAverage > 0 ? round($totalOrderCount / $daysForAverage, 2) : 0;
         }
 
         return view('admin.produks.omzetDetail', compact('products', 'kategori', 'years', 'selectedYear', 'selectedMonth'));
