@@ -78,29 +78,35 @@ class LaporanController extends Controller
             ->whereMonth('created_at', $bln)
             ->sum('total');
 
-        // HPP tetap dari order_details (produksi_id <> 4)
-        $total_hpp = DB::table('order_details')
-            ->selectRaw('sum(hpp * jumlah) as total_hpp')
-            ->join('produksis', 'produksi_id', '=', 'produksis.id')
-            ->join('orders', 'order_id', '=', 'orders.id')
-            ->where('order_details.harga', '>', 0)
-            ->where('produksis.id', '<>', 4)
-            ->whereYear('orders.created_at', $thn)
-            ->whereMonth('orders.created_at', $bln)
-            ->value('total_hpp') ?? 0;
-
         // Omzet dari ProjectMP (total sudah include ongkir-diskon, exclude produksi batal)
         $total_omzetMp = ProjectMp::whereYear('created_at', $thn)
             ->whereMonth('created_at', $bln)
             ->sum('total');
 
+        // HPP tetap dari order_details (produksi_id <> 4)
+        $total_hpp = DB::table('order_details')
+            ->selectRaw('sum(ABS(COALESCE(NULLIF(order_details.hpp, 0), produks.hpp)) * order_details.jumlah) as total_hpp')
+            ->join('orders', 'order_details.order_id', '=', 'orders.id')
+            ->join('produks', 'order_details.produk_id', '=', 'produks.id')
+            ->where('order_details.harga', '>', 0)
+            ->where(function ($q) {
+                $q->where('order_details.produksi_id', '<>', 4)
+                  ->orWhereNull('order_details.produksi_id');
+            })
+            ->whereYear('orders.created_at', $thn)
+            ->whereMonth('orders.created_at', $bln)
+            ->value('total_hpp') ?? 0;
+
         // HPP tetap dari project_mp_details (produksi_id <> 4)
         $total_hppMp = DB::table('project_mp_details')
-            ->selectRaw('sum(hpp * jumlah) as total_hpp')
-            ->join('produksis', 'produksi_id', '=', 'produksis.id')
-            ->join('project_mps', 'project_id', '=', 'project_mps.id')
+            ->selectRaw('sum(ABS(COALESCE(NULLIF(project_mp_details.hpp, 0), produks.hpp)) * project_mp_details.jumlah) as total_hpp')
+            ->join('project_mps', 'project_mp_details.project_id', '=', 'project_mps.id')
+            ->join('produks', 'project_mp_details.produk_id', '=', 'produks.id')
             ->where('project_mp_details.harga', '>', 0)
-            ->where('produksis.id', '<>', 4)
+            ->where(function ($q) {
+                $q->where('project_mp_details.produksi_id', '<>', 4)
+                  ->orWhereNull('project_mp_details.produksi_id');
+            })
             ->whereYear('project_mps.created_at', $thn)
             ->whereMonth('project_mps.created_at', $bln)
             ->value('total_hpp') ?? 0;
