@@ -133,7 +133,7 @@ class MarketplaceController extends Controller
                     $input = true;
                 else
                     //////ambil yg terakhir terinput
-                    $terakhir = bukuBesar::where('akun_detail_id', $config->kas_id)->latest()->first();
+                    $terakhir = BukuBesar::where('akun_detail_id', $config->kas_id)->latest()->first();
 
                 while (($baris = fgetcsv($file_excel, 1000, ",")) !== false) {
 
@@ -319,11 +319,16 @@ class MarketplaceController extends Controller
                 $input = false;
                 if ($config->baruKeuangan == 1)
                     $input = true;
-                else
+                else {
                     //////ambil yg terakhir terinput
-                    $terakhir = bukuBesar::where('akun_detail_id', $config->kas_id)->latest()->first();
+                    $terakhir = BukuBesar::where('akun_detail_id', $config->kas_id)->latest()->first();
+                    if (!$terakhir) {
+                        $input = true;
+                    }
+                }
 
-                while (($baris = fgetcsv($file_excel, 1000, ",")) !== false) {
+                // Gunakan length 0 agar baris CSV panjang (kolom banyak) tidak terpotong.
+                while (($baris = fgetcsv($file_excel, 0, ",")) !== false) {
 
                     $i++;
                     array_unshift($baris, $i);
@@ -331,11 +336,7 @@ class MarketplaceController extends Controller
                     if ($i < $header)
                         continue;
                     else if ($i == $header) {
-                        if (
-                            str_replace(' ', '', $baris[1]) != str_replace(' ', '', $marketplace->kolom1) ||
-                            str_replace(' ', '', $baris[2]) != str_replace(' ', '', $marketplace->kolom2) ||
-                            str_replace(' ', '', $baris[3]) != str_replace(' ', '', $marketplace->kolom3)
-                        )
+                        if (!$this->isCsvHeaderMatch($baris, $marketplace))
                             throw new \Exception('file excel tidak sesuai dengan template');
                         continue;
                     }
@@ -348,8 +349,8 @@ class MarketplaceController extends Controller
                     $saldo = str_replace(",", "", $saldo);
                     $saldo = $baris[$marketplace->saldo] = str_replace(".", "", $saldo);
 
-                    $tanggal = $baris[$marketplace->tanggal];
-                    $tanggal = $baris[$marketplace->tanggal];
+                    $tanggal = $baris[$marketplace->tanggal] ?? '';
+                    $tanggal = $baris[$marketplace->tanggal] = $this->normalizeMarketplaceDate((string) $tanggal, $marketplace->formatTanggal ?? null);
 
                     $tema = $baris[$marketplace->tema] ?? '';
                     $harga = $baris[$marketplace->harga];
@@ -367,8 +368,13 @@ class MarketplaceController extends Controller
                     }
 
                     ////////jika ketemu dengan tanggal terakhir yg terupload sebelumnya, start mulai input
-
-                    if (!$input and $tanggal == $terakhir->created_at and $saldo == $terakhir->saldo) {
+                    if (
+                        !$input
+                        and $terakhir
+                        // Patokan data terakhir harus sama persis tanggal dan saldonya.
+                        and $this->isSameDateValue((string) $tanggal, (string) $terakhir->created_at)
+                        and ((float) $saldo === (float) $terakhir->saldo)
+                    ) {
                         $input = true;
                         break;
                     }
@@ -472,6 +478,187 @@ class MarketplaceController extends Controller
                 } else
                     throw new \Exception('tanggal pengambilan rentangnya kurang panjang');
             });
+            return redirect()->route('marketplaces.show', $id->id)->withSuccess(__('Upload keuangan berhasil'));
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'Upload keuangan gagal: ' . $e->getMessage()]);
+        }
+    }
+
+    public function uploadKeuanganTiktokBaru(Request $request, Marketplace $id)
+    {
+        $request->validate([
+            'keuangan' => 'required|mimes:csv',
+        ]);
+
+        try {
+            DB::transaction(function () use ($request, $id) {
+                $file = fopen(request()->keuangan, 'r');
+                if ($file === false) {
+                    throw new \Exception('file tidak bisa dibaca');
+                }
+
+                $config = $id;
+
+                $input = false;
+                $terakhir = null;
+                if ((int) $config->baruKeuangan === 1) {
+                    $input = true;
+                } else {
+                    $terakhir = BukuBesar::where('akun_detail_id', $config->kas_id)->latest()->first();
+                    if (!$terakhir) {
+                        $input = true;
+                    }
+                }
+
+                $i = 0;
+                $mutasi = [];
+
+                // Hardcode: header selalu baris pertama
+                $header = fgetcsv($file, 0, ',');
+                $i++;
+                if ($header === false) {
+                    throw new \Exception('file kosong');
+                }
+                array_unshift($header, $i);
+                $colMap = $this->buildKeuanganBaruColumnMap($header);
+                if (!$colMap || !isset($colMap['type'])) {
+                    throw new \Exception('file excel tidak sesuai dengan template terbaru (kolom Type wajib ada)');
+                }
+
+                while (($baris = fgetcsv($file, 0, ',')) !== false) {
+                    $i++;
+                    array_unshift($baris, $i);
+
+                    $requestTime = (string) ($baris[$colMap['request_time']] ?? '');
+                    $successTime = (string) ($baris[$colMap['success_time']] ?? '');
+                    $tanggal = $successTime !== '' ? $successTime : $requestTime;
+                    $tanggal = $this->normalizeMarketplaceDate($tanggal, null);
+
+                    $amountRaw = (string) ($baris[$colMap['amount']] ?? '0');
+                    $amount = $this->parseCsvNumber($amountRaw);
+
+                    $type = isset($colMap['type']) ? (string) ($baris[$colMap['type']] ?? '') : '';
+                    $referenceId = isset($colMap['reference_id']) ? (string) ($baris[$colMap['reference_id']] ?? '') : '';
+                    $status = (string) ($baris[$colMap['status']] ?? '');
+                    $bank = (string) ($baris[$colMap['bank_account']] ?? '');
+
+                    // Hardcode: hanya ambil Withdrawal (format terbaru)
+                    if (mb_strtolower(trim($type)) !== 'withdrawal') {
+                        continue;
+                    }
+
+                    $ketParts = ['Keuangan TikTok'];
+                    if (trim($type) !== '') {
+                        $ketParts[] = trim($type);
+                    }
+                    if (trim($status) !== '') {
+                        $ketParts[] = trim($status);
+                    }
+                    if (trim($referenceId) !== '') {
+                        $ketParts[] = 'ref ' . trim($referenceId);
+                    }
+                    if (trim($bank) !== '') {
+                        $ketParts[] = trim($bank);
+                    }
+                    $ket = implode(' - ', $ketParts);
+
+                    // Withdrawal harusnya minus, tapi tetap guard
+                    if ((float) $amount >= 0) {
+                        continue;
+                    }
+
+                    if (
+                        !$input
+                        && $terakhir
+                        && $this->isSameDateValue($tanggal, (string) $terakhir->created_at)
+                        // "saldo terakhir" dipakai sebagai patokan nilai transaksi terakhir di kas (kredit)
+                        && ((float) abs($amount) === (float) ($terakhir->kredit ?? 0))
+                    ) {
+                        $input = true;
+                        break;
+                    }
+
+                    $mutasi[] = [
+                        'tanggal' => $tanggal,
+                        'amount' => $amount,
+                        'ket' => $ket,
+                        'status' => $status,
+                        'bank' => $bank,
+                    ];
+                }
+
+                if (!$input) {
+                    throw new \Exception('tanggal pengambilan rentangnya kurang panjang');
+                }
+
+                $akunKas = DB::table('akun_details')->where('id', $config->kas_id)->first();
+                $saldo = (float) ($akunKas->saldo ?? 0);
+
+                $latestKasRow = null;
+                foreach (array_reverse($mutasi) as $row) {
+                    $amount = (float) $row['amount'];
+                    $debet = $amount >= 0 ? $amount : 0;
+                    $kredit = $amount < 0 ? abs($amount) : 0;
+
+                    $saldo = $saldo + $debet - $kredit;
+
+                    // kas_id TikTok: hanya boleh 1 data di BukuBesar (yang paling baru)
+                    if ($kredit > 0) {
+                        if (
+                            !$latestKasRow
+                            || Carbon::parse($row['tanggal'])->greaterThan(Carbon::parse($latestKasRow['tanggal']))
+                        ) {
+                            $latestKasRow = [
+                                'tanggal' => $row['tanggal'],
+                                'ket' => $row['ket'],
+                                'kredit' => $kredit,
+                            ];
+                        }
+                    }
+
+                    // jika nominal minus, anggap penarikan (transfer keluar)
+                    if ($amount < 0 && !empty($config->penarikan_id)) {
+                        $kreditPenarikan = abs($amount);
+                        $sudahAdaTarik = BukuBesar::where('akun_detail_id', $config->penarikan_id)
+                            ->where('created_at', $row['tanggal'])
+                            ->where('debet', $kreditPenarikan)
+                            ->where('kode', 'trf')
+                            ->exists();
+
+                        if (!$sudahAdaTarik) {
+                            BukuBesar::create([
+                                'akun_detail_id' => $config->penarikan_id,
+                                'kode' => 'trf',
+                                'created_at' => $row['tanggal'],
+                                'detail_id' => 123,
+                                'ket' => 'penarikan dari ' . $config->nama . (!empty($row['bank']) ? ' - ' . $row['bank'] : ''),
+                                'debet' => $kreditPenarikan,
+                            ]);
+                        }
+                    }
+                }
+
+                // enforce kas_id hanya 1 record: hapus semua lalu insert yang paling baru
+                if ($latestKasRow) {
+                    BukuBesar::where('akun_detail_id', $config->kas_id)->delete();
+                    BukuBesar::create([
+                        'akun_detail_id' => $config->kas_id,
+                        'kode' => 'byr',
+                        'created_at' => $latestKasRow['tanggal'],
+                        'detail_id' => 123,
+                        'ket' => $latestKasRow['ket'],
+                        'debet' => 0,
+                        'kredit' => $latestKasRow['kredit'],
+                    ]);
+                }
+
+                if ((int) $config->baruKeuangan === 1) {
+                    $config->update(['baruKeuangan' => 0]);
+                }
+
+                $config->update(['tglUploadKeuangan' => now()]);
+            });
+
             return redirect()->route('marketplaces.show', $id->id)->withSuccess(__('Upload keuangan berhasil'));
         } catch (\Exception $e) {
             return redirect()->back()->withErrors(['error' => 'Upload keuangan gagal: ' . $e->getMessage()]);
@@ -1495,5 +1682,131 @@ class MarketplaceController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->withErrors(['error' => 'Upload Order gagal: ' . $e->getMessage()]);
         }
+    }
+
+    private function isCsvHeaderMatch(array $baris, object $marketplace): bool
+    {
+        $configuredHeaders = [];
+        foreach (get_object_vars($marketplace) as $key => $value) {
+            if (preg_match('/^kolom(\d+)$/', (string) $key, $match)) {
+                if ($value !== null && trim((string) $value) !== '') {
+                    $configuredHeaders[(int) $match[1]] = $this->normalizeCsvHeader((string) $value);
+                }
+            }
+        }
+
+        if (empty($configuredHeaders)) {
+            return true;
+        }
+
+        ksort($configuredHeaders);
+
+        foreach ($configuredHeaders as $index => $expectedHeader) {
+            $actualHeader = $this->normalizeCsvHeader((string) ($baris[$index] ?? ''));
+            if ($actualHeader !== $expectedHeader) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function normalizeCsvHeader(string $value): string
+    {
+        $value = preg_replace('/^\xEF\xBB\xBF/u', '', $value) ?? $value;
+        $value = str_replace("\xC2\xA0", ' ', $value);
+        $value = trim($value);
+        $value = preg_replace('/\s+/u', ' ', $value) ?? $value;
+
+        return mb_strtolower($value);
+    }
+
+    private function normalizeMarketplaceDate(string $value, ?string $formatTanggal = null): string
+    {
+        $value = trim($value);
+        if ($value === '') {
+            return $value;
+        }
+
+        try {
+            if (!empty($formatTanggal)) {
+                return Carbon::createFromFormat($formatTanggal, $value)->toDateTimeString();
+            }
+        } catch (\Throwable $e) {
+            // fallback ke parser umum di bawah jika format spesifik gagal
+        }
+
+        try {
+            return Carbon::parse($value)->toDateTimeString();
+        } catch (\Throwable $e) {
+            return $value;
+        }
+    }
+
+    private function isSameDateValue(string $left, string $right): bool
+    {
+        try {
+            return Carbon::parse($left)->format('Y-m-d H:i:s') === Carbon::parse($right)->format('Y-m-d H:i:s');
+        } catch (\Throwable $e) {
+            return trim($left) === trim($right);
+        }
+    }
+
+    private function buildKeuanganBaruColumnMap(array $baris): ?array
+    {
+        // $baris sudah di-unshift dengan nomor baris di index 0
+        $normalized = [];
+        foreach ($baris as $idx => $val) {
+            $normalized[$idx] = $this->normalizeCsvHeader((string) $val);
+        }
+
+        // minimal wajib (format lama & format terbaru sama-sama punya ini)
+        $need = [
+            'request time' => 'request_time',
+            'amount' => 'amount',
+            'status' => 'status',
+            'success time' => 'success_time',
+            'bank account' => 'bank_account',
+        ];
+
+        $map = [];
+        foreach ($need as $header => $key) {
+            $pos = array_search($header, $normalized, true);
+            if ($pos === false) {
+                return null;
+            }
+            $map[$key] = (int) $pos;
+        }
+
+        // optional untuk format terbaru
+        $optional = [
+            'type' => 'type',
+            'reference id' => 'reference_id',
+        ];
+        foreach ($optional as $header => $key) {
+            $pos = array_search($header, $normalized, true);
+            if ($pos !== false) {
+                $map[$key] = (int) $pos;
+            }
+        }
+
+        return $map;
+    }
+
+    private function parseCsvNumber(string $value): float
+    {
+        $value = trim($value);
+        if ($value === '') {
+            return 0;
+        }
+
+        // hapus pemisah ribuan umum, jaga minus
+        $value = str_replace([',', ' '], '', $value);
+        // beberapa export pakai titik sebagai ribuan
+        $value = preg_replace('/\.(?=\d{3}(\D|$))/', '', $value) ?? $value;
+        // buang trailing .0 / .00
+        $value = preg_replace('/\.0+$/', '', $value) ?? $value;
+
+        return (float) $value;
     }
 }
