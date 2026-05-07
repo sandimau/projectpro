@@ -640,8 +640,8 @@ class MarketplaceController extends Controller
 
                 // enforce kas_id hanya 1 record: hapus semua lalu insert yang paling baru
                 if ($latestKasRow) {
-                    BukuBesar::where('akun_detail_id', $config->kas_id)->delete();
-                    BukuBesar::create([
+                    DB::table('buku_besars')->where('akun_detail_id', $config->kas_id)->delete();
+                    DB::table('buku_besars')->insert([
                         'akun_detail_id' => $config->kas_id,
                         'kode' => 'byr',
                         'created_at' => $latestKasRow['tanggal'],
@@ -649,7 +649,10 @@ class MarketplaceController extends Controller
                         'ket' => $latestKasRow['ket'],
                         'debet' => 0,
                         'kredit' => $latestKasRow['kredit'],
+                        'saldo' => 0,
                     ]);
+
+                    AkunDetail::where('id', $config->kas_id)->update(['saldo' => 0]);
                 }
 
                 if ((int) $config->baruKeuangan === 1) {
