@@ -161,14 +161,32 @@ class ShopeeLivePushController extends Controller
 
         $config = Marketplace::find($id);
 
+        if (!$config) {
+            Log::channel('shopee')->error('Shopee auth callback - marketplace tidak ditemukan', [
+                'id' => $id,
+                'shop_id' => $shopId,
+                'query' => request()->all(),
+            ]);
+            return redirect()->route('marketplaces.index')
+                ->with('error', 'Otorisasi Shopee gagal: data marketplace (id) tidak ditemukan.');
+        }
+
+        if (!$code || !$shopId) {
+            Log::channel('shopee')->error('Shopee auth callback - code/shop_id kosong', [
+                'id' => $id,
+                'code' => $code,
+                'shop_id' => $shopId,
+            ]);
+            return redirect()->route('marketplaces.index')
+                ->with('error', 'Otorisasi Shopee gagal: code atau shop_id tidak diterima dari Shopee.');
+        }
+
         // Exchange authorization code for access token and refresh token
         $tokens = $this->ambilTokenPertama($code, $shopId);
 
         if (!$tokens) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal mendapatkan token dari Shopee'
-            ], 400);
+            return redirect()->route('marketplaces.index')
+                ->with('error', 'Gagal mendapatkan token dari Shopee. Silakan coba otorisasi ulang.');
         }
 
         $accessToken = $tokens['access_token'];
@@ -230,7 +248,9 @@ class ShopeeLivePushController extends Controller
      */
     public function manualRefreshToken()
     {
-        $id = 1;
+        // Ambil id dari query (?id=...) sesuai dokumentasi URL di atas.
+        // Jangan hardcode — id marketplace bisa berbeda tiap perusahaan/toko.
+        $id = request()->get('id');
 
         // Validasi input
         if (!$id) {

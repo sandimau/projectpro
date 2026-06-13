@@ -59,14 +59,18 @@ class Marketplace extends Model
 
                 // Path HARUS dimulai dengan "/" untuk signature Shopee
                 $path = "/api/v2/shop/auth_partner";
-                $redirectUrl = url('shopee/auth?id=' . $this->id);
+                // id sebagai PATH param (bukan query) supaya redirect URL tidak punya
+                // query string. Shopee akan menambahkan ?code=...&shop_id=... sendiri
+                // saat callback, sehingga aman dari penggabungan query yang malformed.
+                $redirectUrl = url('shopee/auth/' . $this->id);
                 $timest = time();
                 $baseString = sprintf("%s%s%s", $format->partnerId, $path, $timest);
                 $sign = hash_hmac('sha256', $baseString, $format->partnerKey);
 
                 // Hapus trailing slash dari host untuk menghindari double slash
                 $host = rtrim($format->host, '/');
-                $shopeeConnectUrl = sprintf("%s%s?partner_id=%s&timestamp=%s&sign=%s&redirect=%s", $host, $path, $format->partnerId, $timest, $sign, $redirectUrl);
+                // redirect tetap di-urlencode agar aman sebagai nilai query param Shopee
+                $shopeeConnectUrl = sprintf("%s%s?partner_id=%s&timestamp=%s&sign=%s&redirect=%s", $host, $path, $format->partnerId, $timest, $sign, urlencode($redirectUrl));
                 return "<a href=\"" . $shopeeConnectUrl . "\">sinkronkan</a>";
             }
         } else {

@@ -27,7 +27,7 @@ Route::get('/order/hapusOnline', [OrderController::class, 'hapusOnline'])->name(
 // Public Link Page (seperti Linktree)
 Route::get('/link/{slug}', [LinkController::class, 'show'])->name('link.show');
 
-Route::get('/shopee/auth', [ShopeeLivePushController::class, 'auth'])
+Route::get('/shopee/auth/{id?}', [ShopeeLivePushController::class, 'auth'])
     ->name('webhook.shopee.auth');
 
 Route::post('/webhook/shopee/push', [ShopeeLivePushController::class, 'push'])->name('webhook.shopee.push');
