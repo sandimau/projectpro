@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Kolom status sudah ditambahkan oleh migration 2026_01_17, jadi di sini
+        // cukup menambahkan finished_at saja agar tidak duplikat saat migrate:fresh.
         Schema::table('produk_produksi_hasils', function (Blueprint $table) {
-            $table->enum('status', ['proses', 'finish'])->default('proses')->after('hpp');
             $table->timestamp('finished_at')->nullable()->after('status');
         });
     }
@@ -23,7 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('produk_produksi_hasils', function (Blueprint $table) {
-            $table->dropColumn(['status', 'finished_at']);
+            $table->dropColumn('finished_at');
         });
     }
 };
