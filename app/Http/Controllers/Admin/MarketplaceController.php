@@ -787,7 +787,9 @@ class MarketplaceController extends Controller
                             }
 
                             $ongkir = str_replace(".", "", $baris[$marketplace->ongkir]);
-                            $deathline = $baris[$marketplace->deathline];
+                            $deathline = isset($baris[$marketplace->deathline]) && $baris[$marketplace->deathline] !== ''
+                                ? $baris[$marketplace->deathline]
+                                : (isset($tanggal) ? Carbon::parse($tanggal)->addDays(7)->toDateString() : '');
 
                             $order[] = array(
                                 'kontak_id' => $id_shopee,
@@ -824,8 +826,10 @@ class MarketplaceController extends Controller
                         if (strpos($barang, '_') !== false) {
                             $skuParts = explode('_', $barang);
                             $barang = $skuParts[0]; // Mengambil bagian pertama dari SKU
-                            $paket = $skuParts[1]; // Menambahkan paket dengan bagian kedua dari SKU
-                            $jumlah = $jumlah * $paket;
+                            if (isset($skuParts[1]) && is_numeric($skuParts[1])) {
+                                $paket = (int) $skuParts[1]; // bagian kedua dari SKU = jumlah paket
+                                $jumlah = (int) $jumlah * $paket;
+                            }
                         }
 
                         /////////////////cek, apakah sku udah sesuai dgn produk_id
@@ -1517,9 +1521,11 @@ class MarketplaceController extends Controller
                         if (strpos($barang, '_') !== false) {
                             $skuParts = explode('_', $barang);
                             $barang = $skuParts[0]; // Mengambil bagian pertama dari SKU
-                            $paket = $skuParts[1]; // Menambahkan paket dengan bagian kedua dari SKU
-                            $jumlah = $jumlah * $paket;
-                            $harga = $harga / $jumlah;
+                            if (isset($skuParts[1]) && is_numeric($skuParts[1])) {
+                                $paket = (int) $skuParts[1]; // bagian kedua dari SKU = jumlah paket
+                                $jumlah = (int) $jumlah * $paket;
+                                $harga = $harga / $jumlah;
+                            }
                         }
 
                         /////////////////cek, apakah sku udah sesuai dgn produk_id
