@@ -792,9 +792,7 @@ class MarketplaceController extends Controller
                             }
 
                             $ongkir = str_replace(".", "", $baris[$marketplace->ongkir]);
-                            $deathline = isset($baris[$marketplace->deathline]) && $baris[$marketplace->deathline] !== ''
-                                ? $baris[$marketplace->deathline]
-                                : (isset($tanggal) ? Carbon::parse($tanggal)->addDays(7)->toDateString() : '');
+                            $deathline = $this->parseDeathline($baris[$marketplace->deathline] ?? '', $tanggal ?? null, $marketplace->formatTanggal);
 
                             $order[] = array(
                                 'kontak_id' => $id_shopee,
@@ -1789,10 +1787,8 @@ class MarketplaceController extends Controller
                             $nota_awal = $nota;
 
                             $ongkir = str_replace(".", "", $baris[$marketplace->ongkir]);
-                            // Tambah 5 hari dari $tanggal
-                            $deathline = isset($baris[$marketplace->deathline]) && $baris[$marketplace->deathline] !== ''
-                                ? $baris[$marketplace->deathline]
-                                : (isset($tanggal) ? Carbon::parse($tanggal)->addDays(5)->toDateString() : '');
+                            // Tambah 5 hari dari $tanggal jika deathline kosong
+                            $deathline = $this->parseDeathline($baris[$marketplace->deathline] ?? '', $tanggal ?? null, $marketplace->formatTanggal, 7);
 
                             $order[] = array(
                                 'kontak_id' => $id_shopee,
@@ -2036,6 +2032,41 @@ class MarketplaceController extends Controller
         $value = preg_replace('/\s+/u', ' ', $value) ?? $value;
 
         return mb_strtolower($value);
+    }
+
+    /**
+     * Ubah nilai deathline mentah dari CSV menjadi tanggal Y-m-d yang valid.
+     * Jika kosong/gagal di-parse, fallback ke $tanggal + $fallbackDays hari.
+     * Return null bila tidak ada acuan tanggal (hindari simpan 0000-00-00).
+     */
+    private function parseDeathline($value, ?string $tanggal = null, ?string $formatTanggal = null, int $fallbackDays = 7): ?string
+    {
+        $value = trim((string) $value);
+
+        if ($value !== '') {
+            if (!empty($formatTanggal)) {
+                try {
+                    return Carbon::createFromFormat($formatTanggal, $value)->toDateString();
+                } catch (\Throwable $e) {
+                    // coba parser umum di bawah
+                }
+            }
+            try {
+                return Carbon::parse($value)->toDateString();
+            } catch (\Throwable $e) {
+                // gagal parse, jatuh ke fallback tanggal di bawah
+            }
+        }
+
+        if (!empty($tanggal)) {
+            try {
+                return Carbon::parse($tanggal)->addDays($fallbackDays)->toDateString();
+            } catch (\Throwable $e) {
+                return null;
+            }
+        }
+
+        return null;
     }
 
     private function normalizeMarketplaceDate(string $value, ?string $formatTanggal = null): string

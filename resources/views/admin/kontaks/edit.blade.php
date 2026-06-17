@@ -56,8 +56,8 @@
                 </div>
                 <div class="mb-3">
                     <div class="form-check">
-                        <input name="konsumen" class="form-check-input {{ $errors->has('konsumen') ? 'is-invalid' : '' }}" type="checkbox" value="1" id="flexCheckDefault" {{ $kontak->konsumen ? 'checked' : null }} >
-                        <label class="form-check-label" for="flexCheckDefault">
+                        <input name="konsumen" class="form-check-input {{ $errors->has('konsumen') ? 'is-invalid' : '' }}" type="checkbox" value="1" id="flexCheckKonsumen" {{ $kontak->konsumen ? 'checked' : null }} >
+                        <label class="form-check-label" for="flexCheckKonsumen">
                             Konsumen
                         </label>
                         @if ($errors->has('konsumen'))
@@ -67,14 +67,14 @@
                     @endif
                     </div>
                     <div class="form-check">
-                        <input name="supplier" class="form-check-input" type="checkbox" value="1" id="flexCheckChecked" {{ $kontak->supplier ? 'checked' : null }}>
-                        <label class="form-check-label" for="flexCheckChecked">
+                        <input name="supplier" class="form-check-input" type="checkbox" value="1" id="flexCheckSupplier" {{ $kontak->supplier ? 'checked' : null }}>
+                        <label class="form-check-label" for="flexCheckSupplier">
                             Supplier
                         </label>
                     </div>
                     <div class="form-check">
-                        <input name="marketplace" class="form-check-input" type="checkbox" value="1" id="flexCheckChecked" {{ $kontak->marketplace ? 'checked' : null }}>
-                        <label class="form-check-label" for="flexCheckChecked">
+                        <input name="marketplace" class="form-check-input" type="checkbox" value="1" id="flexCheckMarketplace" {{ $kontak->marketplace ? 'checked' : null }}>
+                        <label class="form-check-label" for="flexCheckMarketplace">
                             Marketplace
                         </label>
                     </div>
