@@ -13,14 +13,19 @@ use App\Models\AkunDetail;
 use App\Models\Pembayaran;
 use App\Models\ProdukStok;
 use App\Models\Marketplace;
+use App\Models\ProdukModel;
+use App\Models\ProdukKategori;
 use Illuminate\Http\Request;
 use App\Models\BelanjaDetail;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Traits\ShopeeApi;
 use Symfony\Component\HttpFoundation\Response;
 
 class MarketplaceController extends Controller
 {
+    use ShopeeApi;
+
     public function index()
     {
         abort_if(Gate::denies('marketplace_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
@@ -1109,6 +1114,309 @@ class MarketplaceController extends Controller
         // } catch (\Exception $e) {
         //     return redirect()->back()->withErrors(['error' => 'Upload Stok gagal: ' . $e->getMessage()]);
         // }
+    }
+
+    /**
+     * Halaman daftar produk marketplace (submenu Produk).
+     * Ditampilkan PER PRODUK MODEL (bukan per varian): kategori utama, kategori, produk,
+     * hpp, harga jual, margin, stok min, dan jumlah varian (klik = popup daftar varian).
+     * Mendukung pemilihan toko, filter kategori, dan pagination.
+     */
+    public function produk(Request $request)
+    {
+        abort_if(Gate::denies('marketplace_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        // Daftar toko Shopee untuk dipilih
+        $tokos = Marketplace::where('marketplace', 'shopee')->orderBy('nama')->get();
+
+        // Toko yang sedang dipilih (default toko pertama)
+        $marketplaceId = $request->input('marketplace_id', optional($tokos->first())->id);
+        $config = $marketplaceId ? Marketplace::find($marketplaceId) : null;
+
+        // Daftar kategori untuk filter (hanya di bawah kategori utama jual & stok)
+        $kategoris = ProdukKategori::whereHas('kategoriUtama', function ($q) {
+            $q->where('jual', 1)->where('stok', 1);
+        })->orderBy('nama')->get();
+        $kategoriId = $request->input('kategori_id');
+
+        $items = null;
+        $varianPerModel = collect();
+
+        if ($config) {
+            $query = DB::table('produk_marketplaces as pm')
+                ->join('produks', 'pm.produk_id', '=', 'produks.id')
+                ->join('produk_models as m', 'produks.produk_model_id', '=', 'm.id')
+                ->join('produk_kategoris as k', 'm.kategori_id', '=', 'k.id')
+                ->join('produk_kategori_utamas as ku', 'k.kategori_utama_id', '=', 'ku.id')
+                ->where('pm.marketplace_id', $config->id)
+                ->where('ku.jual', 1)
+                ->where('ku.stok', 1)
+                ->when(!empty($kategoriId), fn ($q) => $q->where('m.kategori_id', $kategoriId))
+                ->groupBy('m.id', 'm.nama', 'm.harga', 'm.stok_min_mp', 'k.id', 'k.nama', 'ku.id', 'ku.nama')
+                ->select(
+                    'm.id as produk_model_id',
+                    'm.nama as namaProduk',
+                    'm.harga as harga',
+                    'm.stok_min_mp',
+                    'k.id as kategori_id',
+                    'k.nama as kategori',
+                    'ku.id as kategori_utama_id',
+                    'ku.nama as namaUtama',
+                    DB::raw('MAX(produks.hpp) as hpp'),
+                    DB::raw('COUNT(pm.id) as total_varian')
+                )
+                ->orderBy('ku.nama')
+                ->orderBy('k.nama')
+                ->orderBy('m.nama');
+
+            $items = $query->paginate(25)->withQueryString();
+
+            // Hitung margin tiap baris
+            foreach ($items as $row) {
+                $hpp = (float) $row->hpp;
+                $harga = (float) $row->harga;
+                $row->margin = $hpp > 0 ? (int) floor(($harga - $hpp) / $hpp * 100) : null;
+            }
+
+            // Ambil semua varian (produk_marketplaces) untuk model di halaman ini → popup
+            $modelIds = collect($items->items())->pluck('produk_model_id')->all();
+            if (!empty($modelIds)) {
+                $varianPerModel = DB::table('produk_marketplaces as pm')
+                    ->join('produks', 'pm.produk_id', '=', 'produks.id')
+                    ->join('produk_models as m', 'produks.produk_model_id', '=', 'm.id')
+                    ->where('pm.marketplace_id', $config->id)
+                    ->whereIn('produks.produk_model_id', $modelIds)
+                    ->select(
+                        'pm.id as pm_id',
+                        'pm.item_id',
+                        'pm.model_id',
+                        'pm.paket',
+                        'pm.harga as harga_varian',
+                        'pm.harga_mp',
+                        'pm.nama',
+                        'pm.varian',
+                        'pm.update_harga_terakhir',
+                        'm.id as produk_model_id',
+                        'm.harga as harga_lokal'
+                    )
+                    ->orderBy('pm.nama')
+                    ->orderBy('pm.varian')
+                    ->get();
+
+                foreach ($varianPerModel as $v) {
+                    $paket = max((int) $v->paket, 1);
+                    // Harga jual per varian: pakai pm.harga bila sudah diisi, fallback ke harga model
+                    $hargaJual = (int) $v->harga_varian > 0 ? (int) $v->harga_varian : (int) $v->harga_lokal;
+                    $v->harga_jual = $hargaJual;
+                    $v->harga_baru = $hargaJual > 0
+                        ? (int) floor($hargaJual * $paket * (100 + $config->harga) / 100)
+                        : 0;
+                    $v->berubah = $v->harga_baru > 0 && (int) $v->harga_mp !== $v->harga_baru;
+                }
+
+                $varianPerModel = $varianPerModel->groupBy('produk_model_id');
+            }
+        }
+
+        return view('admin.marketplaces.produk', compact('tokos', 'config', 'kategoris', 'kategoriId', 'items', 'varianPerModel'));
+    }
+
+    /**
+     * Edit harga jual produk (produk_models.harga) dari popup "harga jual".
+     */
+    public function updateHargaModel(Request $request)
+    {
+        abort_if(Gate::denies('marketplace_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $request->validate([
+            'produk_model_id' => 'required|integer',
+            'harga' => 'required|integer|min:0',
+        ]);
+
+        ProdukModel::where('id', $request->produk_model_id)->update(['harga' => (int) $request->harga]);
+
+        return redirect()->back()->withSuccess('Harga jual berhasil diperbarui.');
+    }
+
+    /**
+     * Edit margin (%) produk dari kolom margin. Harga jual dihitung ulang dari hpp:
+     * harga = hpp * (1 + margin/100), lalu disimpan ke produk_models.harga.
+     */
+    public function updateMargin(Request $request)
+    {
+        abort_if(Gate::denies('marketplace_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $request->validate([
+            'produk_model_id' => 'required|integer',
+            'margin' => 'required|numeric',
+        ]);
+
+        $hpp = (float) DB::table('produks')
+            ->where('produk_model_id', $request->produk_model_id)
+            ->max('hpp');
+
+        if ($hpp <= 0) {
+            return redirect()->back()->withErrors(['error' => 'HPP produk masih 0, margin tidak bisa dihitung.']);
+        }
+
+        $harga = (int) floor($hpp * (100 + (float) $request->margin) / 100);
+
+        ProdukModel::where('id', $request->produk_model_id)->update(['harga' => $harga]);
+
+        return redirect()->back()->withSuccess('Margin diperbarui, harga jual jadi Rp ' . number_format($harga, 0, ',', '.'));
+    }
+
+    /**
+     * Edit massal stok minimal marketplace (produk_models.stok_min_mp) untuk produk
+     * model terpilih. Nilai kosong = hapus (NULL).
+     */
+    public function bulkStokMin(Request $request)
+    {
+        abort_if(Gate::denies('marketplace_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer',
+            'stok_min_mp' => 'nullable|integer|min:0',
+        ]);
+
+        $nilai = $request->filled('stok_min_mp') ? (int) $request->stok_min_mp : null;
+
+        $jumlah = ProdukModel::whereIn('id', $request->ids)->update(['stok_min_mp' => $nilai]);
+
+        return redirect()->back()->withSuccess($jumlah . ' produk diperbarui stok minimalnya.');
+    }
+
+    /**
+     * Simpan harga jual per varian (produk_marketplaces.harga) dari popup total varian.
+     */
+    public function updateHargaVarian(Request $request)
+    {
+        abort_if(Gate::denies('marketplace_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $request->validate([
+            'pm_id' => 'required|integer',
+            'harga' => 'required|integer|min:0',
+        ]);
+
+        $updated = DB::table('produk_marketplaces')->where('id', $request->pm_id)->update([
+            'harga' => (int) $request->harga,
+            'updated_at' => now(),
+        ]);
+
+        if (!$updated) {
+            return redirect()->back()->withErrors(['error' => 'Varian tidak ditemukan.']);
+        }
+
+        return redirect()->back()->withSuccess('Harga jual varian berhasil disimpan.');
+    }
+
+    /**
+     * Update harga SATU produk dari aplikasi ke Shopee via Open API (product/update_price).
+     *
+     * Diproses per produk (berdasarkan id baris produk_marketplaces) sesuai permintaan,
+     * bukan sekaligus semua produk.
+     */
+    public function updateHarga(Request $request, Marketplace $id)
+    {
+        abort_if(Gate::denies('marketplace_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $request->validate([
+            'pm_id' => 'required',
+            'harga' => 'nullable|integer|min:0',
+        ]);
+
+        $config = $id;
+
+        if ($config->marketplace !== 'shopee') {
+            return redirect()->back()->withErrors(['error' => 'Update harga otomatis hanya tersedia untuk Shopee']);
+        }
+
+        if (empty($config->shop_id) || empty($config->access_token)) {
+            return redirect()->back()->withErrors(['error' => 'Toko belum tersinkron dengan Shopee. Silakan sinkronkan terlebih dahulu.']);
+        }
+
+        $row = DB::table('produk_marketplaces as pm')
+            ->join('produks', 'pm.produk_id', '=', 'produks.id')
+            ->join('produk_models', 'produks.produk_model_id', '=', 'produk_models.id')
+            ->where('pm.id', $request->pm_id)
+            ->where('pm.marketplace_id', $config->id)
+            ->select(
+                'pm.id as pm_id',
+                'pm.item_id',
+                'pm.model_id',
+                'pm.paket',
+                'pm.harga as harga_varian',
+                'pm.harga_mp',
+                'pm.nama',
+                'pm.varian',
+                'produk_models.harga as harga_lokal'
+            )
+            ->first();
+
+        if (!$row) {
+            return redirect()->back()->withErrors(['error' => 'Produk tidak ditemukan di toko ini.']);
+        }
+
+        $paket = max((int) $row->paket, 1);
+
+        // Harga jual: dari form, atau pm.harga, atau fallback harga model
+        if ($request->filled('harga')) {
+            $hargaJual = (int) $request->harga;
+            DB::table('produk_marketplaces')->where('id', $row->pm_id)->update([
+                'harga' => $hargaJual,
+                'updated_at' => now(),
+            ]);
+        } else {
+            $hargaJual = (int) $row->harga_varian > 0 ? (int) $row->harga_varian : (int) $row->harga_lokal;
+        }
+
+        if ($hargaJual <= 0) {
+            return redirect()->back()->withErrors(['error' => 'Harga jual varian masih kosong/0.']);
+        }
+
+        $hargaBaru = (int) floor($hargaJual * $paket * (100 + $config->harga) / 100);
+
+        if ($hargaBaru <= 0) {
+            return redirect()->back()->withErrors(['error' => 'Harga hasil perhitungan tidak valid (0).']);
+        }
+
+        $priceEntry = ['original_price' => $hargaBaru];
+        // model_id 0 = produk tanpa variasi, tidak perlu dikirim
+        if ((int) $row->model_id > 0) {
+            $priceEntry['model_id'] = (int) $row->model_id;
+        }
+
+        $body = [
+            'item_id' => (int) $row->item_id,
+            'price_list' => [$priceEntry],
+        ];
+
+        $resp = $this->kirimApi($config, 'product/update_price', $body);
+
+        $namaProduk = trim($row->nama . ($row->varian ? ' - ' . $row->varian : ''));
+
+        if (is_array($resp) && empty($resp['error'])) {
+            $response = $resp['response'] ?? [];
+
+            if (!empty($response['failure_list'])) {
+                $f = $response['failure_list'][0];
+                return redirect()->back()
+                    ->withErrors(['error' => 'Gagal update ' . $namaProduk . ': ' . ($f['failed_reason'] ?? json_encode($f))]);
+            }
+
+            DB::table('produk_marketplaces')->where('id', $row->pm_id)->update([
+                'harga_mp' => $hargaBaru,
+                'update_harga_terakhir' => now(),
+                'updated_at' => now(),
+            ]);
+
+            return redirect()->back()
+                ->withSuccess('Harga ' . $namaProduk . ' berhasil diupdate ke Rp ' . number_format($hargaBaru, 0, ',', '.'));
+        }
+
+        return redirect()->back()
+            ->withErrors(['error' => 'Gagal update ' . $namaProduk . ': ' . ($resp['error'] ?? $resp['message'] ?? 'tidak diketahui')]);
     }
 
     public function analisa(Request $request)

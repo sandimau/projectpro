@@ -121,7 +121,7 @@
                                     <td>{{ date('d-m-Y', strtotime($order->created_at)) }}</td>
                                     <td>{{ $order->nota }}</td>
                                     <td>{{ $order->kontak->nama ?? '' }}</td>
-                                    <td><a href="{{ route('order.detail', $order->id) }}">{{ $order->listproduk }}</a></td>
+                                    <td><a class="popup" href="{{ route('order.detail', $order->id) }}">{{ $order->listproduk }}</a></td>
                                     <td>{{ number_format($order->total, 0, ',', '.') }}</td>
                                     <td>{{ number_format($order->bayar, 0, ',', '.') }}</td>
                                     <td>
@@ -146,12 +146,15 @@
             </div>
         </div>
     </div>
+
+    @include('admin.orders.partials.detail-order-modal')
 @endsection
 
 @push('after-scripts')
     <script src="{{ asset('js/autocomplete.min.js') }}"></script>
     <link rel="stylesheet" href="{{ asset('js/autocomplete.css') }}">
     <script>
+        @include('admin.orders.partials.detail-order-modal-js')
 
         new Autocomplete('#autocompleteProduk', {
             search: input => {
@@ -309,5 +312,7 @@
         th a:hover i {
             opacity: 1;
         }
+
+        @include('admin.orders.partials.detail-order-modal-styles')
     </style>
 @endpush

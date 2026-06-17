@@ -1,15 +1,48 @@
+@php
+    $navOpen = fn (...$patterns) => collect($patterns)->contains(fn ($p) => request()->is($p));
+
+    $orderKeuanganPaths = ['admin/order/belumLunas*'];
+    $orderOmzetPaths = ['admin/order/omzet*'];
+    $orderProduksiExcluded = ['admin/order/dashboard*', 'admin/order/marketplace*', 'admin/order/belumLunas*', 'admin/order/omzet*', 'admin/order/arsip*'];
+
+    $activeOrderProses = request()->is('admin/order/dashboard*');
+    $activeOrderArsip = request()->is('admin/order') || (request()->is('admin/order/*') && !request()->is(...$orderProduksiExcluded));
+    $activeOrderOnline = request()->is('admin/order/marketplace*');
+    $activeBelumLunas = request()->is(...$orderKeuanganPaths);
+    $activeOmzetTahunan = request()->is('admin/order/omzet') || request()->is('admin/order/omzet/*');
+    $activeOmzetBulanan = request()->is('admin/order/omzetBulan*');
+
+    $activeMarketplaceAnalisa = request()->is('admin/analisaMarketplace*');
+    $activeAnalisaBeban = request()->is('admin/analisa/beban*');
+    $activeAnalisaOperasional = request()->is('admin/analisa/operasional*');
+    $activeAnalisaStok = request()->is('admin/analisa/stok*');
+
+    $openProduksiOrder = $activeOrderProses || $activeOrderArsip || $activeOrderOnline;
+    $openData = $navOpen('admin/kontaks*');
+    $openKeuangan = $navOpen('admin/akunKategoris*', 'admin/akunDetails*', 'admin/belanja*', 'admin/hutang*', 'admin/kas') || $activeBelumLunas;
+    $openMarketplace = $navOpen('admin/projectmp*', 'admin/marketplaceProduk*', 'admin/marketplaces*') || $activeMarketplaceAnalisa;
+    $openInventory = $navOpen('admin/produk-kategori-utama*', 'admin/pemakaian*', 'admin/opnames*', 'admin/po*');
+    $openProduksiFactory = $navOpen('admin/produksi*', 'admin/produkProduksi*') && !$navOpen('admin/produksis*');
+    $openPegawai = $navOpen('admin/members*', 'admin/nonaktif', 'admin/freelance*', 'admin/absensi*', 'admin/ars*');
+    $openAnalisa = $activeAnalisaBeban || $activeAnalisaOperasional || $activeAnalisaStok;
+    $openLaporan = $navOpen('admin/neraca*', 'admin/labarugi*', 'admin/labakotor*', 'admin/tunjangan*', 'admin/penggajian*', 'admin/operasional*');
+    $openOmzet = $activeOmzetTahunan || $activeOmzetBulanan || $navOpen('admin/aset*', 'admin/produk/omzet*');
+    $openUserMgmt = $navOpen('users*', 'admin/level*', 'admin/bagian*');
+    $openConfig = $navOpen('roles*', 'permissions*', 'admin/produksis*', 'admin/speks*', 'admin/pemproses*', 'admin/sistem*', 'admin/linkPages*');
+@endphp
+
 <ul class="sidebar-nav" data-coreui="navigation" data-simplebar>
-    <li class="nav-group" aria-expanded="false">
+    <li class="nav-group{{ $openProduksiOrder ? ' show' : '' }}" aria-expanded="{{ $openProduksiOrder ? 'true' : 'false' }}">
         <a class="nav-link nav-group-toggle" href="#">
             <svg class="nav-icon">
                 <use xlink:href="{{ asset('icons/coreui.svg#cil-industry') }}"></use>
             </svg>
             Produksi
         </a>
-        <ul class="nav-group-items" style="height: 0px;">
+        <ul class="nav-group-items">
             @can('order_access')
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->is('order*') ? 'active' : '' }}" href="{{ route('order.dashboard') }}">
+                    <a class="nav-link {{ $activeOrderProses ? 'active' : '' }}" href="{{ route('order.dashboard') }}">
                         <svg class="nav-icon">
                             <use xlink:href="{{ asset('icons/coreui.svg#cil-task') }}"></use>
                         </svg>
@@ -17,7 +50,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->is('order*') ? 'active' : '' }}" href="{{ route('order.index') }}">
+                    <a class="nav-link {{ $activeOrderArsip ? 'active' : '' }}" href="{{ route('order.index') }}">
                         <svg class="nav-icon">
                             <use xlink:href="{{ asset('icons/coreui.svg#cil-folder-open') }}"></use>
                         </svg>
@@ -25,7 +58,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->is('order*') ? 'active' : '' }}"
+                    <a class="nav-link {{ $activeOrderOnline ? 'active' : '' }}"
                         href="{{ route('order.marketplace') }}">
                         <svg class="nav-icon">
                             <use xlink:href="{{ asset('icons/coreui.svg#cil-cloud-download') }}"></use>
@@ -37,14 +70,14 @@
         </ul>
     </li>
 
-    <li class="nav-group" aria-expanded="false">
+    <li class="nav-group{{ $openData ? ' show' : '' }}" aria-expanded="{{ $openData ? 'true' : 'false' }}">
         <a class="nav-link nav-group-toggle" href="#">
             <svg class="nav-icon">
                 <use xlink:href="{{ asset('icons/coreui.svg#cil-storage') }}"></use>
             </svg>
             Data
         </a>
-        <ul class="nav-group-items" style="height: 0px;">
+        <ul class="nav-group-items">
             @can('kontak_access')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('kontaks*') ? 'active' : '' }}"
@@ -59,14 +92,14 @@
         </ul>
     </li>
 
-    <li class="nav-group" aria-expanded="false">
+    <li class="nav-group{{ $openKeuangan ? ' show' : '' }}" aria-expanded="{{ $openKeuangan ? 'true' : 'false' }}">
         <a class="nav-link nav-group-toggle" href="#">
             <svg class="nav-icon">
                 <use xlink:href="{{ asset('icons/coreui.svg#cil-dollar') }}"></use>
             </svg>
             Keuangan
         </a>
-        <ul class="nav-group-items" style="height: 0px;">
+        <ul class="nav-group-items">
             @role('super')
                 @can('akun_access')
                     <li class="nav-item">
@@ -91,7 +124,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->is('akunDetails*') ? 'active' : '' }}"
+                    <a class="nav-link {{ $activeBelumLunas ? 'active' : '' }}"
                         href="{{ route('order.unpaid') }}">
                         <svg class="nav-icon">
                             <use xlink:href="{{ asset('icons/coreui.svg#cil-credit-card') }}"></use>
@@ -122,14 +155,14 @@
         </ul>
     </li>
 
-    <li class="nav-group" aria-expanded="false">
+    <li class="nav-group{{ $openMarketplace ? ' show' : '' }}" aria-expanded="{{ $openMarketplace ? 'true' : 'false' }}">
         <a class="nav-link nav-group-toggle" href="#">
             <svg class="nav-icon">
                 <use xlink:href="{{ asset('icons/coreui.svg#cil-basket') }}"></use>
             </svg>
             Marketplace
         </a>
-        <ul class="nav-group-items" style="height: 0px;">
+        <ul class="nav-group-items">
             @can('marketplace_access')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('admin/projectmp/dashboard*') ? 'active' : '' }}"
@@ -159,6 +192,15 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {{ request()->is('admin/marketplaceProduk*') ? 'active' : '' }}"
+                        href="{{ route('marketplaces.produk') }}">
+                        <svg class="nav-icon">
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-tags') }}"></use>
+                        </svg>
+                        {{ __('Produk') }}
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link {{ request()->is('marketplaces*') ? 'active' : '' }}"
                         href="{{ route('marketplaces.index') }}">
                         <svg class="nav-icon">
@@ -168,7 +210,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->is('analisaMarketplace*') ? 'active' : '' }}"
+                    <a class="nav-link {{ $activeMarketplaceAnalisa ? 'active' : '' }}"
                         href="{{ route('marketplaces.analisa') }}">
                         <svg class="nav-icon">
                             <use xlink:href="{{ asset('icons/coreui.svg#cil-chart-line') }}"></use>
@@ -180,14 +222,14 @@
         </ul>
     </li>
 
-    <li class="nav-group" aria-expanded="false">
+    <li class="nav-group{{ $openInventory ? ' show' : '' }}" aria-expanded="{{ $openInventory ? 'true' : 'false' }}">
         <a class="nav-link nav-group-toggle" href="#">
             <svg class="nav-icon">
                 <use xlink:href="{{ asset('icons/coreui.svg#cil-inbox') }}"></use>
             </svg>
             Inventory
         </a>
-        <ul class="nav-group-items" style="height: 0px;">
+        <ul class="nav-group-items">
             @can('produk_access')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('produk-kategori-utama*') ? 'active' : '' }}"
@@ -228,14 +270,14 @@
         </ul>
     </li>
 
-    <li class="nav-group" aria-expanded="false">
+    <li class="nav-group{{ $openProduksiFactory ? ' show' : '' }}" aria-expanded="{{ $openProduksiFactory ? 'true' : 'false' }}">
         <a class="nav-link nav-group-toggle" href="#">
             <svg class="nav-icon">
                 <use xlink:href="{{ asset('icons/coreui.svg#cil-inbox') }}"></use>
             </svg>
             Produksi
         </a>
-        <ul class="nav-group-items" style="height: 0px;">
+        <ul class="nav-group-items">
             @can('produk_access')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('produksi*') ? 'active' : '' }}"
@@ -259,14 +301,14 @@
         </ul>
     </li>
 
-    <li class="nav-group" aria-expanded="false">
+    <li class="nav-group{{ $openPegawai ? ' show' : '' }}" aria-expanded="{{ $openPegawai ? 'true' : 'false' }}">
         <a class="nav-link nav-group-toggle" href="#">
             <svg class="nav-icon">
                 <use xlink:href="{{ asset('icons/coreui.svg#cil-people') }}"></use>
             </svg>
             Pegawai
         </a>
-        <ul class="nav-group-items" style="height: 0px;">
+        <ul class="nav-group-items">
             @can('member_access')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('members*') ? 'active' : '' }}"
@@ -316,17 +358,17 @@
         </ul>
     </li>
 
-    <li class="nav-group" aria-expanded="false">
+    <li class="nav-group{{ $openAnalisa ? ' show' : '' }}" aria-expanded="{{ $openAnalisa ? 'true' : 'false' }}">
         <a class="nav-link nav-group-toggle" href="#">
             <svg class="nav-icon">
                 <use xlink:href="{{ asset('icons/coreui.svg#cil-chart') }}"></use>
             </svg>
             Analisa
         </a>
-        <ul class="nav-group-items" style="height: 0px;">
+        <ul class="nav-group-items">
             @can('laporan_access')
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->is('laporan*') ? 'active' : '' }}"
+                    <a class="nav-link {{ $activeAnalisaBeban ? 'active' : '' }}"
                         href="{{ route('analisa.beban') }}">
                         <svg class="nav-icon">
                             <use xlink:href="{{ asset('icons/coreui.svg#cil-chart-line') }}"></use>
@@ -335,7 +377,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->is('laporan*') ? 'active' : '' }}"
+                    <a class="nav-link {{ $activeAnalisaOperasional ? 'active' : '' }}"
                         href="{{ route('analisa.operasional') }}">
                         <svg class="nav-icon">
                             <use xlink:href="{{ asset('icons/coreui.svg#cil-bar-chart') }}"></use>
@@ -344,7 +386,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->is('laporan*') ? 'active' : '' }}"
+                    <a class="nav-link {{ $activeAnalisaStok ? 'active' : '' }}"
                         href="{{ route('analisa.stok') }}">
                         <svg class="nav-icon">
                             <use xlink:href="{{ asset('icons/coreui.svg#cil-chart-pie') }}"></use>
@@ -356,14 +398,14 @@
         </ul>
     </li>
 
-    <li class="nav-group" aria-expanded="false">
+    <li class="nav-group{{ $openLaporan ? ' show' : '' }}" aria-expanded="{{ $openLaporan ? 'true' : 'false' }}">
         <a class="nav-link nav-group-toggle" href="#">
             <svg class="nav-icon">
                 <use xlink:href="{{ asset('icons/coreui.svg#cil-description') }}"></use>
             </svg>
             Laporan
         </a>
-        <ul class="nav-group-items" style="height: 0px;">
+        <ul class="nav-group-items">
             @can('laporan_access')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('laporan*') ? 'active' : '' }}"
@@ -405,17 +447,17 @@
         </ul>
     </li>
 
-    <li class="nav-group" aria-expanded="false">
+    <li class="nav-group{{ $openOmzet ? ' show' : '' }}" aria-expanded="{{ $openOmzet ? 'true' : 'false' }}">
         <a class="nav-link nav-group-toggle" href="#">
             <svg class="nav-icon">
                 <use xlink:href="{{ asset('icons/coreui.svg#cil-graph') }}"></use>
             </svg>
             Omzet
         </a>
-        <ul class="nav-group-items" style="height: 0px;">
+        <ul class="nav-group-items">
             @can('omzet_access')
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->is('order*') ? 'active' : '' }}"
+                    <a class="nav-link {{ $activeOmzetTahunan ? 'active' : '' }}"
                         href="{{ route('order.omzet') }}">
                         <svg class="nav-icon">
                             <use xlink:href="{{ asset('icons/coreui.svg#cil-calendar') }}"></use>
@@ -425,7 +467,7 @@
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->is('order*') ? 'active' : '' }}"
+                    <a class="nav-link {{ $activeOmzetBulanan ? 'active' : '' }}"
                         href="{{ route('order.omzetBulan') }}">
                         <svg class="nav-icon">
                             <use xlink:href="{{ asset('icons/coreui.svg#cil-calendar') }}"></use>
@@ -456,14 +498,14 @@
         </ul>
     </li>
 
-    <li class="nav-group" aria-expanded="false">
+    <li class="nav-group{{ $openUserMgmt ? ' show' : '' }}" aria-expanded="{{ $openUserMgmt ? 'true' : 'false' }}">
         <a class="nav-link nav-group-toggle" href="#">
             <svg class="nav-icon">
                 <use xlink:href="{{ asset('icons/coreui.svg#cil-people') }}"></use>
             </svg>
             User Management
         </a>
-        <ul class="nav-group-items" style="height: 0px;">
+        <ul class="nav-group-items">
 
             @can('user_access')
                 <li class="nav-item">
@@ -502,14 +544,14 @@
             @endcan
         </ul>
     </li>
-    <li class="nav-group" aria-expanded="false">
+    <li class="nav-group{{ $openConfig ? ' show' : '' }}" aria-expanded="{{ $openConfig ? 'true' : 'false' }}">
         <a class="nav-link nav-group-toggle" href="#">
             <svg class="nav-icon">
                 <use xlink:href="{{ asset('icons/coreui.svg#cil-cog') }}"></use>
             </svg>
             Config
         </a>
-        <ul class="nav-group-items" style="height: 0px;">
+        <ul class="nav-group-items">
             @role('super')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->is('roles*') ? 'active' : '' }}"
@@ -553,6 +595,16 @@
             </li>
 
             <li class="nav-item">
+                <a class="nav-link {{ request()->is('pemproses*') ? 'active' : '' }}"
+                    href="{{ route('pemproses.index') }}">
+                    <svg class="nav-icon">
+                        <use xlink:href="{{ asset('icons/coreui.svg#cil-factory') }}"></use>
+                    </svg>
+                    {{ __('Pemproses') }}
+                </a>
+            </li>
+
+            <li class="nav-item">
                 <a class="nav-link {{ request()->is('sistems*') ? 'active' : '' }}"
                     href="{{ route('sistem.index') }}">
                     <svg class="nav-icon">
@@ -574,3 +626,23 @@
         </ul>
     </li>
 </ul>
+
+@push('after-scripts')
+<script>
+    window.addEventListener('load', function () {
+        document.querySelectorAll('.sidebar-nav .nav-group').forEach(function (group) {
+            if (!group.querySelector('.nav-group-items .nav-link.active')) {
+                return;
+            }
+
+            group.classList.add('show');
+            group.setAttribute('aria-expanded', 'true');
+
+            var items = group.querySelector('.nav-group-items');
+            if (items) {
+                items.style.removeProperty('height');
+            }
+        });
+    });
+</script>
+@endpush

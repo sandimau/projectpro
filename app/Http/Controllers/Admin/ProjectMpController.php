@@ -38,6 +38,25 @@ class ProjectMpController extends Controller
     }
 
     /**
+     * Daftar buffer marketplace yang belum terhubung ke project_mp
+     */
+    public function bufferPending()
+    {
+        abort_if(Gate::denies('marketplace_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $buffers = MarketplaceBuffer::whereNull('marketplace_buffers.project_id')
+            ->leftJoin('marketplaces', 'marketplaces.shop_id', '=', 'marketplace_buffers.shop_id')
+            ->select(
+                'marketplace_buffers.*',
+                'marketplaces.nama as nama_marketplace'
+            )
+            ->orderBy('marketplace_buffers.created_at', 'desc')
+            ->paginate(50);
+
+        return view('admin.projectmps.bufferPending', compact('buffers'));
+    }
+
+    /**
      * Dashboard untuk packing (non-custom) berdasarkan status
      */
     public function packing()

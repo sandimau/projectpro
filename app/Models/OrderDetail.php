@@ -62,6 +62,11 @@ class OrderDetail extends Model
         return $this->belongsTo(Produksi::class, 'produksi_id');
     }
 
+    public function pemproses()
+    {
+        return $this->belongsTo(Pemproses::class, 'pemproses_id');
+    }
+
     public function jadwal()
     {
         return $this->belongsToMany(Produksi::class, 'order_jadwals', 'order_detail_id', 'produksi_id')->withPivot('deathline');

@@ -8,6 +8,7 @@ use App\Models\Spek;
 use App\Models\Order;
 use App\Models\Member;
 use App\Models\Produk;
+use App\Models\Pemproses;
 use App\Models\Produksi;
 use App\Models\ProdukStok;
 use App\Models\OrderDetail;
@@ -26,9 +27,10 @@ class OrderDetailController extends Controller
 
         $orderDetails = OrderDetail::where('order_id', $order->id)->get();
         $produksi = Produksi::orderBy('urutan')->get();
+        $pemproses = Pemproses::orderBy('nama')->get();
         $chats = Chat::where('order_id',$order->id)->get();
 
-        return view('admin.orderDetails.index', compact('orderDetails', 'order', 'produksi','chats'));
+        return view('admin.orderDetails.index', compact('orderDetails', 'order', 'produksi', 'pemproses', 'chats'));
     }
 
     public function create(Order $order)
@@ -165,7 +167,24 @@ class OrderDetailController extends Controller
             ]);
         });
 
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['message' => __('Status updated successfully.')]);
+        }
+
         return redirect('/admin/order/' . $detail->order->id . '/detail')->withSuccess(__('Status updated successfully.'));
+    }
+
+    public function updatePemproses(Request $request, OrderDetail $detail)
+    {
+        $detail->update([
+            'pemproses_id' => $request->pemproses_id ?: null,
+        ]);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['message' => __('Pemproses updated successfully.')]);
+        }
+
+        return redirect('/admin/order/' . $detail->order->id . '/detail')->withSuccess(__('Pemproses updated successfully.'));
     }
 
     public function edit(OrderDetail $detail)

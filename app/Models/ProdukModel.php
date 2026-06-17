@@ -21,7 +21,8 @@ class ProdukModel extends Model
         'produksi',
         'gambar',
         'kategori_id',
-        'kontak_id'
+        'kontak_id',
+        'stok_min_mp',
     ];
 
     public function kategori()

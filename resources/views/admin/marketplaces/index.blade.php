@@ -27,6 +27,7 @@
                         <thead>
                             <tr>
                                 <th scope="col">nama</th>
+                                <th scope="col">shop_id</th>
                                 <th scope="col">marketplace</th>
                                 <th scope="col">kas marketplace</th>
                                 <th scope="col">kas penarikan</th>
@@ -43,6 +44,7 @@
                                     <td><a
                                             href="{{ route('marketplaces.show', $marketplace->id) }}">{{ $marketplace->nama }}</a>
                                     </td>
+                                    <td>{{ $marketplace->shop_id ?? '-' }}</td>
                                     <td>{{ $marketplace->marketplace }}</td>
                                     <td>{{ $marketplace->kas->nama ?? '-' }}</td>
                                     <td>{{ $marketplace->kasPenarikan->nama ?? '-' }}</td>

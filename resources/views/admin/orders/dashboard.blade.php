@@ -50,7 +50,7 @@
                                                 $tampilan = '';
                                                 $order_id = 0;
 
-                                                foreach ($item->orderDetail()->orderBy('order_id')->get() as $detail) {
+                                                foreach ($item->orderDetail()->with(['order.kontak.ar', 'produk', 'pemproses'])->orderBy('order_id')->get() as $detail) {
                                                     // Filter: skip jika order_id tidak ada atau null
                                                     if (!$detail->order_id) {
                                                         continue;
@@ -118,15 +118,14 @@
                                                         }
                                                     }
 
-                                                    $proses = '';
-                                                    if (!empty($detail->process)) {
-                                                        $proses =
-                                                            "<span class='label label-info  label-rounded' style='background-color: " .
-                                                            '#' .
-                                                            $detail->process->warna .
+                                                    $pemprosesBadge = '';
+                                                    if (!empty($detail->pemproses)) {
+                                                        $pemprosesBadge =
+                                                            "<span class='label label-info label-rounded' style='background-color: #" .
+                                                            ltrim($detail->pemproses->warna, '#') .
                                                             ";'>" .
-                                                            $detail->process->nama .
-                                                            '</span>';
+                                                            $detail->pemproses->nama .
+                                                            '</span> ';
                                                     }
 
                                                     $nama_produk = '';
@@ -167,8 +166,8 @@
                                                     $tampilan .=
                                                         "<span style='color:#636363; padding-right:5px;'> " .
                                                         $nama_produk .
-                                                        ', ' .
-                                                        $proses .
+                                                        ' ' .
+                                                        $pemprosesBadge .
                                                         $jadwalx .
                                                         '</span> ';
 
@@ -193,90 +192,15 @@
         </div>
     </div>
 
-    <!-- Modal Detail Order -->
-    <div class="modal fade" id="detailOrderModal" tabindex="-1" aria-labelledby="detailOrderModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-fullscreen-lg-down modal-dialog-scrollable modal-dialog-centered modal-xxl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="detailOrderModalLabel">Detail Order</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="detailOrderBody">
-                    <div class="text-center py-5">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    @include('admin.orders.partials.detail-order-modal')
 @endsection
 
 @push('after-scripts')
     <script>
-        let table = new DataTable('#myTable');
-
-        (function() {
-            const modalEl = document.getElementById('detailOrderModal');
-            const modalBody = document.getElementById('detailOrderBody');
-            const modalTitle = document.getElementById('detailOrderModalLabel');
-            const bsModal = new bootstrap.Modal(modalEl);
-
-            const spinner = `
-                <div class="text-center py-5">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                </div>`;
-
-            document.addEventListener('click', function(e) {
-                const link = e.target.closest('a.popup');
-                if (!link) return;
-
-                e.preventDefault();
-                const url = link.getAttribute('href');
-
-                modalBody.innerHTML = spinner;
-                modalTitle.textContent = 'Detail Order';
-                bsModal.show();
-
-                fetch(url, {
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    })
-                    .then(function(res) {
-                        if (!res.ok) throw new Error('Gagal memuat (' + res.status + ')');
-                        return res.text();
-                    })
-                    .then(function(html) {
-                        const doc = new DOMParser().parseFromString(html, 'text/html');
-                        // Ambil hanya konten utama dari halaman detail
-                        const content = doc.querySelector('.body .container-fluid .mb-4') ||
-                            doc.querySelector('.body .container-fluid') ||
-                            doc.querySelector('.body');
-
-                        modalBody.innerHTML = content ? content.innerHTML : html;
-                    })
-                    .catch(function(err) {
-                        modalBody.innerHTML =
-                            '<div class="alert alert-danger">' + err.message + '</div>';
-                    });
-            });
-        })();
+        @include('admin.orders.partials.detail-order-modal-js')
     </script>
     <style>
-        @media (min-width: 992px) {
-            .modal-xxl {
-                max-width: 96%;
-            }
-
-            .modal-xxl.modal-dialog-scrollable {
-                height: calc(100% - 2rem);
-            }
-        }
+        @include('admin.orders.partials.detail-order-modal-styles')
 
         a {
             text-decoration: none;

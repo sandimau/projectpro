@@ -80,6 +80,83 @@ trait ShopeeApi
         }
     }
 
+    /**
+     * Kirim request POST ber-autentikasi ke Shopee Open API (butuh access_token + shop_id).
+     * Dipakai untuk endpoint write seperti product/update_price.
+     */
+    protected function kirimApi($marketplace, $path, $body = [])
+    {
+        try {
+            $accessToken = $this->ambilToken($marketplace);
+
+            if (!$accessToken) {
+                Log::error('kirimApi - Token gagal diambil', [
+                    'marketplace_id' => $marketplace->id ?? null,
+                    'shop_id' => $marketplace->shop_id ?? null,
+                    'path' => $path,
+                ]);
+                return ['error' => 'token gagal diambil'];
+            }
+
+            $path = "/api/v2/" . $path;
+
+            $format = MarketplaceFormat::shopee();
+
+            $timest = time();
+
+            $baseString = sprintf("%s%s%s%s%s", $format->partnerId, $path, $timest, $accessToken, $marketplace->shop_id);
+            $sign = hash_hmac('sha256', $baseString, $format->partnerKey);
+
+            $query = [
+                'partner_id' => $format->partnerId,
+                'timestamp' => $timest,
+                'access_token' => $accessToken,
+                'shop_id' => $marketplace->shop_id,
+                'sign' => $sign,
+            ];
+
+            $url = $format->host . $path . "?" . http_build_query($query);
+
+            $curl = curl_init();
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => $url,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_POSTFIELDS => json_encode($body),
+                CURLOPT_HTTPHEADER => array(
+                    'Content-Type: application/json'
+                ),
+            ));
+            $response = curl_exec($curl);
+
+            if (curl_errno($curl)) {
+                $curlError = curl_error($curl);
+                curl_close($curl);
+                Log::error('kirimApi - cURL Error: ' . $curlError, [
+                    'path' => $path,
+                    'shop_id' => $marketplace->shop_id,
+                ]);
+                return ['error' => 'cURL Error: ' . $curlError];
+            }
+
+            curl_close($curl);
+
+            return json_decode($response, true);
+        } catch (\Exception $e) {
+            Log::error('kirimApi - Exception: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return ['error' => 'Exception: ' . $e->getMessage()];
+        }
+    }
+
     protected function ambilTokenPertama($code, $shopId)
     {
 

@@ -243,13 +243,13 @@ class BufferController extends Controller
         }
     }
 
-    private function logError($marketplace, $jenis, $isi)
+    private function logError($marketplace, $jenis, $isi, $shop_id = null)
     {
         MarketplaceLog::create([
             'isi' => is_array($isi) ? json_encode($isi) : $isi,
             'jenis' => $jenis,
-            'shop_id' => $marketplace->shop_id,
-            'marketplace' => $marketplace->nama,
+            'shop_id' => $marketplace->shop_id ?? $shop_id,
+            'marketplace' => $marketplace->nama ?? null,
             'tanggal' => now()
         ]);
     }
@@ -483,6 +483,10 @@ class BufferController extends Controller
                 'order_sn_list' => $notaString
             ];
             $marketplace = Marketplace::where('shop_id', $shop_id)->first();
+            if (!$marketplace) {
+                $this->logError(null, 'bersihkan buffer', "Marketplace tidak ditemukan untuk shop_id: {$shop_id}", $shop_id);
+                continue;
+            }
             $api = $this->ambilApi($marketplace, 'order/get_order_detail', $param);
 
             if (!empty($api['response'])) {

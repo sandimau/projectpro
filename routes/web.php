@@ -204,6 +204,13 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             // speks
             Route::resource('speks', 'SpekController');
 
+            // pemproses
+            Route::get('/pemproses', 'PemprosesController@index')->name('pemproses.index');
+            Route::get('/pemproses/create', 'PemprosesController@create')->name('pemproses.create');
+            Route::post('/pemproses', 'PemprosesController@store')->name('pemproses.store');
+            Route::get('/pemproses/{pemproses}/edit', 'PemprosesController@edit')->name('pemproses.edit');
+            Route::patch('/pemproses/{pemproses}/update', 'PemprosesController@update')->name('pemproses.update');
+
             // ars
             Route::resource('ars', 'ArController');
 
@@ -261,6 +268,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::get('/orderDetail/{detail}/gambar', 'OrderDetailController@gambar')->name('orderDetail.gambar');
             Route::post('/orderDetail/upload', 'OrderDetailController@upload')->name('orderDetail.upload');
             Route::patch('/orderDetail/{detail}/status', 'OrderDetailController@updateStatus')->name('orderDetail.status');
+            Route::patch('/orderDetail/{detail}/pemproses', 'OrderDetailController@updatePemproses')->name('orderDetail.pemproses');
             Route::get('/orderDetail/{detail}/edit', 'OrderDetailController@edit')->name('orderDetail.edit');
             Route::patch('/orderDetail/{detail}/update', 'OrderDetailController@update')->name('orderDetail.update');
             Route::get('/orderDetail/{detail}/editGambar', 'OrderDetailController@editGambar')->name('orderDetail.editGambar');
@@ -272,6 +280,12 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::post('/marketplaces/{id}/uploadOrder', 'MarketplaceController@uploadOrder')->name('marketplaces.uploadOrder');
             Route::post('/marketplaces/{id}/uploadOrderTiktok', 'MarketplaceController@uploadOrderTiktok')->name('marketplaces.uploadOrderTiktok');
             Route::post('/marketplaces/{id}/uploadStok', 'MarketplaceController@uploadStok')->name('marketplaces.uploadStok');
+            Route::get('/marketplaceProduk', 'MarketplaceController@produk')->name('marketplaces.produk');
+            Route::post('/marketplaceProduk/updateHargaVarian', 'MarketplaceController@updateHargaVarian')->name('marketplaces.updateHargaVarian');
+            Route::post('/marketplaceProduk/updateHargaModel', 'MarketplaceController@updateHargaModel')->name('marketplaces.updateHargaModel');
+            Route::post('/marketplaceProduk/updateMargin', 'MarketplaceController@updateMargin')->name('marketplaces.updateMargin');
+            Route::post('/marketplaceProduk/bulkStokMin', 'MarketplaceController@bulkStokMin')->name('marketplaces.bulkStokMin');
+            Route::post('/marketplaces/{id}/updateHarga', 'MarketplaceController@updateHarga')->name('marketplaces.updateHarga');
             // Route::post('/marketplaces/{id}/uploadKeuanganTiktok', 'MarketplaceController@uploadKeuanganTiktok')->name('marketplaces.uploadKeuanganTiktok');
             Route::post('/marketplaces/{id}/uploadKeuanganTiktokBaru', 'MarketplaceController@uploadKeuanganTiktokBaru')->name('marketplaces.uploadKeuanganTiktokBaru');
             Route::get('/analisaMarketplace', 'MarketplaceController@analisa')->name('marketplaces.analisa');
@@ -279,6 +293,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             // Project Marketplace Dashboard
             Route::get('/projectmp/dashboard', 'ProjectMpController@dashboard')->name('projectmp.dashboard');
             Route::get('/projectmp/packing', 'ProjectMpController@packing')->name('projectmp.packing');
+            Route::get('/projectmp/buffer-pending', 'ProjectMpController@bufferPending')->name('projectmp.bufferPending');
             Route::post('/projectmpDetail/{projectmp}/chat', 'ProjectMpController@storeChat')->name('projectMp.chatStore');
             Route::get('/projectmp', 'ProjectMpController@index')->name('projectmp.index');
 

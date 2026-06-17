@@ -77,6 +77,7 @@
                                         <th>subtotal</th>
                                         <th>spesifikasi</th>
                                         <th>status</th>
+                                        <th>pemproses</th>
                                         <th>gambar</th>
                                         <th>deadline</th>
                                     </tr>
@@ -104,16 +105,30 @@
                                             </td>
                                             <td>
                                                 <form action="{{ route('orderDetail.status', $detail->id) }}"
-                                                    method="post"
-                                                    onsubmit="document.getElementById('submit').disabled=true;
-                                                    document.getElementById('submit').value='proses'">
+                                                    method="post" class="order-detail-ajax-form">
                                                     {{ csrf_field() }}
                                                     {{ method_field('patch') }}
                                                     <select class="form-select" aria-label="Default select example"
-                                                        name="produksi_id" id="produksi_id" onchange="this.form.submit()">
+                                                        name="produksi_id" id="produksi_id" onchange="this.form.requestSubmit()">
                                                         @foreach ($produksi as $entry)
                                                             <option value="{{ $entry->id }}"
                                                                 {{ $detail->produksi_id == $entry->id ? 'selected' : '' }}>
+                                                                {{ $entry->nama }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </form>
+                                            </td>
+                                            <td>
+                                                <form action="{{ route('orderDetail.pemproses', $detail->id) }}"
+                                                    method="post" class="order-detail-ajax-form">
+                                                    {{ csrf_field() }}
+                                                    {{ method_field('patch') }}
+                                                    <select class="form-select" aria-label="Pilih pemproses"
+                                                        name="pemproses_id" onchange="this.form.requestSubmit()">
+                                                        <option value="">- pilih -</option>
+                                                        @foreach (($pemproses ?? collect()) as $entry)
+                                                            <option value="{{ $entry->id }}"
+                                                                {{ $detail->pemproses_id == $entry->id ? 'selected' : '' }}>
                                                                 {{ $entry->nama }}</option>
                                                         @endforeach
                                                     </select>
