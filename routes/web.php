@@ -259,6 +259,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::post('/order/{order}/chat', 'OrderController@storeChat')->name('order.chatStore');
             Route::get('/order/omzet', 'OrderController@omzet')->name('order.omzet');
             Route::get('/order/omzetBulan', 'OrderController@omzetBulan')->name('order.omzetBulan');
+            Route::get('/marketplace/omzetBulan', 'MarketplaceController@omzetBulan')->name('marketplaces.omzetBulan');
             Route::get('/order/arsip', 'OrderController@arsip')->name('order.arsip');
             Route::post('/order/hapusCancel', 'OrderController@hapusCancel')->name('order.hapusCancel');
 

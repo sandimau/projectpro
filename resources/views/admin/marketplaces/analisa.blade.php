@@ -7,123 +7,95 @@
 @section('content')
     <div class="bg-light rounded">
         <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Analisa Marketplace Tahun {{ $tahun_skr }}</h5>
-                <form action="{{ route('marketplaces.analisa') }}" method="GET" class="d-flex align-items-center">
-                    <label for="tahun" class="me-2 mb-0">Tahun:</label>
-                    <select name="tahun" id="tahun" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
-                        @foreach ($listTahun as $tahun)
-                            <option value="{{ $tahun }}" {{ $tahun == $tahun_skr ? 'selected' : '' }}>{{ $tahun }}</option>
-                        @endforeach
-                    </select>
-                </form>
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <form action="{{ route('marketplaces.analisa') }}" method="GET" class="d-flex gap-2 align-items-center">
+                        <label for="bulan" class="form-label mb-0">Bulan</label>
+                        <select name="bulan" id="bulan" class="form-control">
+                            @foreach ($listBulan as $key => $value)
+                                <option value="{{ $key }}" {{ $key == $bulanParam ? 'selected' : '' }}>{{ $value }}</option>
+                            @endforeach
+                        </select>
+                        <button type="submit" class="btn btn-primary">Cari</button>
+                    </form>
+                </div>
             </div>
             <div class="card-body">
                 <div class="mt-2">
                     @include('layouts.includes.messages')
                 </div>
-                @foreach ($marketplaces as $marketplace)
-                    @if($marketplace->kontak)
-                    <div class="mb-4">
-                        <h4>{{ $marketplace->nama }}</h4>
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Bulan</th>
-                                        <th scope="col">Omzet Total</th>
-                                        <th scope="col">Sudah Dibayar</th>
-                                        <th scope="col">HPP</th>
-                                        <th scope="col">Potongan</th>
-                                        <th scope="col">Biaya Iklan</th>
-                                        <th scope="col">Total Biaya</th>
-                                        <th scope="col">Keuntungan</th>
-                                        <th scope="col">Margin</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($data as $bulan => $bulanData)
-                                        <tr>
-                                            <td>{{ $bulanData['nama'] }}</td>
-                                            <td>
-                                                @php
-                                                    $omzetValue = $bulanData['omzet'][$marketplace->id] ?? 0;
-                                                    $bayarValue = $bulanData['bayar'][$marketplace->id] ?? 0;
-                                                    $bulanNumber = $bulanData['bulan'] ?? date('n');
-                                                    $tanggalAwal = $tahun_skr . '-' . str_pad($bulanNumber, 2, '0', STR_PAD_LEFT) . '-01';
-                                                    $tanggalAkhir = date('Y-m-t', strtotime($tanggalAwal));
-                                                @endphp
-                                                @if($omzetValue > 0)
-                                                    @if(strtolower($marketplace->marketplace ?? '') === 'shopee')
-                                                        <a href="{{ route('projectmp.index', [
-                                                            'dari' => $tanggalAwal,
-                                                            'sampai' => $tanggalAkhir,
-                                                            'marketplace_id' => $marketplace->id,
-                                                            'pembayaran' => 0,
-                                                        ]) }}" class="text-decoration-none text-primary fw-bold" title="Lihat detail order {{ $bulanData['nama'] }} {{ $marketplace->nama }}">
-                                                            {{ number_format($omzetValue, 0, ',', '.') }}
-                                                        </a>
-                                                    @else
-                                                        <a href="{{ route('order.marketplace', [
-                                                            'nota' => '',
-                                                            'kontak_id' => $marketplace->kontak->id,
-                                                            'produk_id' => '',
-                                                            'dari' => $tanggalAwal,
-                                                            'sampai' => $tanggalAkhir
-                                                        ]) }}" class="text-decoration-none text-primary fw-bold" title="Lihat detail order {{ $bulanData['nama'] }} {{ $marketplace->nama }}">
-                                                            {{ number_format($omzetValue, 0, ',', '.') }}
-                                                        </a>
-                                                    @endif
-                                                @else
-                                                    {{ number_format($omzetValue, 0, ',', '.') }}
-                                                @endif
-                                            </td>
-                                            <td>
-                                                @if($bayarValue > 0)
-                                                    @if(strtolower($marketplace->marketplace ?? '') === 'shopee')
-                                                        <a href="{{ route('projectmp.index', [
-                                                            'dari' => $tanggalAwal,
-                                                            'sampai' => $tanggalAkhir,
-                                                            'marketplace_id' => $marketplace->id,
-                                                            'pembayaran' => 1,
-                                                        ]) }}" class="text-decoration-none text-success fw-bold" title="Lihat detail order sudah dibayar {{ $bulanData['nama'] }} {{ $marketplace->nama }}">
-                                                            {{ number_format($bayarValue, 0, ',', '.') }}
-                                                        </a>
-                                                    @else
-                                                        <a href="{{ route('order.marketplace', [
-                                                            'nota' => '',
-                                                            'kontak_id' => $marketplace->kontak->id,
-                                                            'pembayaran' => 1,
-                                                            'produk_id' => '',
-                                                            'dari' => $tanggalAwal,
-                                                            'sampai' => $tanggalAkhir
-                                                        ]) }}" class="text-decoration-none text-success fw-bold" title="Lihat detail order sudah dibayar {{ $bulanData['nama'] }} {{ $marketplace->nama }}">
-                                                            {{ number_format($bayarValue, 0, ',', '.') }}
-                                                        </a>
-                                                    @endif
-                                                @else
-                                                    {{ number_format($bayarValue, 0, ',', '.') }}
-                                                @endif
-                                            </td>
-                                            <td>{{ number_format($bulanData['hpp'][$marketplace->id] ?? 0, 0, ',', '.') }}</td>
-                                            @php
-                                                $potongan = ($bulanData['total'][$marketplace->id] ?? 0) - ($bulanData['bayar'][$marketplace->id] ?? 0);
-                                                $totalBiaya = ($potongan + ($bulanData['iklan'][$marketplace->id] ?? 0));
-                                                $keuntungan = ($bulanData['bayar'][$marketplace->id] ?? 0) - ($bulanData['hpp'][$marketplace->id] ?? 0) - ($totalBiaya);
-                                            @endphp
-                                            <td>{{ number_format($potongan, 0, ',', '.') }}</td>
-                                            <td>{{ number_format($bulanData['iklan'][$marketplace->id] ?? 0, 0, ',', '.') }}</td>
-                                            <td>{{ number_format($totalBiaya, 0, ',', '.') }}</td>
-                                            <td>{{ number_format($keuntungan, 0, ',', '.') }}</td>
-                                            <td>{{ ($bulanData['bayar'][$marketplace->id] ?? 0) > 0 ? number_format($keuntungan / ($bulanData['bayar'][$marketplace->id] ?? 0) * 100, 2, ',', '.') . '%' : '0%' }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    @endif
-                @endforeach
+                <p class="text-muted mb-3">Jumlah data: {{ $rows->count() }}</p>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th scope="col">Nama</th>
+                                <th scope="col" class="text-end">Pendapatan MP</th>
+                                <th scope="col" class="text-end">HPP</th>
+                                <th scope="col" class="text-end">Fee MP</th>
+                                <th scope="col" class="text-end">Iklan</th>
+                                <th scope="col" class="text-end">total biaya</th>
+                                <th scope="col" class="text-end">biaya %</th>
+                                <th scope="col" class="text-end">Keuntungan</th>
+                                <th scope="col" class="text-end">margin %</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($rows as $row)
+                                @php $mp = $row->marketplace; @endphp
+                                <tr>
+                                    <td>{{ $mp->nama }}</td>
+                                    <td class="text-end">
+                                        @if($row->pendapatan_mp > 0)
+                                            @if(strtolower($mp->marketplace ?? '') === 'shopee')
+                                                <a href="{{ route('projectmp.index', [
+                                                    'dari' => $row->tanggal_awal,
+                                                    'sampai' => $row->tanggal_akhir,
+                                                    'marketplace_id' => $mp->id,
+                                                    'pembayaran' => 0,
+                                                ]) }}" class="text-decoration-none">
+                                                    {{ number_format($row->pendapatan_mp, 2, ',', '.') }}
+                                                </a>
+                                            @else
+                                                <a href="{{ route('order.marketplace', [
+                                                    'nota' => '',
+                                                    'kontak_id' => $mp->kontak->id,
+                                                    'produk_id' => '',
+                                                    'dari' => $row->tanggal_awal,
+                                                    'sampai' => $row->tanggal_akhir,
+                                                ]) }}" class="text-decoration-none">
+                                                    {{ number_format($row->pendapatan_mp, 2, ',', '.') }}
+                                                </a>
+                                            @endif
+                                        @else
+                                            {{ number_format($row->pendapatan_mp, 2, ',', '.') }}
+                                        @endif
+                                    </td>
+                                    <td class="text-end">{{ number_format($row->hpp, 2, ',', '.') }}</td>
+                                    <td class="text-end">{{ number_format($row->fee_mp, 2, ',', '.') }}</td>
+                                    <td class="text-end">{{ number_format($row->iklan, 2, ',', '.') }}</td>
+                                    <td class="text-end">{{ number_format($row->total_biaya, 2, ',', '.') }}</td>
+                                    <td class="text-end">{{ $row->biaya_persen }}</td>
+                                    <td class="text-end">{{ number_format($row->keuntungan, 2, ',', '.') }}</td>
+                                    <td class="text-end">{{ $row->margin_persen }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                        <tfoot>
+                            <tr class="fw-bold">
+                                <td>total</td>
+                                <td class="text-end">{{ number_format($totals->pendapatan_mp, 2, ',', '.') }}</td>
+                                <td class="text-end">{{ number_format($totals->hpp, 2, ',', '.') }}</td>
+                                <td class="text-end">{{ number_format($totals->fee_mp, 2, ',', '.') }}</td>
+                                <td class="text-end">{{ number_format($totals->iklan, 2, ',', '.') }}</td>
+                                <td class="text-end">{{ number_format($totals->total_biaya, 2, ',', '.') }}</td>
+                                <td class="text-end">{{ $totals->biaya_persen }}</td>
+                                <td class="text-end">{{ number_format($totals->keuntungan, 2, ',', '.') }}</td>
+                                <td class="text-end">{{ $totals->margin_persen }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

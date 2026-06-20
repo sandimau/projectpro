@@ -11,6 +11,7 @@
     $activeBelumLunas = request()->is(...$orderKeuanganPaths);
     $activeOmzetTahunan = request()->is('admin/order/omzet') || request()->is('admin/order/omzet/*');
     $activeOmzetBulanan = request()->is('admin/order/omzetBulan*');
+    $activeOmzetMarketplace = request()->is('admin/marketplace/omzetBulan*');
 
     $activeMarketplaceAnalisa = request()->is('admin/analisaMarketplace*');
     $activeAnalisaBeban = request()->is('admin/analisa/beban*');
@@ -26,7 +27,7 @@
     $openPegawai = $navOpen('admin/members*', 'admin/nonaktif', 'admin/freelance*', 'admin/absensi*', 'admin/ars*');
     $openAnalisa = $activeAnalisaBeban || $activeAnalisaOperasional || $activeAnalisaStok;
     $openLaporan = $navOpen('admin/neraca*', 'admin/labarugi*', 'admin/labakotor*', 'admin/tunjangan*', 'admin/penggajian*', 'admin/operasional*');
-    $openOmzet = $activeOmzetTahunan || $activeOmzetBulanan || $navOpen('admin/aset*', 'admin/produk/omzet*');
+    $openOmzet = $activeOmzetTahunan || $activeOmzetBulanan || $activeOmzetMarketplace || $navOpen('admin/aset*', 'admin/produk/omzet*');
     $openUserMgmt = $navOpen('users*', 'admin/level*', 'admin/bagian*');
     $openConfig = $navOpen('roles*', 'permissions*', 'admin/produksis*', 'admin/speks*', 'admin/pemproses*', 'admin/sistem*', 'admin/linkPages*');
 @endphp
@@ -473,6 +474,16 @@
                             <use xlink:href="{{ asset('icons/coreui.svg#cil-calendar') }}"></use>
                         </svg>
                         {{ __('Bulanan') }}
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link {{ $activeOmzetMarketplace ? 'active' : '' }}"
+                        href="{{ route('marketplaces.omzetBulan') }}">
+                        <svg class="nav-icon">
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-basket') }}"></use>
+                        </svg>
+                        {{ __('Marketplace') }}
                     </a>
                 </li>
 
