@@ -11,7 +11,7 @@ use App\Models\Produksi;
 use App\Models\BukuBesar;
 use App\Models\AkunDetail;
 use App\Models\Pembayaran;
-use App\Models\ProdukStok;
+use App\Services\StokService;
 use App\Models\Marketplace;
 use App\Models\ProdukModel;
 use App\Models\ProdukKategori;
@@ -114,7 +114,7 @@ class MarketplaceController extends Controller
     public function uploadKeuangan(Request $request, Marketplace $id)
     {
         $request->validate([
-            'keuangan' => 'required|mimes:csv',
+            'keuangan' => 'required|file|extensions:csv|mimes:csv,txt',
         ]);
 
         try {
@@ -302,7 +302,7 @@ class MarketplaceController extends Controller
     public function uploadKeuanganTiktok(Request $request, Marketplace $id)
     {
         $request->validate([
-            'keuangan' => 'required|mimes:csv',
+            'keuangan' => 'required|file|extensions:csv|mimes:csv,txt',
         ]);
 
         try {
@@ -492,7 +492,7 @@ class MarketplaceController extends Controller
     public function uploadKeuanganTiktokBaru(Request $request, Marketplace $id)
     {
         $request->validate([
-            'keuangan' => 'required|mimes:csv',
+            'keuangan' => 'required|file|extensions:csv|mimes:csv,txt',
         ]);
 
         try {
@@ -676,7 +676,7 @@ class MarketplaceController extends Controller
     public function uploadOrder(Request $request, Marketplace $id)
     {
         $request->validate([
-            'order' => 'required|mimes:csv',
+            'order' => 'required|file|extensions:csv|mimes:csv,txt',
         ]);
         try {
             DB::transaction(function () use ($request, $id) {
@@ -707,6 +707,7 @@ class MarketplaceController extends Controller
                 $input = $notaTerakhir = false;
                 $awal = true;
                 $nota_skr = 0;
+                $deathline = null;
                 //////jika marketplace baru, langsung input, ga usah dicek dulu
                 if ($config->baruOrder == 1) {
                     $input = true;
@@ -783,6 +784,12 @@ class MarketplaceController extends Controller
                         } else
                             $produksi_id = $finish_id;
 
+                        $deathline = $this->parseDeathline(
+                            $this->getCsvColumnValue($baris, $marketplace->deathline),
+                            $tanggal,
+                            $marketplace->formatTanggal
+                        );
+
                         //jika ganti nota
                         if ($nota != $nota_skr) {
 
@@ -792,7 +799,6 @@ class MarketplaceController extends Controller
                             }
 
                             $ongkir = str_replace(".", "", $baris[$marketplace->ongkir]);
-                            $deathline = $this->parseDeathline($baris[$marketplace->deathline] ?? '', $tanggal ?? null, $marketplace->formatTanggal);
 
                             $order[] = array(
                                 'kontak_id' => $id_shopee,
@@ -903,13 +909,12 @@ class MarketplaceController extends Controller
 
                             $produk = $produks[$produk_id];
 
-                            ProdukStok::create([
-                                'produk_id' => $produk_id,
-                                'tambah' => $stokx,
-                                'kurang' => 0,
-                                'keterangan' => 'upload ' . $config->nama,
-                                'kode' => 'batal'
-                            ]);
+                            app(StokService::class)->tambah(
+                                $produk_id,
+                                $stokx,
+                                'batal',
+                                'upload ' . $config->nama
+                            );
                         }
                     }
                 }
@@ -937,13 +942,15 @@ class MarketplaceController extends Controller
                     //////ngurangi stok yg terjual/////////////////////////////////////////////////////////
                     if ($stok) {
                         foreach ($stok as $value) {
-                            ProdukStok::create([
-                                'produk_id' => $value['produk_id'],
-                                'tambah' => 0,
-                                'kurang' => $value['jumlah'],
-                                'keterangan' => $value['keterangan'],
-                                'kode' => 'jual'
-                            ]);
+                            app(StokService::class)->kurang(
+                                $value['produk_id'],
+                                $value['jumlah'],
+                                'jual',
+                                $value['keterangan'],
+                                null,
+                                [],
+                                false
+                            );
                         }
                     }
                 }
@@ -963,7 +970,7 @@ class MarketplaceController extends Controller
     public function uploadStok(Request $request, Marketplace $id)
     {
         $request->validate([
-            'stok' => 'required|mimes:csv',
+            'stok' => 'required|file|extensions:csv|mimes:csv,txt',
         ]);
 
         // try {
@@ -1052,7 +1059,7 @@ class MarketplaceController extends Controller
 
                         if ($produk->stok == 1) {
 
-                            $stok = ProdukStok::lastStok($produk->id);
+                            $stok = app(StokService::class)->saldoTersedia($produk->id);
 
                             if ($stok < 0)
                                 $stok = 0;
@@ -1594,7 +1601,7 @@ class MarketplaceController extends Controller
     public function uploadOrderTiktok(Request $request, Marketplace $id)
     {
         $request->validate([
-            'order' => 'required|mimes:csv',
+            'order' => 'required|file|extensions:csv|mimes:csv,txt',
         ]);
 
         try {
@@ -1664,6 +1671,7 @@ class MarketplaceController extends Controller
                 $input = false;
                 $notaTerakhir = false;
                 $nota_skr = 0;
+                $deathline = null;
                 $sudahKetemuNotaTerakhir = false;
 
                 //////jika marketplace baru, langsung input, ga usah dicek dulu
@@ -1780,6 +1788,14 @@ class MarketplaceController extends Controller
                         } else
                             $produksi_id = $finish_id;
 
+                        // Tambah 7 hari dari $tanggal jika deathline kosong/gagal di-parse
+                        $deathline = $this->parseDeathline(
+                            $this->getCsvColumnValue($baris, $marketplace->deathline),
+                            $tanggal,
+                            $marketplace->formatTanggal,
+                            7
+                        );
+
                         //jika ganti nota
                         if ($nota != $nota_skr) {
 
@@ -1787,8 +1803,6 @@ class MarketplaceController extends Controller
                             $nota_awal = $nota;
 
                             $ongkir = str_replace(".", "", $baris[$marketplace->ongkir]);
-                            // Tambah 5 hari dari $tanggal jika deathline kosong
-                            $deathline = $this->parseDeathline($baris[$marketplace->deathline] ?? '', $tanggal ?? null, $marketplace->formatTanggal, 7);
 
                             $order[] = array(
                                 'kontak_id' => $id_shopee,
@@ -1901,13 +1915,12 @@ class MarketplaceController extends Controller
 
                             $produk = $produks[$produk_id];
 
-                            ProdukStok::create([
-                                'produk_id' => $produk_id,
-                                'tambah' => $stokx,
-                                'kurang' => 0,
-                                'keterangan' => 'upload ' . $config->nama,
-                                'kode' => 'batal'
-                            ]);
+                            app(StokService::class)->tambah(
+                                $produk_id,
+                                $stokx,
+                                'batal',
+                                'upload ' . $config->nama
+                            );
                         }
                     }
                 }
@@ -1973,14 +1986,15 @@ class MarketplaceController extends Controller
                     //////ngurangi stok yg terjual/////////////////////////////////////////////////////////
                     if ($stok) {
                         foreach ($stok as $value) {
-                            ProdukStok::create([
-                                'produk_id' => $value['produk_id'],
-                                'tambah' => 0,
-                                'kurang' => $value['jumlah'],
-                                'keterangan' => $value['keterangan'],
-                                'kode' => 'jual',
-                                'detail_id' => $value['detail']
-                            ]);
+                            app(StokService::class)->kurang(
+                                $value['produk_id'],
+                                $value['jumlah'],
+                                'jual',
+                                $value['keterangan'],
+                                $value['detail'],
+                                [],
+                                false
+                            );
                         }
                     }
                 }
@@ -2035,6 +2049,19 @@ class MarketplaceController extends Controller
     }
 
     /**
+     * Ambil nilai kolom CSV berdasarkan index format marketplace.
+     * Index null (marketplace tanpa kolom deathline) diperlakukan sebagai kosong.
+     */
+    private function getCsvColumnValue(array $baris, $columnIndex): string
+    {
+        if ($columnIndex === null || $columnIndex === '') {
+            return '';
+        }
+
+        return trim((string) ($baris[(int) $columnIndex] ?? ''));
+    }
+
+    /**
      * Ubah nilai deathline mentah dari CSV menjadi tanggal Y-m-d yang valid.
      * Jika kosong/gagal di-parse, fallback ke $tanggal + $fallbackDays hari.
      * Return null bila tidak ada acuan tanggal (hindari simpan 0000-00-00).
@@ -2043,18 +2070,10 @@ class MarketplaceController extends Controller
     {
         $value = trim((string) $value);
 
-        if ($value !== '') {
-            if (!empty($formatTanggal)) {
-                try {
-                    return Carbon::createFromFormat($formatTanggal, $value)->toDateString();
-                } catch (\Throwable $e) {
-                    // coba parser umum di bawah
-                }
-            }
-            try {
-                return Carbon::parse($value)->toDateString();
-            } catch (\Throwable $e) {
-                // gagal parse, jatuh ke fallback tanggal di bawah
+        if ($value !== '' && $value !== '-') {
+            $parsed = $this->tryParseMarketplaceDate($value, $formatTanggal);
+            if ($parsed !== null) {
+                return $parsed;
             }
         }
 
@@ -2067,6 +2086,49 @@ class MarketplaceController extends Controller
         }
 
         return null;
+    }
+
+    private function tryParseMarketplaceDate(string $value, ?string $formatTanggal = null): ?string
+    {
+        $formats = array_values(array_unique(array_filter([
+            $formatTanggal,
+            'Y-m-d H:i:s',
+            'Y-m-d H:i',
+            'Y-m-d',
+            'd-m-Y H:i:s',
+            'd-m-Y H:i',
+            'd-m-Y',
+            'd/m/Y H:i:s',
+            'd/m/Y H:i',
+            'd/m/Y',
+        ])));
+
+        foreach ($formats as $format) {
+            try {
+                $parsed = Carbon::createFromFormat($format, $value);
+                if ($this->isValidDeathlineDate($parsed)) {
+                    return $parsed->toDateString();
+                }
+            } catch (\Throwable $e) {
+                // coba format berikutnya
+            }
+        }
+
+        try {
+            $parsed = Carbon::parse($value);
+            if ($this->isValidDeathlineDate($parsed)) {
+                return $parsed->toDateString();
+            }
+        } catch (\Throwable $e) {
+            // gagal parse
+        }
+
+        return null;
+    }
+
+    private function isValidDeathlineDate(Carbon $date): bool
+    {
+        return $date->year >= 2000 && $date->year <= 2100;
     }
 
     private function normalizeMarketplaceDate(string $value, ?string $formatTanggal = null): string

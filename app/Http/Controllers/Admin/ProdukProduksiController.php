@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\ProdukStok;
+use App\Services\StokService;
 use Illuminate\Http\Request;
 use App\Models\ProdukProduksi;
 use App\Models\ProduksiProduk;
@@ -96,14 +96,13 @@ class ProdukProduksiController extends Controller
         $produk = $hasil->produk;
         $produk->updateHpp($hasil->hpp, $hasil->jumlah);
 
-        ProdukStok::create([
-            'produk_id' => $produk->id,
-            'tambah' => $hasil->jumlah,
-            'kurang' => 0,
-            'keterangan' => 'hasil produksi',
-            'kode' => 'hasilProduksi',
-            'detail_id' => $hasil->id
-        ]);
+        app(StokService::class)->tambah(
+            $produk->id,
+            $hasil->jumlah,
+            'hasilProduksi',
+            'hasil produksi',
+            $hasil->id
+        );
 
         $hasil->update(['status' => 'finish']);
 
@@ -149,14 +148,13 @@ class ProdukProduksiController extends Controller
             $produk = $item->produk;
             $produk->updateHpp($item->hpp, $item->jumlah);
 
-            ProdukStok::create([
-                'produk_id' => $produk->id,
-                'tambah' => $item->jumlah,
-                'kurang' => 0,
-                'keterangan' => 'hasil produksi',
-                'kode' => 'hasilProduksi',
-                'detail_id' => $item->id
-            ]);
+            app(StokService::class)->tambah(
+                $produk->id,
+                $item->jumlah,
+                'hasilProduksi',
+                'hasil produksi',
+                $item->id
+            );
 
             $item->update(['status' => 'finish']);
         }
@@ -183,13 +181,13 @@ class ProdukProduksiController extends Controller
         }
 
         foreach ($produksi->bahan as $bahan) {
-            $stok = produkStok::create([
-                'produk_id' => $bahan->produk_id,
-                'kode' => 'bahanProduksi',
-                'detail_id' => $produksiBaru->id,
-                'kurang' => $bahan->jumlah,
-                'keterangan' => $produksiBaru->ket,
-            ]);
+            $stok = app(StokService::class)->kurang(
+                $bahan->produk_id,
+                $bahan->jumlah,
+                'bahanProduksi',
+                $produksiBaru->ket,
+                $produksiBaru->id
+            );
             $produksiBaru->bahan()->create([
                 'produk_id' => $bahan->produk_id,
                 'jumlah' => $bahan->jumlah,

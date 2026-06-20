@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Services\StokService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class ProdukStok extends Model
 {
@@ -26,28 +28,56 @@ class ProdukStok extends Model
         parent::boot();
 
         ProdukStok::saving(function ($model) {
-
-            $terakhir = ($model->where('produk_id', $model->produk_id)->latest('id')->first()->saldo) ?? 0;
-            $model->saldo = (int)$terakhir + (int)$model->tambah - (int)$model->kurang;
-
-            $dataProduk = Produk::find($model->produk_id);
-
-            if ($dataProduk) {
-                $existingStok = $dataProduk->lastStok()->where('produk_id', $model->produk_id)->latest('id')->first();
-
-                if ($existingStok) {
-                    $dataProduk->lastStok()->updateExistingPivot($model->produk_id, [
-                        'saldo' => $model->saldo,
-                    ]);
-                } else {
-                    $dataProduk->lastStok()->attach($model->produk_id, ['saldo' => $model->saldo]);
-                }
-            }
-
-            $model->hpp = $model->produk->hpp ?? 0;
-            $model->user_id = auth()->user()->id;
-
+            $model->hpp = $model->produk?->hpp ?? 0;
         });
+
+        ProdukStok::creating(function ($model) {
+            if (auth()->check()) {
+                $model->user_id = auth()->user()->id;
+            }
+        });
+
+        ProdukStok::saved(function ($model) {
+            app(StokService::class)->updateLastStok($model->produk_id);
+        });
+
+        ProdukStok::deleted(function ($model) {
+            app(StokService::class)->updateLastStok($model->produk_id);
+        });
+    }
+
+    public function scopeSaldoBerjalan($query)
+    {
+        return $query->select('produk_stoks.*')
+            ->selectRaw('(SELECT COALESCE(SUM(COALESCE(s2.tambah, 0) - COALESCE(s2.kurang, 0)), 0)
+                FROM produk_stoks s2
+                WHERE s2.produk_id = produk_stoks.produk_id
+                AND s2.id <= produk_stoks.id
+                AND s2.deleted_at IS NULL) AS saldo');
+    }
+
+    public function scopeSaldoStok($query, array $saldo)
+    {
+        $anchor = (int) $saldo['saldo'];
+
+        return $query->select(
+            'produk_stoks.id',
+            'produk_stoks.produk_id',
+            'produk_stoks.created_at',
+            'produk_stoks.tambah',
+            'produk_stoks.kurang',
+            'produk_stoks.keterangan',
+            'produk_stoks.kode',
+            'produk_stoks.hpp',
+            'produk_stoks.user_id',
+            'produk_stoks.detail_id',
+            'produk_stoks.status',
+            DB::raw("{$anchor} - (SELECT COALESCE(SUM(COALESCE(t2.tambah, 0) - COALESCE(t2.kurang, 0)), 0)
+                FROM produk_stoks t2
+                WHERE t2.produk_id = produk_stoks.produk_id
+                AND t2.id > produk_stoks.id
+                AND t2.deleted_at IS NULL) AS saldo")
+        );
     }
 
     public function produk()
@@ -55,9 +85,9 @@ class ProdukStok extends Model
         return $this->belongsTo(Produk::class);
     }
 
-    static function lastStok($produk)
+    public static function lastStok($produk)
     {
-        return self::where('produk_id', $produk)->orderBy('id', 'desc')->first()->saldo ?? 0;
+        return app(StokService::class)->saldoTersedia($produk);
     }
 
     public function user()

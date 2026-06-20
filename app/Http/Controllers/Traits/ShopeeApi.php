@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Traits;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use App\Models\MarketplaceFormat;
 
 trait ShopeeApi
@@ -179,68 +180,100 @@ trait ShopeeApi
     public function ambilToken($marketplace)
     {
         try {
-            if ($marketplace->access_expired >= (time() + 10))
-                return $marketplace->access_token;
+            $marketplaceId = is_object($marketplace) ? $marketplace->id : (int) $marketplace;
+            $record = DB::table('marketplaces')->find($marketplaceId);
 
-            $retry = 1;
-
-            while ($retry < 5) {
-                $marketplace = DB::table('marketplaces')->find($marketplace->id);
-                if ($marketplace->access_expired < (time() + 10)) {
-                    if ($marketplace->lock != 1) {
-
-                        DB::table('marketplaces')->where('id', $marketplace->id)->update(['lock' => 1]);
-
-                        $path = "auth/access_token/get";
-                        $format = MarketplaceFormat::shopee();
-                        $body = array("partner_id" => $format->partnerId, "shop_id" => (int)$marketplace->shop_id, "refresh_token" => $marketplace->refresh_token);
-
-                        $ret = $this->curlPost($path, $body);
-
-                        if ($ret) {
-                            // Save new access token to database
-
-                            DB::table('marketplaces')->where('id', $marketplace->id)->update([
-                                'access_token' => $ret['access_token'],
-                                'refresh_token' => $ret['refresh_token'],
-                                'access_expired' => ($ret['expire_in'] + time()),
-                                'lock' => 0
-                            ]);
-
-                            return $ret['access_token'];
-                        } else {
-                            DB::table('marketplaces')->where('id', $marketplace->id)->update(['lock' => 0]);
-                            Log::error('ambilToken - Gagal refresh token', [
-                                'marketplace_id' => $marketplace->id,
-                                'shop_id' => $marketplace->shop_id,
-                                'path' => $path,
-                                'retry' => $retry
-                            ]);
-                            return false;
-                        }
-                    }
-                } else
-                    return $marketplace->access_token;
-
-                $retry++;
-                usleep(1000000);
+            if (!$record) {
+                return false;
             }
 
-            Log::error('ambilToken - Retry maksimal tercapai', [
-                'marketplace_id' => $marketplace->id ?? null,
-                'shop_id' => $marketplace->shop_id ?? null,
-                'max_retry' => 5
-            ]);
-            return false;
+            if ($record->access_expired >= (time() + 10)) {
+                return $record->access_token;
+            }
+
+            return $this->refreshMarketplaceToken($marketplaceId) ?: false;
         } catch (\Exception $e) {
             Log::error('ambilToken - Exception: ' . $e->getMessage(), [
-                'marketplace_id' => $marketplace->id ?? null,
+                'marketplace_id' => is_object($marketplace) ? ($marketplace->id ?? null) : $marketplace,
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString()
             ]);
             return false;
         }
+    }
+
+    /**
+     * Refresh token Shopee untuk marketplace tertentu.
+     * Lock via Cache (bukan kolom DB) agar refresh paralel tidak bentrok.
+     */
+    public function refreshMarketplaceToken($marketplaceId): ?string
+    {
+        $lockKey = 'shopee_token_refresh_' . $marketplaceId;
+        $lock = Cache::lock($lockKey, 30);
+
+        if (!$lock->block(10)) {
+            Log::error('refreshMarketplaceToken - tidak dapat lock', [
+                'marketplace_id' => $marketplaceId,
+            ]);
+            return null;
+        }
+
+        try {
+            $marketplace = DB::table('marketplaces')->find($marketplaceId);
+
+            if (!$marketplace || !$marketplace->refresh_token || !$marketplace->shop_id) {
+                return null;
+            }
+
+            if ($marketplace->access_expired >= (time() + 10)) {
+                return $marketplace->access_token;
+            }
+
+            $path = "auth/access_token/get";
+            $format = MarketplaceFormat::shopee();
+            $body = [
+                'partner_id' => $format->partnerId,
+                'shop_id' => (int) $marketplace->shop_id,
+                'refresh_token' => $marketplace->refresh_token,
+            ];
+
+            $ret = $this->curlPost($path, $body);
+
+            if ($ret && !empty($ret['access_token'])) {
+                DB::table('marketplaces')->where('id', $marketplaceId)->update([
+                    'access_token' => $ret['access_token'],
+                    'refresh_token' => $ret['refresh_token'],
+                    'access_expired' => ($ret['expire_in'] + time()),
+                ]);
+
+                return $ret['access_token'];
+            }
+
+            Log::error('refreshMarketplaceToken - Gagal refresh token', [
+                'marketplace_id' => $marketplaceId,
+                'shop_id' => $marketplace->shop_id,
+            ]);
+
+            return null;
+        } finally {
+            $lock->release();
+        }
+    }
+
+    protected function isTokenApiError($api): bool
+    {
+        if (empty($api['error'])) {
+            return false;
+        }
+
+        $tokenString = is_array($api['error']) ? json_encode($api['error']) : (string) $api['error'];
+
+        return stripos($tokenString, 'access_token') !== false
+            || stripos($tokenString, 'refresh_token') !== false
+            || stripos($tokenString, 'invalid') !== false
+            || stripos($tokenString, 'expired') !== false
+            || stripos($tokenString, 'token gagal') !== false;
     }
 
     public function curlPost($path, $body)

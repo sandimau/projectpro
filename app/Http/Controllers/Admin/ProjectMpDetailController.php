@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Models\Chat;
 use App\Models\Produksi;
 use App\Models\ProjectMp;
-use App\Models\ProdukStok;
+use App\Services\StokService;
 use Illuminate\Http\Request;
 use App\Models\ProjectMpDetail;
 use Illuminate\Support\Facades\DB;
@@ -41,27 +41,27 @@ class ProjectMpDetailController extends Controller
                     $username = '';
                 }
 
+                $stokService = app(StokService::class);
+
                 if ($awal == 'awal' and $perubahan != 'awal' and $perubahan != 'batal') {
-                    //ngurangi stok
-                    ProdukStok::create([
-                        'tambah' => 0,
-                        'kurang' => $projectMp->jumlah,
-                        'keterangan' => 'barang dijual ke ' .$projectMp->projectMp->marketplace->nama.' '.$username,
-                        'kode' => 'jual',
-                        'produk_id' => $projectMp->produk->id,
-                        'detail_id' => $projectMp->projectMp->id,
-                    ]);
+                    $stokService->kurang(
+                        $projectMp->produk->id,
+                        $projectMp->jumlah,
+                        'jual',
+                        'barang dijual ke ' . $projectMp->projectMp->marketplace->nama . ' ' . $username,
+                        $projectMp->projectMp->id,
+                        [],
+                        false
+                    );
                 }
                 if ($awal == 'selesai' and $perubahan == 'batal') {
-                    //tambah stok
-                    ProdukStok::create([
-                        'tambah' => $projectMp->jumlah,
-                        'kurang' => 0,
-                        'keterangan' => 'barang dikembalikan dari ' .$projectMp->projectMp->kontak->nama.' '.$username,
-                        'kode' => 'btl',
-                        'produk_id' => $projectMp->produk->id,
-                        'detail_id' => $projectMp->projectMp->id,
-                    ]);
+                    $stokService->tambah(
+                        $projectMp->produk->id,
+                        $projectMp->jumlah,
+                        'btl',
+                        'barang dikembalikan dari ' . $projectMp->projectMp->kontak->nama . ' ' . $username,
+                        $projectMp->projectMp->id
+                    );
                 }
 
             }

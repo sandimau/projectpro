@@ -481,6 +481,11 @@ class OrderController extends Controller
             'member_id' => $member->id ?? null,
             'order_id' => $order->id
         ]);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['message' => __('chat created successfully.')]);
+        }
+
         return redirect('admin/order/' . $order->id . '/detail')->withSuccess(__('chat created successfully.'));
     }
 

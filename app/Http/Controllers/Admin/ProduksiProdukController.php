@@ -9,7 +9,7 @@ use App\Models\Member;
 use App\Models\Belanja;
 use App\Models\BukuBesar;
 use App\Models\AkunDetail;
-use App\Models\ProdukStok;
+use App\Services\StokService;
 use Illuminate\Http\Request;
 use App\Models\ProduksiBahan;
 use App\Models\ProduksiProduk;
@@ -198,13 +198,13 @@ class ProduksiProdukController extends Controller
         ]);
         $model->produksi->hitungBiaya();
         $model->produksi->hitungHpp();
-        $stok = ProdukStok::create([
-            'produk_id' => $model->produk_id,
-            'kode' => 'bahanProduksi',
-            'detail_id' => $model->produksi_id,
-            'kurang' => $model->jumlah,
-            'keterangan' => $model->keterangan,
-        ]);
+        $stok = app(StokService::class)->kurang(
+            $model->produk_id,
+            $model->jumlah,
+            'bahanProduksi',
+            $model->keterangan,
+            $model->produksi_id
+        );
 
         $model->update([
             'produk_stok_id' => $stok->id,
@@ -261,14 +261,13 @@ class ProduksiProdukController extends Controller
         //     $hpp = $produksi->hpp;
         $produk->update(['hpp' => $hpp]);
 
-        ProdukStok::create([
-            'produk_id' => $produk->id,
-            'tambah' => $request->hasil,
-            'kurang' => 0,
-            'keterangan' => 'hasil produksi',
-            'kode' => 'hasilProduksi',
-            'detail_id' => $produksi->id
-        ]);
+        app(StokService::class)->tambah(
+            $produk->id,
+            $request->hasil,
+            'hasilProduksi',
+            'hasil produksi',
+            $produksi->id
+        );
 
         return redirect()->route('produksi.index')->with('success', 'Produksi berhasil diselesaikan');
     }

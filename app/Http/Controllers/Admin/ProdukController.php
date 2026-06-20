@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Models\Produk;
 use App\Models\Kategori;
 use App\Models\ProdukStok;
+use App\Models\ProdukLastStok;
+use App\Services\StokService;
 use App\Models\ProdukModel;
 use Illuminate\Http\Request;
 use App\Models\BelanjaDetail;
@@ -64,26 +66,22 @@ class ProdukController extends Controller
 
     public function stok(Produk $produk, Request $request)
     {
-        $query = ProdukStok::where('produk_id', $produk->id);
+        $saldo = app(StokService::class)->saldoTersedia($produk->id);
 
-        // Filter berdasarkan keterangan jika ada parameter search
+        $query = ProdukStok::saldoStok(['saldo' => $saldo])
+            ->where('produk_stoks.produk_id', $produk->id);
+
         if ($request->has('search') && $request->search != '') {
-            $query->where('keterangan', 'like', '%' . $request->search . '%');
+            $query->where('produk_stoks.keterangan', 'like', '%' . $request->search . '%');
         }
 
-        $produkStoks = $query->orderBy('id', 'desc')->get();
+        $produkStoks = $query->orderBy('produk_stoks.id', 'desc')->get();
         return view('admin.produkStoks.index', compact('produkStoks','produk'));
     }
 
     public function aset()
     {
-        $asets = DB::table('produk_last_stoks as t')
-            ->join(
-                DB::raw('(SELECT produk_id FROM produk_last_stoks GROUP BY produk_id) as subquery'),
-                't.produk_id',
-                '=',
-                'subquery.produk_id'
-            )
+        $asets = DB::table(DB::raw(ProdukLastStok::latestPerProdukSubquery() . ' as t'))
             ->join('produks as p', 'p.id', '=', 't.produk_id')
             ->join('produk_models as pm', 'pm.id', '=', 'p.produk_model_id')
             ->join('produk_kategoris as k', 'k.id', '=', 'pm.kategori_id')
@@ -104,7 +102,7 @@ class ProdukController extends Controller
 
     public function asetDetail(Kategori $kategori)
     {
-        $asets = DB::table('produk_last_stoks as t')
+        $asets = DB::table(DB::raw(ProdukLastStok::latestPerProdukSubquery() . ' as t'))
             ->join('produks as p', 'p.id', '=', 't.produk_id')
             ->join('produk_models as pm', 'pm.id', '=', 'p.produk_model_id')
             ->join('produk_kategoris as k', 'k.id', '=', 'pm.kategori_id')
@@ -134,11 +132,7 @@ class ProdukController extends Controller
             ->unique()
             ->values();
 
-        $asets = DB::table('produk_last_stoks as t')
-            ->join(
-                DB::raw('(SELECT produk_id FROM produk_last_stoks GROUP BY produk_id) as subquery'),
-                't.produk_id', '=', 'subquery.produk_id'
-            )
+        $asets = DB::table(DB::raw(ProdukLastStok::latestPerProdukSubquery() . ' as t'))
             ->join('produks as p', 'p.id', '=', 't.produk_id')
             ->join('produk_models as pm', 'pm.id', '=', 'p.produk_model_id')
             ->join('produk_kategoris as k', 'k.id', '=', 'pm.kategori_id')
@@ -300,7 +294,7 @@ class ProdukController extends Controller
         $products = DB::table('produks as p')
             ->join('produk_models as pm', 'pm.id', '=', 'p.produk_model_id')
             ->leftJoin(
-                DB::raw('(SELECT produk_id, saldo FROM produk_last_stoks WHERE deleted_at IS NULL ORDER BY id DESC) as pls'),
+                DB::raw(ProdukLastStok::latestPerProdukSubquery() . ' as pls'),
                 'pls.produk_id', '=', 'p.id'
             )
             ->where('pm.kategori_id', $kategori->id)

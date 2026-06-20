@@ -233,18 +233,7 @@ class AnalisaController extends Controller
             // Hitung penjualan harian
             $penjualanHarian = $total_hari > 0 ? round((($totalPakai + $omzet) / $total_hari), 2) : 0;
 
-            // Ambil stok total dari produk_last_stoks (pivot table)
-            $stokTotal = DB::table('produk_last_stoks')
-                ->where('produk_id', $produk->produk_id)
-                ->value('saldo') ?? 0;
-
-            // Jika tidak ada di pivot, ambil dari produk_stoks terakhir
-            if ($stokTotal == 0) {
-                $stokTotal = DB::table('produk_stoks')
-                    ->where('produk_id', $produk->produk_id)
-                    ->orderBy('id', 'desc')
-                    ->value('saldo') ?? 0;
-            }
+            $stokTotal = ProdukStok::lastStok($produk->produk_id);
 
             // Hitung stok minimal
             $stokMin = floor($penjualanHarian * $waktu_po * 1.5);

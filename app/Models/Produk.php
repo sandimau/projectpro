@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Support\Facades\DB;
+use App\Services\StokService;
 use Illuminate\Database\Eloquent\Model;
 
 class Produk extends Model
@@ -31,20 +31,16 @@ class Produk extends Model
         return $this->belongsTo(AkunDetail::class, 'akun_detail_id');
     }
 
-    public function lastStok()
+    public function produkLastStoks()
     {
-        return $this->belongsToMany(Produk::class, 'produk_last_stoks', 'produk_id')->withPivot('saldo');
+        return $this->hasMany(ProdukLastStok::class, 'produk_id');
     }
 
     public function LastStokRecord()
     {
-        $record = DB::table('produk_stoks')
-            ->where('produk_id', $this->produk_id)
-            ->whereNull('deleted_at')
-            ->orderBy('id', 'desc')
-            ->first();
+        $produkId = $this->produk_id ?? $this->id;
 
-        return $record ? ($record->saldo ?? 0) : 0;
+        return app(StokService::class)->saldoTersedia($produkId);
     }
 
     public function produkModel()
@@ -54,7 +50,7 @@ class Produk extends Model
 
     public function updateHpp($harga, $jumlah)
     {
-        $total = $this->LastStok()->first()->pivot->saldo ?? 0;
+        $total = ProdukStok::lastStok($this->id);
         if ($total > 0) {
             $hpp = (($total * $this->hpp) + ($harga * $jumlah)) / ($jumlah + $total);
         } else {

@@ -10,7 +10,7 @@ use App\Models\Member;
 use App\Models\Produk;
 use App\Models\Pemproses;
 use App\Models\Produksi;
-use App\Models\ProdukStok;
+use App\Services\StokService;
 use App\Models\OrderDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -21,20 +21,85 @@ use Symfony\Component\HttpFoundation\Response;
 
 class OrderDetailController extends Controller
 {
+    private function hasRoleInsensitive(string ...$names): bool
+    {
+        $normalized = collect($names)->map(fn ($name) => strtolower($name));
+
+        return auth()->user()->roles->contains(
+            fn ($role) => $normalized->contains(strtolower($role->name))
+        );
+    }
+
+    private function isMarketingOnly(): bool
+    {
+        return $this->hasRoleInsensitive('marketing')
+            && ! $this->hasRoleInsensitive('supervisor', 'super', 'manager');
+    }
+
+    private function canEditOrderDetailAll(): bool
+    {
+        if ($this->isMarketingOnly()) {
+            return false;
+        }
+
+        $user = auth()->user();
+
+        return $this->hasRoleInsensitive('supervisor', 'super', 'manager')
+            || $user->can('order_detail_edit')
+            || $user->can('order_detail_create');
+    }
+
+    private function canEditOrderDetailLimited(): bool
+    {
+        if ($this->isMarketingOnly()) {
+            return true;
+        }
+
+        return $this->canEditOrderDetailAll();
+    }
+
+    private function authorizeOrderDetailLimited(): void
+    {
+        abort_if(! $this->canEditOrderDetailLimited(), Response::HTTP_FORBIDDEN, '403 Forbidden');
+    }
+
+    private function authorizeOrderDetailAll(): void
+    {
+        abort_if(! $this->canEditOrderDetailAll(), Response::HTTP_FORBIDDEN, '403 Forbidden');
+    }
+
+    private function orderDetailAccessFlags(): array
+    {
+        return [
+            'canEditAll' => $this->canEditOrderDetailAll(),
+            'canEditLimited' => $this->canEditOrderDetailLimited(),
+            'isMarketingOnly' => $this->isMarketingOnly(),
+        ];
+    }
+
     public function index(Order $order)
     {
         abort_if(Gate::denies('order_detail_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $orderDetails = OrderDetail::where('order_id', $order->id)->get();
+        $orderDetails = OrderDetail::where('order_id', $order->id)
+            ->with(['produk', 'spek', 'produksi', 'pemproses'])
+            ->get();
         $produksi = Produksi::orderBy('urutan')->get();
         $pemproses = Pemproses::orderBy('nama')->get();
         $chats = Chat::where('order_id',$order->id)->get();
 
-        return view('admin.orderDetails.index', compact('orderDetails', 'order', 'produksi', 'pemproses', 'chats'));
+        return view(
+            'admin.orderDetails.index',
+            array_merge(
+                compact('orderDetails', 'order', 'produksi', 'pemproses', 'chats'),
+                $this->orderDetailAccessFlags()
+            )
+        );
     }
 
     public function create(Order $order)
     {
+        $this->authorizeOrderDetailAll();
         abort_if(Gate::denies('order_detail_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $speks = Spek::all();
@@ -43,6 +108,8 @@ class OrderDetailController extends Controller
 
     public function store(Request $request)
     {
+        $this->authorizeOrderDetailAll();
+
         $request->validate([
             'produk_id' => 'required',
             'harga' => 'required',
@@ -83,12 +150,15 @@ class OrderDetailController extends Controller
 
     public function gambar(OrderDetail $detail)
     {
+        $this->authorizeOrderDetailAll();
         abort_if(Gate::denies('order_detail_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         return view('admin.orderDetails.gambar', compact('detail'));
     }
 
     public function upload(Request $request)
     {
+        $this->authorizeOrderDetailAll();
+
         $request->validate([
             'gambar' => 'required|mimes:jpeg,png,jpg',
         ]);
@@ -123,6 +193,9 @@ class OrderDetailController extends Controller
 
     public function updateStatus(Request $request, OrderDetail $detail)
     {
+        abort_if($this->isMarketingOnly(), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorizeOrderDetailLimited();
+
         DB::transaction(function () use ($detail, $request) {
             //update stok produk
             if ($detail->produk->produkModel->stok == 1) {
@@ -135,27 +208,27 @@ class OrderDetailController extends Controller
                     $username = '';
                 }
 
+                $stokService = app(StokService::class);
+
                 if ($awal == 'awal' and $perubahan != 'awal' and $perubahan != 'batal') {
-                    //ngurangi stok
-                    ProdukStok::create([
-                        'tambah' => 0,
-                        'kurang' => $detail->jumlah,
-                        'keterangan' => 'barang dijual ke ' .$detail->order->kontak->nama.' '.$username,
-                        'kode' => 'jual',
-                        'produk_id' => $detail->produk->id,
-                        'detail_id' => $detail->order->id,
-                    ]);
+                    $stokService->kurang(
+                        $detail->produk->id,
+                        $detail->jumlah,
+                        'jual',
+                        'barang dijual ke ' . $detail->order->kontak->nama . ' ' . $username,
+                        $detail->order->id,
+                        [],
+                        false
+                    );
                 }
                 if ($awal == 'selesai' and $perubahan == 'batal') {
-                    //tambah stok
-                    ProdukStok::create([
-                        'tambah' => $detail->jumlah,
-                        'kurang' => 0,
-                        'keterangan' => 'barang dikembalikan dari ' .$detail->order->kontak->nama.' '.$username,
-                        'kode' => 'btl',
-                        'produk_id' => $detail->produk->id,
-                        'detail_id' => $detail->order->id,
-                    ]);
+                    $stokService->tambah(
+                        $detail->produk->id,
+                        $detail->jumlah,
+                        'btl',
+                        'barang dikembalikan dari ' . $detail->order->kontak->nama . ' ' . $username,
+                        $detail->order->id
+                    );
                 }
 
             }
@@ -176,6 +249,9 @@ class OrderDetailController extends Controller
 
     public function updatePemproses(Request $request, OrderDetail $detail)
     {
+        abort_if($this->isMarketingOnly(), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorizeOrderDetailLimited();
+
         $detail->update([
             'pemproses_id' => $request->pemproses_id ?: null,
         ]);
@@ -189,14 +265,46 @@ class OrderDetailController extends Controller
 
     public function edit(OrderDetail $detail)
     {
-        abort_if(Gate::denies('order_detail_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorizeOrderDetailLimited();
+
         $speks = Spek::all();
-        return view('admin.orderDetails.edit', compact('detail', 'speks'));
+
+        return view(
+            'admin.orderDetails.edit',
+            array_merge(compact('detail', 'speks'), $this->orderDetailAccessFlags())
+        );
     }
 
     public function update(Request $request, $detail)
     {
+        $this->authorizeOrderDetailLimited();
+
         $orderDetail = OrderDetail::find($detail);
+
+        if ($this->isMarketingOnly()) {
+            $produk = $request->produk_id ?: $orderDetail->produk_id;
+            $orderDetail->update([
+                'produk_id' => $produk,
+                'tema' => $request->tema,
+                'keterangan' => $request->keterangan,
+                'deathline' => $request->deathline,
+            ]);
+
+            $speks = Spek::all();
+            $sync = [];
+            foreach ($speks as $spek) {
+                if ($request->{$spek->nama}) {
+                    $sync[$spek->id] = ['keterangan' => $request->{$spek->nama}];
+                }
+            }
+            $orderDetail->spek()->sync($sync);
+
+            return redirect('/admin/order/' . $orderDetail->order->id . '/detail')
+                ->withSuccess(__('Order Detail updated successfully.'));
+        }
+
+        abort_if(! $this->canEditOrderDetailAll(), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
         $produk = $request->produk_id ? $request->produk_id : $orderDetail->produk_id;
         $orderDetail->update([
             'produk_id' => $produk,
@@ -215,18 +323,22 @@ class OrderDetailController extends Controller
             }
         }
         $orderDetail->spek()->sync($sync);
-        return redirect('/admin/order/' . $orderDetail->order->id . '/detail')->withSuccess(__('Order Detail updated successfully.'));
+
+        return redirect('/admin/order/' . $orderDetail->order->id . '/detail')
+            ->withSuccess(__('Order Detail updated successfully.'));
     }
 
     public function editGambar(OrderDetail $detail)
     {
-        abort_if(Gate::denies('order_detail_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorizeOrderDetailAll();
 
         return view('admin.orderDetails.editGambar', compact('detail'));
     }
 
     public function updateGambar(Request $request)
     {
+        $this->authorizeOrderDetailAll();
+
         $request->validate([
             'gambar' => 'required|mimes:jpeg,png,jpg',
         ]);

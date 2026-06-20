@@ -6,6 +6,7 @@ use Gate;
 use App\Models\Order;
 use App\Models\Produk;
 use App\Models\ProdukStok;
+use App\Services\StokService;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,7 +17,11 @@ class ProdukStokController extends Controller
     {
         abort_if(Gate::denies('produk_stok_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $produkStoks = ProdukStok::where('produk_id', $produk->id)->orderBy('id', 'desc')->get();
+        $saldo = app(StokService::class)->saldoTersedia($produk->id);
+        $produkStoks = ProdukStok::saldoStok(['saldo' => $saldo])
+            ->where('produk_stoks.produk_id', $produk->id)
+            ->orderBy('produk_stoks.id', 'desc')
+            ->get();
 
         return view('admin.produkStoks.index', compact('produkStoks', 'produk'));
     }
@@ -37,55 +42,53 @@ class ProdukStokController extends Controller
             'tanggal' => 'required',
         ]);
 
-        ProdukStok::create([
-            'created_at' => $request->tanggal,
-            'tambah' => $request->tambah,
-            'kurang' => $request->kurang,
-            'keterangan' => $request->keterangan,
-            'kode' => 'opn',
-            'produk_id' => $request->produk_id,
-            'user_id' => auth()->user()->id,
-        ]);
+        app(StokService::class)->opname(
+            $request->produk_id,
+            (int) $request->tambah,
+            (int) $request->kurang,
+            $request->keterangan,
+            [
+                'created_at' => $request->tanggal,
+                'user_id' => auth()->user()->id,
+            ]
+        );
 
         return redirect()->route('produkStok.index', $request->produk_id)->withSuccess(__('Produk Stok berhasil diupdate'));
     }
 
     public function opname(Request $request)
     {
-        if ($request->dari == null && $request->sampai == null  && $request->produk_id == null) {
-            $produkStoks = ProdukStok::where('kode', 'opn')->orderBy('id', 'desc')->paginate(10);
-        } else {
-            $produkStoks = ProdukStok::query()
-                ->when($request->dari && $request->sampai, function ($query) use ($request) {
-                    $query->whereBetween('created_at', [$request->dari, $request->sampai]);
-                })
-                ->when($request->produk_id, function ($query) use ($request) {
-                    $query->where('produk_id', $request->produk_id);
-                })
-                ->where('kode', 'opn')
-                ->orderBy('id', 'desc')
-                ->paginate(10)
-                ->appends(['dari' => $request->dari, 'sampai' => $request->sampai, 'produk_id' => $request->produk_id]);
-        }
-
         $dari = null;
         $sampai = null;
+
+        $query = ProdukStok::saldoBerjalan()
+            ->with('produk')
+            ->where('produk_stoks.kode', 'opn');
 
         if ($request->bulan) {
             $dari = $request->bulan . '-01';
             $sampai = date('Y-m-t', strtotime($request->bulan));
-            $produkStoks = ProdukStok::query()
-                ->when($dari && $sampai, function ($query) use ($dari, $sampai) {
-                    $query->whereBetween('created_at', [$dari, $sampai]);
-                })
-                ->where('kode', 'opn')
-                ->orderBy('id', 'desc')
-                ->paginate(10)
-                ->appends(['dari' => $request->dari, 'sampai' => $request->sampai]);
+        } elseif ($request->dari && $request->sampai) {
+            $dari = $request->dari;
+            $sampai = $request->sampai;
         }
+
+        if ($dari && $sampai) {
+            $query->whereBetween('produk_stoks.created_at', [$dari, $sampai]);
+        }
+
+        if ($request->produk_id) {
+            $query->where('produk_stoks.produk_id', $request->produk_id);
+        }
+
+        $produkStoks = $query
+            ->orderBy('produk_stoks.id', 'desc')
+            ->paginate(10)
+            ->appends($request->only(['dari', 'sampai', 'produk_id', 'bulan']));
 
         return view('admin.produkStoks.opname', compact('produkStoks', 'dari', 'sampai'));
     }
+
     public function editStore(ProdukStok $produkStok)
     {
         abort_if(Gate::denies('opname_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
@@ -95,11 +98,9 @@ class ProdukStokController extends Controller
             $ket = 'barang dikembalikan dari ' .$order->kontak->nama.' '.$order->konsumen_detail .' ('.$order->nota.')';
             $detail_id = $produkStok->detail_id;
         } else {
-            // Ambil keterangan dan ekstrak kata setelah "oleh" jika ada
             $ket = $produkStok->keterangan;
             if (strpos($ket, 'oleh') !== false) {
                 $parts = explode('oleh', $ket, 2);
-                // ambil bagian setelah "oleh", lalu ambil kata pertama
                 $afterOleh = trim($parts[1]);
                 $firstWord = strtok($afterOleh, " ");
                 $ket = $firstWord;
@@ -109,14 +110,13 @@ class ProdukStokController extends Controller
             }
         }
 
-        ProdukStok::create([
-            'tambah' => $produkStok->kurang,
-            'kurang' => 0,
-            'keterangan' => $ket,
-            'kode' => 'btl',
-            'produk_id' => $produkStok->produk_id,
-            'detail_id' => $detail_id,
-        ]);
+        app(StokService::class)->tambah(
+            $produkStok->produk_id,
+            $produkStok->kurang,
+            'btl',
+            $ket,
+            $detail_id
+        );
 
         $produkStok->update([
             'status' => 'manual',

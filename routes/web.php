@@ -39,6 +39,7 @@ Route::get('/shopee/updateBufferCancel', [\App\Http\Controllers\Webhook\BufferCo
 // Buffer Controller Routes
 Route::prefix('buffer')->name('buffer.')->group(function () {
     Route::get('/wallet', [\App\Http\Controllers\Webhook\BufferController::class, 'wallet'])->name('wallet');
+    Route::get('/pending', [\App\Http\Controllers\Webhook\BufferController::class, 'cekBufferPending'])->name('pending');
     Route::get('/proses', [\App\Http\Controllers\Webhook\BufferController::class, 'prosesBuffer'])->name('proses');
     Route::get('/proses/{nota}', [\App\Http\Controllers\Webhook\BufferController::class, 'prosesBufferNota'])->name('proses.nota');
     Route::get('/updateProjectMpDetail', [\App\Http\Controllers\Webhook\BufferController::class, 'updateProjectMpDetail'])->name('updateProjectMpDetail');

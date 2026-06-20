@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ProdukPakai;
-use App\Models\ProdukStok;
+use App\Services\StokService;
 use App\Models\Produk;
 use Illuminate\Http\Request;
 
@@ -43,15 +43,14 @@ class PemakaianController extends Controller
         $produk = Produk::findOrFail($request->produk_id);
         $hpp = $produk->hpp ?? 0;
 
-        // Buat ProdukStok untuk mengurangi stok
-        $produkStok = ProdukStok::create([
-            'produk_id' => $request->produk_id,
-            'tambah' => 0,
-            'kurang' => $request->jumlah,
-            'keterangan' => $request->keterangan ?? 'Pemakaian produk',
-            'kode' => 'pakai',
-            'user_id' => auth()->user()->id,
-        ]);
+        $produkStok = app(StokService::class)->kurang(
+            $request->produk_id,
+            $request->jumlah,
+            'pakai',
+            $request->keterangan ?? 'Pemakaian produk',
+            null,
+            ['user_id' => auth()->user()->id]
+        );
 
         // Buat ProdukPakai
         $pemakaian = ProdukPakai::create([
@@ -82,21 +81,20 @@ class PemakaianController extends Controller
         $produk = Produk::findOrFail($request->produk_id);
         $hpp = $produk->hpp ?? 0;
 
-        // Kembalikan stok produk lama jika ada ProdukStok yang terkait
         if ($pemakaian->produk_stok_id) {
-            $oldProdukStok = ProdukStok::find($pemakaian->produk_stok_id);
+            $oldProdukStok = \App\Models\ProdukStok::find($pemakaian->produk_stok_id);
             if ($oldProdukStok) {
-                // Kembalikan stok yang sudah dikurangi
-                $produkStok = ProdukStok::create([
-                    'produk_id' => $pemakaian->produk_id,
-                    'tambah' => $pemakaian->jumlah,
-                    'kurang' => 0,
-                    'keterangan' => 'Balikin pemakaian - ' . $request->keterangan,
-                    'kode' => 'pakai',
-                    'user_id' => auth()->user()->id,
-                    'detail_id' => $pemakaian->id,
-                    'status' => 'manual',
-                ]);
+                $produkStok = app(StokService::class)->tambah(
+                    $pemakaian->produk_id,
+                    $pemakaian->jumlah,
+                    'pakai',
+                    'Balikin pemakaian - ' . $request->keterangan,
+                    $pemakaian->id,
+                    [
+                        'user_id' => auth()->user()->id,
+                        'status' => 'manual',
+                    ]
+                );
 
                 $oldProdukStok->update([
                     'detail_id' => $pemakaian->id,

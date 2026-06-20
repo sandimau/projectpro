@@ -9,7 +9,7 @@ use App\Models\Produk;
 use App\Models\Belanja;
 use App\Models\BukuBesar;
 use App\Models\AkunDetail;
-use App\Models\ProdukStok;
+use App\Services\StokService;
 use Illuminate\Http\Request;
 use App\Models\BelanjaDetail;
 use Illuminate\Support\Carbon;
@@ -145,15 +145,14 @@ class BelanjaController extends Controller
                         if ($produk->produkModel->stok == 1) {
                             $produk->updateHpp($request->harga[$item], $request->jumlah[$item]);
 
-                            ProdukStok::create([
-                                'produk_id' => $request->barang_beli_id[$item],
-                                'tambah' => $request->jumlah[$item],
-                                'kurang' => 0,
-                                'keterangan' => 'belanja nota:' . $belanja->nota,
-                                'kode' => 'blj',
-                                'user_id' => auth()->user()->id,
-                                'detail_id' => $belanja->id,
-                            ]);
+                            app(StokService::class)->tambah(
+                                $request->barang_beli_id[$item],
+                                $request->jumlah[$item],
+                                'blj',
+                                'belanja nota:' . $belanja->nota,
+                                $belanja->id,
+                                ['user_id' => auth()->user()->id]
+                            );
                         }
                     }
                 }
@@ -219,15 +218,15 @@ class BelanjaController extends Controller
                 if ($produk && $produk->produkModel->stok == 1) {
                     // Buat reversal entry ProdukStok (kurang = jumlah yang ditambah sebelumnya)
                     // Stok akan berkurang, tetapi HPP tetap karena adalah weighted average historis
-                    ProdukStok::create([
-                        'produk_id' => $detail->produk_id,
-                        'tambah' => 0,
-                        'kurang' => $detail->jumlah,
-                        'keterangan' => 'pembatalan belanja nota: ' . $belanja->nota,
-                        'kode' => 'batal',
-                        'user_id' => auth()->user()->id,
-                        'detail_id' => $belanja->id,
-                    ]);
+                    app(StokService::class)->kurang(
+                        $detail->produk_id,
+                        $detail->jumlah,
+                        'batal',
+                        'pembatalan belanja nota: ' . $belanja->nota,
+                        $belanja->id,
+                        ['user_id' => auth()->user()->id],
+                        false
+                    );
                 }
             }
 

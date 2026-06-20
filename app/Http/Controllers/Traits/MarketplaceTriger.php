@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Traits;
 
+use App\Services\StokService;
 use Illuminate\Support\Facades\DB;
 
 trait MarketplaceTriger
@@ -13,49 +14,22 @@ trait MarketplaceTriger
         $projectMp = DB::table('project_mps')->find($id);
         $nota = $projectMp->nota ?? '';
 
-        // Ambil saldo terakhir
-        $lastStok = $this->getLastStok($sku);
-        $saldo = $lastStok - $jumlah;
-
-        DB::table('produk_stoks')->insert([
-            'produk_id' => $sku,
-            'kurang' => $jumlah,
-            'tambah' => 0,
-            'saldo' => $saldo,
-            'keterangan' => 'dibeli ' . $marketplace->nama . '(' . $nota . ')',
-            'kode' => 'shp',
-            'created_at' => now(),
-            'detail_id' => $id
-        ]);
-
-        $this->updateLastStok($sku, $saldo);
+        app(StokService::class)->mpBeli(
+            $sku,
+            $jumlah,
+            'dibeli ' . $marketplace->nama . '(' . $nota . ')',
+            $id
+        );
     }
 
     public function getLastStok($produk_id)
     {
-        return DB::table('produk_stoks')
-            ->where('produk_id', $produk_id)
-            ->whereNull('deleted_at')
-            ->orderBy('id', 'desc')
-            ->first()->saldo ?? 0;
+        return app(StokService::class)->saldoTersedia($produk_id);
     }
 
     public function updateLastStok($produk_id, $saldo = null)
     {
-        if ($saldo === null) {
-            $saldo = $this->getLastStok($produk_id);
-        }
-
-        // Hanya update/insert jika produk masih ada (menghindari foreign key constraint)
-        $produkExists = DB::table('produks')->where('id', $produk_id)->exists();
-        if (!$produkExists) {
-            return;
-        }
-
-        DB::table('produk_last_stoks')->updateOrInsert(
-            ['produk_id' => $produk_id],
-            ['saldo' => $saldo, 'updated_at' => now()]
-        );
+        app(StokService::class)->updateLastStok($produk_id);
     }
 
     public function updateStokMp($produk_id)

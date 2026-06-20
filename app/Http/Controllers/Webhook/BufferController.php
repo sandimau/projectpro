@@ -62,26 +62,25 @@ class BufferController extends Controller
                     $api = $this->ambilApi($marketplace, 'payment/get_wallet_transaction_list', $param);
 
                     // Jika error karena token Shopee bermasalah
-                    if (isset($api['error']) && !empty($api['error'])) {
-                        // Cek jika kemungkinan masalah token
-                        $tokenString = json_encode($api['error']);
-                        if (
-                            stripos($tokenString, 'access_token') !== false ||
-                            stripos($tokenString, 'refresh_token') !== false ||
-                            stripos($tokenString, 'invalid') !== false ||
-                            stripos($tokenString, 'expired') !== false
-                        ) {
-                            // Jalankan manualRefreshToken Shopee
-                            try {
-                                // Jalankan route secara internal (tanpa http request eksternal)
-                                app()->make(\App\Http\Controllers\Webhook\ShopeeLivePushController::class)->manualRefreshToken();
-                                $this->logError($marketplace, 'wallet api error(token)','Token Shopee Error, menjalankan manualRefreshToken');
-                            } catch (\Exception $tokenEx) {
-                                $this->logError($marketplace, 'wallet token manual refresh gagal', $tokenEx->getMessage());
+                    if ($this->isTokenApiError($api)) {
+                        try {
+                            if ($this->refreshMarketplaceToken($marketplace->id)) {
+                                $marketplace = Marketplace::find($marketplace->id);
+                                $this->logError($marketplace, 'wallet api error(token)', 'Token Shopee di-refresh otomatis, retry API');
+                                $page_no--;
+                                continue;
                             }
-                            $tokenError = true;
+                            $this->logError($marketplace, 'wallet token refresh gagal', 'Gagal refresh token otomatis');
+                        } catch (\Exception $tokenEx) {
+                            $this->logError($marketplace, 'wallet token manual refresh gagal', $tokenEx->getMessage());
                         }
+                        $tokenError = true;
+                        $this->logError($marketplace, 'wallet api error', $api);
+                        $loop_api = false;
+                        continue;
+                    }
 
+                    if (isset($api['error']) && !empty($api['error'])) {
                         $this->logError($marketplace, 'wallet api error', $api);
                         $loop_api = false;
                         continue;
@@ -254,6 +253,60 @@ class BufferController extends Controller
         ]);
     }
 
+    private function ambilApiWithTokenRecovery($marketplace, $path, $param = [])
+    {
+        $api = $this->ambilApi($marketplace, $path, $param);
+
+        if (empty($api['response']) && $this->isTokenApiError($api)) {
+            if ($this->refreshMarketplaceToken($marketplace->id)) {
+                $marketplace = Marketplace::find($marketplace->id);
+                $api = $this->ambilApi($marketplace, $path, $param);
+            } else {
+                $this->logError($marketplace, 'token refresh gagal', $api);
+            }
+        }
+
+        return [$api, $marketplace];
+    }
+
+    /**
+     * Cek marketplace_buffers yang belum punya project_id (belum diproses).
+     * URL: /buffer/pending
+     */
+    public function cekBufferPending()
+    {
+        $buffers = MarketplaceBuffer::whereNull('project_id')
+            ->leftJoin('marketplaces', 'marketplaces.shop_id', '=', 'marketplace_buffers.shop_id')
+            ->select(
+                'marketplace_buffers.id',
+                'marketplace_buffers.nota',
+                'marketplace_buffers.shop_id',
+                'marketplace_buffers.mp',
+                'marketplace_buffers.status',
+                'marketplace_buffers.created_at',
+                'marketplace_buffers.updated_at',
+                'marketplaces.nama as nama_marketplace'
+            )
+            ->orderBy('marketplace_buffers.created_at', 'desc')
+            ->get();
+
+        $byShop = $buffers->groupBy('shop_id')->map(function ($items, $shopId) {
+            return [
+                'shop_id' => $shopId,
+                'nama_marketplace' => $items->first()->nama_marketplace,
+                'jumlah' => $items->count(),
+                'status' => $items->countBy('status')->sortDesc(),
+            ];
+        })->values();
+
+        return response()->json([
+            'success' => true,
+            'total' => $buffers->count(),
+            'by_shop' => $byShop,
+            'data' => $buffers,
+        ]);
+    }
+
     public function prosesBuffer()
     {
         $ambil = MarketplaceBuffer::where('mp', 'shopee')
@@ -287,7 +340,7 @@ class BufferController extends Controller
                     "response_optional_fields" => "item_list,buyer_username,total_amount,shipping_carrier"
                 ];
 
-                $api = $this->ambilApi($marketplace, 'order/get_order_detail', $param);
+                [$api, $marketplace] = $this->ambilApiWithTokenRecovery($marketplace, 'order/get_order_detail', $param);
 
                 if (!empty($api['response'])) {
 
@@ -487,7 +540,7 @@ class BufferController extends Controller
                 $this->logError(null, 'bersihkan buffer', "Marketplace tidak ditemukan untuk shop_id: {$shop_id}", $shop_id);
                 continue;
             }
-            $api = $this->ambilApi($marketplace, 'order/get_order_detail', $param);
+            [$api, $marketplace] = $this->ambilApiWithTokenRecovery($marketplace, 'order/get_order_detail', $param);
 
             if (!empty($api['response'])) {
                 foreach ($api['response']['order_list'] as $orderlist) {
@@ -526,7 +579,7 @@ class BufferController extends Controller
                     'order_sn' => $buffer->nota,
                 ];
 
-                $api = $this->ambilApi($marketplace, 'logistics/get_tracking_info', $param);
+                [$api, $marketplace] = $this->ambilApiWithTokenRecovery($marketplace, 'logistics/get_tracking_info', $param);
                 if (!empty($api['response'])) {
                     if (isset($api['response']['order_sn']) && isset($api['response']['logistics_status'])) {
                         $nota = $api['response']['order_sn'];
@@ -547,7 +600,7 @@ class BufferController extends Controller
                 'order_sn_list' => $notaString
             ];
 
-            $api = $this->ambilApi($marketplace, 'order/get_order_detail', $param);
+            [$api, $marketplace] = $this->ambilApiWithTokenRecovery($marketplace, 'order/get_order_detail', $param);
 
             if (!empty($api['response'])) {
                 foreach ($api['response']['order_list'] as $orderlist) {

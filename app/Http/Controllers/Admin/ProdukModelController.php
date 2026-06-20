@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Models\Kontak;
 use App\Models\Produk;
 use App\Models\ProdukModel;
+use App\Models\ProdukLastStok;
 use Illuminate\Http\Request;
 use App\Models\ProdukKategori;
 use Illuminate\Support\Facades\DB;
@@ -37,9 +38,9 @@ class ProdukModelController extends Controller
         $kategori = ProdukKategori::find($lastNumber);
         $produks = Produk::select('produks.id as produk_id', 'produks.nama as varian', 'produks.hpp as hpp','produk_models.nama as model', 'produk_models.harga', 'produk_models.satuan',
         'produk_models.deskripsi', 'produk_models.jual', 'produk_models.beli', 'produk_models.stok', 'produk_models.id as model_id',
-        'produk_models.gambar', 'produk_models.kategori_id', 'produk_models.kontak_id', 'produk_last_stoks.saldo as lastStok', 'belanja_details.harga as harga_beli')
+        'produk_models.gambar', 'produk_models.kategori_id', 'produk_models.kontak_id', 'pls.saldo as lastStok', 'belanja_details.harga as harga_beli')
             ->join('produk_models', 'produks.produk_model_id', '=', 'produk_models.id')
-            ->leftJoin('produk_last_stoks', 'produks.id', '=', 'produk_last_stoks.produk_id')
+            ->leftJoin(DB::raw(ProdukLastStok::latestPerProdukSubquery() . ' as pls'), 'produks.id', '=', 'pls.produk_id')
             ->leftJoin('belanja_details', function($join) {
                 $join->on('produks.id', '=', 'belanja_details.produk_id')
                      ->whereRaw('belanja_details.id = (SELECT id FROM belanja_details WHERE produk_id = produks.id ORDER BY id DESC LIMIT 1)');

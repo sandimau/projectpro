@@ -50,20 +50,22 @@
                                 </div>
                             </div>
                             <div class="col-md-4 text-end">
-                                @can('order_detail_create')
-                                    <a href="{{ route('orderDetail.add', $order->id) }}"
-                                        class="btn btn-success rounded-pill text-white">
-                                        <i class='bx bx-plus-circle'></i> tambah
-                                    </a>
-                                    <a href="{{ route('order.edit', $order->id) }}"
-                                        class="btn btn-info rounded-pill text-white">
-                                        edit
-                                    </a>
-                                    <a href="{{ route('order.invoice', $order->id) }}"
-                                        class="btn btn-primary rounded-pill text-white">
-                                        invoice
-                                    </a>
-                                @endcan
+                                @if ($canEditAll)
+                                    @can('order_detail_create')
+                                        <a href="{{ route('orderDetail.add', $order->id) }}"
+                                            class="btn btn-success rounded-pill text-white">
+                                            <i class='bx bx-plus-circle'></i> tambah
+                                        </a>
+                                        <a href="{{ route('order.edit', $order->id) }}"
+                                            class="btn btn-info rounded-pill text-white">
+                                            edit
+                                        </a>
+                                        <a href="{{ route('order.invoice', $order->id) }}"
+                                            class="btn btn-primary rounded-pill text-white">
+                                            invoice
+                                        </a>
+                                    @endcan
+                                @endif
                             </div>
                         </div>
                         <div class="table-responsive">
@@ -85,8 +87,13 @@
                                 <tbody>
                                     @foreach ($orderDetails as $detail)
                                         <tr>
-                                            <td style="font-weight: 600;"><a style="text-decoration:none"
-                                                    href="{{ route('orderDetail.edit', $detail->id) }}">{{ $detail->produk->namaLengkap }}</a>
+                                            <td style="font-weight: 600;">
+                                                @if ($canEditLimited)
+                                                    <a style="text-decoration:none"
+                                                        href="{{ route('orderDetail.edit', $detail->id) }}">{{ $detail->produk->namaLengkap }}</a>
+                                                @else
+                                                    {{ $detail->produk->namaLengkap }}
+                                                @endif
                                             </td>
                                             <td>{{ $detail->tema }}</td>
                                             <td>{{ $detail->jumlah }}</td>
@@ -104,35 +111,43 @@
                                                 @endif
                                             </td>
                                             <td>
-                                                <form action="{{ route('orderDetail.status', $detail->id) }}"
-                                                    method="post" class="order-detail-ajax-form">
-                                                    {{ csrf_field() }}
-                                                    {{ method_field('patch') }}
-                                                    <select class="form-select" aria-label="Default select example"
-                                                        name="produksi_id" id="produksi_id" onchange="this.form.requestSubmit()">
-                                                        @foreach ($produksi as $entry)
-                                                            <option value="{{ $entry->id }}"
-                                                                {{ $detail->produksi_id == $entry->id ? 'selected' : '' }}>
-                                                                {{ $entry->nama }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                </form>
+                                                @if ($canEditLimited && ! $isMarketingOnly)
+                                                    <form action="{{ route('orderDetail.status', $detail->id) }}"
+                                                        method="post" class="order-detail-ajax-form">
+                                                        {{ csrf_field() }}
+                                                        {{ method_field('patch') }}
+                                                        <select class="form-select" aria-label="Default select example"
+                                                            name="produksi_id" onchange="this.form.requestSubmit()">
+                                                            @foreach ($produksi as $entry)
+                                                                <option value="{{ $entry->id }}"
+                                                                    {{ $detail->produksi_id == $entry->id ? 'selected' : '' }}>
+                                                                    {{ $entry->nama }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </form>
+                                                @else
+                                                    {{ $detail->produksi->nama ?? '-' }}
+                                                @endif
                                             </td>
                                             <td>
-                                                <form action="{{ route('orderDetail.pemproses', $detail->id) }}"
-                                                    method="post" class="order-detail-ajax-form">
-                                                    {{ csrf_field() }}
-                                                    {{ method_field('patch') }}
-                                                    <select class="form-select" aria-label="Pilih pemproses"
-                                                        name="pemproses_id" onchange="this.form.requestSubmit()">
-                                                        <option value="">- pilih -</option>
-                                                        @foreach (($pemproses ?? collect()) as $entry)
-                                                            <option value="{{ $entry->id }}"
-                                                                {{ $detail->pemproses_id == $entry->id ? 'selected' : '' }}>
-                                                                {{ $entry->nama }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                </form>
+                                                @if ($canEditLimited && ! $isMarketingOnly)
+                                                    <form action="{{ route('orderDetail.pemproses', $detail->id) }}"
+                                                        method="post" class="order-detail-ajax-form">
+                                                        {{ csrf_field() }}
+                                                        {{ method_field('patch') }}
+                                                        <select class="form-select" aria-label="Pilih pemproses"
+                                                            name="pemproses_id" onchange="this.form.requestSubmit()">
+                                                            <option value="">- pilih -</option>
+                                                            @foreach (($pemproses ?? collect()) as $entry)
+                                                                <option value="{{ $entry->id }}"
+                                                                    {{ $detail->pemproses_id == $entry->id ? 'selected' : '' }}>
+                                                                    {{ $entry->nama }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </form>
+                                                @else
+                                                    {{ $detail->pemproses->nama ?? '-' }}
+                                                @endif
                                             </td>
                                             <td>
                                                 @if ($detail->gambar)
@@ -154,16 +169,20 @@
                                                                     <img class="img-fluid" style="width: 100%;" src="{{ asset('uploads/order/' . $detail->gambar) }}" alt="">
                                                                 </div>
                                                                 <div class="modal-footer">
-                                                                    <a href="{{ route('orderDetail.editGambar', $detail->id) }}" class="btn btn-primary">Edit Gambar</a>
+                                                                    @if ($canEditAll)
+                                                                        <a href="{{ route('orderDetail.editGambar', $detail->id) }}" class="btn btn-primary">Edit Gambar</a>
+                                                                    @endif
                                                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                @else
+                                                @elseif ($canEditAll)
                                                     <a href="{{ route('orderDetail.gambar', $detail->id) }}"
                                                         class="btn btn-success text-white"><i
                                                             class='bx bx-image-alt'></i></a>
+                                                @else
+                                                    -
                                                 @endif
                                             </td>
                                             <td>
@@ -204,7 +223,8 @@
                     </div>
                     <div class="card-body">
                         <form method="POST" action="{{ route('order.chatStore', $order->id) }}"
-                            enctype="multipart/form-data">
+                            enctype="multipart/form-data" class="order-detail-ajax-form"
+                            data-reload-detail="{{ route('order.detail', $order->id) }}">
                             @csrf
                             <div class="input-group mb-3">
                                 <input type="text" class="form-control chat" placeholder="tulis pesan" name="isi">

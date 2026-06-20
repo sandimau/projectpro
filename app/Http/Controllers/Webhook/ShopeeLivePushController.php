@@ -246,11 +246,10 @@ class ShopeeLivePushController extends Controller
      *
      * URL: /shopee/manualRefresh?id={marketplace_id}
      */
-    public function manualRefreshToken()
+    public function manualRefreshToken($id = null)
     {
-        // Ambil id dari query (?id=...) sesuai dokumentasi URL di atas.
-        // Jangan hardcode — id marketplace bisa berbeda tiap perusahaan/toko.
-        $id = request()->get('id');
+        // Bisa dipanggil dari route (?id=...) atau internal cron/controller.
+        $id = $id ?? request()->get('id');
 
         // Validasi input
         if (!$id) {
@@ -286,27 +285,13 @@ class ShopeeLivePushController extends Controller
         }
 
         try {
-            // Panggil API refresh token
-            $path = "auth/access_token/get";
-            $format = \App\Models\MarketplaceFormat::shopee();
-            $body = [
-                "partner_id" => $format->partnerId,
-                "shop_id" => $shopId,
-                "refresh_token" => $refreshToken
-            ];
+            $accessToken = $this->refreshMarketplaceToken($config->id);
 
-            $ret = $this->curlPost($path, $body);
-
-            if ($ret && !empty($ret['access_token'])) {
-                // Simpan token baru ke database
-                $config->update([
-                    'access_token' => $ret['access_token'],
-                    'refresh_token' => $ret['refresh_token'],
-                    'access_expired' => ($ret['expire_in'] + time()),
-                ]);
+            if ($accessToken) {
+                $config = $config->fresh();
 
                 // Ambil info toko
-                $toko = $this->ambilApi($config->fresh(), "shop/get_shop_info");
+                $toko = $this->ambilApi($config, "shop/get_shop_info");
 
                 if (isset($toko['shop_name'])) {
                     $expired = date('Y-m-d H:i:s', $toko['expire_time'] ?? time() + 86400);
@@ -323,16 +308,15 @@ class ShopeeLivePushController extends Controller
                         'marketplace_id' => $id,
                         'shop_id' => $shopId,
                         'shop_name' => $toko['shop_name'] ?? null,
-                        'access_token' => substr($ret['access_token'], 0, 10) . '...',
-                        'expire_in' => $ret['expire_in'] . ' detik',
-                        'expire_at' => date('Y-m-d H:i:s', $ret['expire_in'] + time()),
+                        'access_token' => substr($accessToken, 0, 10) . '...',
+                        'expire_in' => max(0, ($config->access_expired ?? time()) - time()) . ' detik',
+                        'expire_at' => date('Y-m-d H:i:s', $config->access_expired ?? time()),
                     ]
                 ]);
             } else {
                 return response()->json([
                     'success' => false,
                     'message' => 'Gagal refresh token. Refresh token mungkin sudah expired (>30 hari). Silakan otorisasi ulang.',
-                    'response' => $ret
                 ], 400);
             }
         } catch (\Exception $e) {

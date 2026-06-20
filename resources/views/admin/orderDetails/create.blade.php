@@ -17,16 +17,13 @@
             <form method="POST" action="{{ route('orderDetail.store') }}" enctype="multipart/form-data">
                 @csrf
                 <input type="hidden" name="order_id" value="{{ $order->id }}">
-                <input type="text" name="nota" value="{{ $order->nota }}">
+                <input type="hidden" name="nota" value="{{ $order->nota }}">
                 <div class="form-group mb-3">
                     <label for="nama" class="mb-2">Produk</label>
-                    <div id="autocompleteProduk" class="autocomplete">
-                        <input class="autocomplete-input produk {{ $errors->has('produk_id') ? 'invalid' : '' }}"
-                            placeholder="cari produk" aria-label="cari produk">
-                        <span id="closeBrgProduk"></span>
-                        <ul class="autocomplete-result-list"></ul>
-                        <input type="hidden" id="produkId" name="produk_id">
-                    </div>
+                    @include('admin.orderDetails.partials.produk-autocomplete', [
+                        'produkId' => old('produk_id'),
+                        'produkLabel' => '',
+                    ])
                     @if ($errors->has('produk_id'))
                         <div class="invalid-feedback z-10">
                             {{ $errors->first('produk_id') }}
@@ -100,87 +97,5 @@
 @endsection
 
 @push('after-scripts')
-<script src="{{ asset('js/autocomplete.min.js') }}"></script>
-<link rel="stylesheet" href="{{ asset('js/autocomplete.css') }}">
-    <script>
-        new Autocomplete('#autocompleteProduk', {
-            search: input => {
-                const url = "{{ url('admin/produk/api?q=') }}" + `${escape(input)}`;
-                return new Promise(resolve => {
-                    if (input.length < 1) {
-                        return resolve([])
-                    }
-
-                    fetch(url)
-                        .then(response => response.json())
-                        .then(data => {
-                            resolve(data);
-                        })
-                })
-            },
-            getResultValue: result => result.varian ? result.kategori + ' - ' + result.nama + ' - ' + result
-                .varian : result.kategori + ' - ' + result.nama,
-            onSubmit: result => {
-                let idProduk = document.getElementById('produkId');
-                idProduk.value = result.id;
-
-                //set harga
-                let harga = document.getElementById("harga");
-                harga.value = result.harga;
-
-                let btn = document.getElementById("closeBrgProduk");
-                btn.style.display = "block";
-                btn.innerHTML =
-                    `<button onclick="clearProduk()" type="button" class="btnClose btn-warning"><i class='bx bx-x-circle' ></i></button>`;
-            },
-        })
-
-        function clearData() {
-            let btn = document.getElementById("closeBrg");
-            btn.style.display = "none";
-            let auto = document.querySelector(".autocomplete-input");
-            auto.value = null;
-            let idProduk = document.getElementById('kontakId');
-            idProduk.value = null;
-        }
-
-        function clearProduk() {
-            let btn = document.getElementById("closeBrgProduk");
-            btn.style.display = "none";
-            let auto = document.querySelector(".autocomplete-input.produk");
-            auto.value = null;
-            let idProduk = document.getElementById('produkId');
-            idProduk.value = null;
-        }
-    </script>
-    <style>
-        #autocomplete,
-        #autocompleteProduk {
-            max-width: 600px;
-        }
-
-        #closeBrg,
-        #closeBrgProduk {
-            position: relative;
-        }
-
-        #closeBrg button,
-        #closeBrgProduk button {
-            position: absolute;
-            right: -15px;
-            top: -40px;
-        }
-
-        .btnClose {
-            padding: 4px 8px;
-            border: 0;
-            border-radius: 50px;
-            background: #fdc54c;
-        }
-
-        .autocomplete-input.is-invalid,
-        .autocomplete-input.invalid {
-            border: solid 1px red;
-        }
-    </style>
+    @include('admin.orderDetails.partials.produk-autocomplete-standalone')
 @endpush

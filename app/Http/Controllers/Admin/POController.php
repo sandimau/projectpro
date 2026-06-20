@@ -10,7 +10,7 @@ use App\Models\Belanja;
 use App\Models\PoDetail;
 use App\Models\BukuBesar;
 use App\Models\AkunDetail;
-use App\Models\ProdukStok;
+use App\Services\StokService;
 use App\Models\HutangDetail;
 use Illuminate\Http\Request;
 use App\Models\BelanjaDetail;
@@ -324,23 +324,22 @@ class POController extends Controller
 
                     // Update stok jika produk stok
                     if ($produk->produkModel->stok == 1) {
-                        $total = $produk->lastStok()->where('produk_id', $produk->id)->latest('id')->first();
-                        if ($total) {
-                            $hpp = (($total->pivot->saldo * $produk->hpp) + ($request->harga[$idx] * $request->jumlah[$idx])) / ($request->jumlah[$idx] + $total->pivot->saldo);
+                        $stokSaatIni = app(StokService::class)->saldoTersedia($produk->id);
+                        if ($stokSaatIni > 0) {
+                            $hpp = (($stokSaatIni * $produk->hpp) + ($request->harga[$idx] * $request->jumlah[$idx])) / ($request->jumlah[$idx] + $stokSaatIni);
                         } else {
                             $hpp = $request->harga[$idx];
                         }
                         $produk->update(['hpp' => $hpp]);
 
-                        ProdukStok::create([
-                            'produk_id' => $request->produk[$idx],
-                            'tambah' => $request->jumlah[$idx],
-                            'kurang' => 0,
-                            'keterangan' => 'belanja nota:' . $belanja->nota,
-                            'kode' => 'blj',
-                            'user_id' => auth()->user()->id,
-                            'detail_id' => $belanja->id,
-                        ]);
+                        app(StokService::class)->tambah(
+                            $request->produk[$idx],
+                            $request->jumlah[$idx],
+                            'blj',
+                            'belanja nota:' . $belanja->nota,
+                            $belanja->id,
+                            ['user_id' => auth()->user()->id]
+                        );
                     }
 
                     // Update jumlah kedatangan di po detail
