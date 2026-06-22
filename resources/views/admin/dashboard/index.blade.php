@@ -7,16 +7,6 @@
         @include('layouts.includes.messages')
     </div>
 
-    {{-- Header --}}
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold mb-1" style="color: #2c3e50;">Dashboard</h2>
-        </div>
-        <div class="text-end">
-            <i class='bx bx-calendar me-1'></i>{{ now()->translatedFormat('l, d F Y') }}
-        </div>
-    </div>
-
     {{-- Chart Section --}}
     <div class="row mb-4">
         {{-- Omzet Offline Pekanan --}}

@@ -38,7 +38,7 @@
             <svg class="nav-icon">
                 <use xlink:href="{{ asset('icons/coreui.svg#cil-industry') }}"></use>
             </svg>
-            Produksi Order
+            Proses Order
         </a>
         <ul class="nav-group-items">
             @can('order_access')
@@ -276,7 +276,7 @@
             <svg class="nav-icon">
                 <use xlink:href="{{ asset('icons/coreui.svg#cil-inbox') }}"></use>
             </svg>
-            Produksi Pabrik
+            Produksi
         </a>
         <ul class="nav-group-items">
             @can('produk_access')
