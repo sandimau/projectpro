@@ -81,10 +81,11 @@ class DashboardController extends Controller
 
     /**
      * Ambil omzet online per marketplace per hari (7 hari terakhir)
+     * Gabungkan project_mps (API Shopee) + orders (upload CSV / marketplace lain)
      */
     private function getOmzetOnlinePekanan()
     {
-        $results = DB::select("
+        $resultsProjectMp = DB::select("
             SELECT
                 m.id as marketplace_id,
                 m.nama as marketplace_nama,
@@ -97,18 +98,31 @@ class DashboardController extends Controller
             ORDER BY m.id, DATE(o.created_at)
         ");
 
-        // Format data untuk chart
+        $resultsOrders = DB::select("
+            SELECT
+                m.id as marketplace_id,
+                m.nama as marketplace_nama,
+                DATE(ord.created_at) as date,
+                COALESCE(SUM(ord.total), 0) as total_omzet
+            FROM marketplaces m
+            LEFT JOIN orders ord ON m.kontak_id = ord.kontak_id
+                AND ord.marketplace = 1
+                AND ord.deleted_at IS NULL
+                AND ord.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+            GROUP BY m.id, m.nama, DATE(ord.created_at)
+            ORDER BY m.id, DATE(ord.created_at)
+        ");
+
         $dateRange = collect(range(0, 6))->map(function ($day) {
             return now()->subDays(6 - $day)->format('Y-m-d');
         });
 
         $data = collect();
         foreach ($dateRange as $date) {
-            $data[$date] = (object)['date' => $date];
+            $data[$date] = (object) ['date' => $date];
         }
 
-        // Populate data per marketplace
-        foreach ($results as $result) {
+        foreach (array_merge($resultsProjectMp, $resultsOrders) as $result) {
             if ($result->date && isset($data[$result->date])) {
                 $columnName = str_replace(' ', '_', substr($result->marketplace_nama, 0, 13));
                 if (!isset($data[$result->date]->$columnName)) {
@@ -122,25 +136,52 @@ class DashboardController extends Controller
     }
 
     /**
-     * Ambil produk terlaris pekanan
+     * Ambil produk terlaris pekanan (project_mps + orders marketplace)
      */
     private function getProdukTerlarisPekanan()
     {
         $results = DB::select("
             SELECT
-                p.id as produk_id,
-                p.nama as nama_produk,
-                pm.nama as model_nama,
-                pk.nama as kategori_nama,
-                SUM(pmd.jumlah) as total,
-                SUM(pmd.jumlah * pmd.harga) as omzet
-            FROM project_mp_details pmd
-            INNER JOIN project_mps o ON pmd.project_id = o.id
-            INNER JOIN produks p ON pmd.produk_id = p.id
-            INNER JOIN produk_models pm ON p.produk_model_id = pm.id
-            INNER JOIN produk_kategoris pk ON pm.kategori_id = pk.id
-            WHERE o.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-            GROUP BY p.id, p.nama, pm.nama, pk.nama
+                produk_id,
+                nama_produk,
+                model_nama,
+                kategori_nama,
+                SUM(total) as total,
+                SUM(omzet) as omzet
+            FROM (
+                SELECT
+                    p.id as produk_id,
+                    p.nama as nama_produk,
+                    pm.nama as model_nama,
+                    pk.nama as kategori_nama,
+                    pmd.jumlah as total,
+                    pmd.jumlah * pmd.harga as omzet
+                FROM project_mp_details pmd
+                INNER JOIN project_mps o ON pmd.project_id = o.id
+                INNER JOIN produks p ON pmd.produk_id = p.id
+                INNER JOIN produk_models pm ON p.produk_model_id = pm.id
+                INNER JOIN produk_kategoris pk ON pm.kategori_id = pk.id
+                WHERE o.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+
+                UNION ALL
+
+                SELECT
+                    p.id as produk_id,
+                    p.nama as nama_produk,
+                    pm.nama as model_nama,
+                    pk.nama as kategori_nama,
+                    od.jumlah as total,
+                    od.jumlah * od.harga as omzet
+                FROM order_details od
+                INNER JOIN orders o ON od.order_id = o.id
+                INNER JOIN produks p ON od.produk_id = p.id
+                INNER JOIN produk_models pm ON p.produk_model_id = pm.id
+                INNER JOIN produk_kategoris pk ON pm.kategori_id = pk.id
+                WHERE o.marketplace = 1
+                AND o.deleted_at IS NULL
+                AND o.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+            ) combined
+            GROUP BY produk_id, nama_produk, model_nama, kategori_nama
             ORDER BY omzet DESC
             LIMIT 10
         ");
@@ -157,25 +198,52 @@ class DashboardController extends Controller
     }
 
     /**
-     * Ambil order terbesar hari ini
+     * Ambil order terbesar hari ini (project_mps + orders marketplace)
      */
     private function getOrderTerbesarHariIni()
     {
         $results = DB::select("
             SELECT
-                p.id as produk_id,
-                p.nama as nama_produk,
-                pm.nama as model_nama,
-                pk.nama as kategori_nama,
-                SUM(pmd.jumlah) as total,
-                SUM(pmd.jumlah * pmd.harga) as omzet
-            FROM project_mp_details pmd
-            INNER JOIN project_mps o ON pmd.project_id = o.id
-            INNER JOIN produks p ON pmd.produk_id = p.id
-            INNER JOIN produk_models pm ON p.produk_model_id = pm.id
-            INNER JOIN produk_kategoris pk ON pm.kategori_id = pk.id
-            WHERE DATE(o.created_at) = CURDATE()
-            GROUP BY p.id, p.nama, pm.nama, pk.nama
+                produk_id,
+                nama_produk,
+                model_nama,
+                kategori_nama,
+                SUM(total) as total,
+                SUM(omzet) as omzet
+            FROM (
+                SELECT
+                    p.id as produk_id,
+                    p.nama as nama_produk,
+                    pm.nama as model_nama,
+                    pk.nama as kategori_nama,
+                    pmd.jumlah as total,
+                    pmd.jumlah * pmd.harga as omzet
+                FROM project_mp_details pmd
+                INNER JOIN project_mps o ON pmd.project_id = o.id
+                INNER JOIN produks p ON pmd.produk_id = p.id
+                INNER JOIN produk_models pm ON p.produk_model_id = pm.id
+                INNER JOIN produk_kategoris pk ON pm.kategori_id = pk.id
+                WHERE DATE(o.created_at) = CURDATE()
+
+                UNION ALL
+
+                SELECT
+                    p.id as produk_id,
+                    p.nama as nama_produk,
+                    pm.nama as model_nama,
+                    pk.nama as kategori_nama,
+                    od.jumlah as total,
+                    od.jumlah * od.harga as omzet
+                FROM order_details od
+                INNER JOIN orders o ON od.order_id = o.id
+                INNER JOIN produks p ON od.produk_id = p.id
+                INNER JOIN produk_models pm ON p.produk_model_id = pm.id
+                INNER JOIN produk_kategoris pk ON pm.kategori_id = pk.id
+                WHERE o.marketplace = 1
+                AND o.deleted_at IS NULL
+                AND DATE(o.created_at) = CURDATE()
+            ) combined
+            GROUP BY produk_id, nama_produk, model_nama, kategori_nama
             ORDER BY omzet DESC
             LIMIT 10
         ");
