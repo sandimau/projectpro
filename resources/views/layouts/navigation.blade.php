@@ -32,13 +32,13 @@
     $openConfig = $navOpen('roles*', 'permissions*', 'admin/produksis*', 'admin/speks*', 'admin/pemproses*', 'admin/sistem*', 'admin/linkPages*');
 @endphp
 
-<ul class="sidebar-nav" data-coreui="navigation" data-simplebar>
+<ul class="sidebar-nav compact" data-coreui="navigation" data-simplebar>
     <li class="nav-group{{ $openProduksiOrder ? ' show' : '' }}" aria-expanded="{{ $openProduksiOrder ? 'true' : 'false' }}">
         <a class="nav-link nav-group-toggle" href="#">
             <svg class="nav-icon">
                 <use xlink:href="{{ asset('icons/coreui.svg#cil-industry') }}"></use>
             </svg>
-            Produksi
+            Produksi Order
         </a>
         <ul class="nav-group-items">
             @can('order_access')
@@ -276,7 +276,7 @@
             <svg class="nav-icon">
                 <use xlink:href="{{ asset('icons/coreui.svg#cil-inbox') }}"></use>
             </svg>
-            Produksi
+            Produksi Pabrik
         </a>
         <ul class="nav-group-items">
             @can('produk_access')

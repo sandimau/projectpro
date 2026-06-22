@@ -1,6 +1,8 @@
-<footer class="footer text-sm">
+<footer class="footer">
     <div>
-        Copyright &copy; {{ date('Y') }}
+        &copy; {{ date('Y') }} {{ config('app.name', 'Sablonku') }}. All rights reserved.
     </div>
-    <div class="ms-auto">Bootstrap Admin Template</div>
+    <div class="ms-auto text-muted">
+        v{{ config('app.version', '1.0') }}
+    </div>
 </footer>

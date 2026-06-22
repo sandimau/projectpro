@@ -1,90 +1,102 @@
 <header class="header header-sticky mb-4">
-    <div class="container-fluid">
+    <div class="container-fluid d-flex align-items-center">
         <button class="header-toggler px-md-0 me-md-3" type="button"
             onclick="coreui.Sidebar.getInstance(document.querySelector('#sidebar')).toggle()">
             <svg class="icon icon-lg">
                 <use xlink:href="{{ asset('icons/coreui.svg#cil-menu') }}"></use>
             </svg>
         </button>
+
         <a class="header-brand d-md-none" href="#">
             @if (session()->has('logo'))
                 <img style="height:35px"
                     src="{{ url('storage/logo/' . session('logo')[0] . session('logo')[1] . '/' . session('logo')[2] . session('logo')[3] . '/' . session('logo')) }}"
-                    alt="" srcset="">
+                    alt="{{ config('app.name') }}"
+                    srcset="">
             @endif
         </a>
+
         @auth
-            <ul class="header-nav ms-auto">
-                <li class="nav-item">
-                    @role('super|Manager')
-                        <a class="nav-link py-0" href="{{ route('dashboard') }}">
-                            <svg class="icon me-2">
-                                <use xlink:href="{{ asset('icons/coreui.svg#cil-refresh') }}"></use>
+            <ul class="header-nav ms-auto d-flex align-items-center gap-2">
+                @role('super|Manager')
+                    <li class="nav-item">
+                        <a class="header-dashboard-btn" href="{{ route('dashboard') }}">
+                            <svg class="icon" style="width:1rem;height:1rem;">
+                                <use xlink:href="{{ asset('icons/coreui.svg#cil-speedometer') }}"></use>
                             </svg>
-                            <button class="btn btn-primary">
-                                Dashboard <span class="badge badge-primary"></span>
-                            </button>
+                            Dashboard
                         </a>
-                    @endrole
-                </li>
+                    </li>
+                @endrole
+
                 <li class="nav-item">
-                    <div class="nav-link py-0">
-                        {{ date('d-m-Y') }}
+                    <div class="header-date">
+                        <svg class="icon" style="width:1rem;height:1rem;">
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-calendar') }}"></use>
+                        </svg>
+                        {{ date('d M Y') }}
                     </div>
                 </li>
-                <li class="nav-item dropdown ms-auto">
-                    <a class="nav-link py-0" data-coreui-toggle="dropdown" href="#" role="button"
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link header-user-trigger" data-coreui-toggle="dropdown" href="#" role="button"
                         aria-haspopup="true" aria-expanded="false">
                         <div class="avatar">
-                            <img class="avatar-img" src="{{ asset('img/default-avatar.jpg') }}">
+                            <img class="avatar-img" src="{{ asset('img/default-avatar.jpg') }}" alt="Avatar">
                         </div>
-                        {{ Auth::user()->name }}
+                        <span class="header-user-name d-none d-lg-inline">{{ Auth::user()->name }}</span>
+                        <svg class="icon d-none d-lg-inline" style="width:.75rem;height:.75rem;color:#94a3b8;">
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-chevron-bottom') }}"></use>
+                        </svg>
                     </a>
-                    <div style="z-index: 5" class="dropdown-menu dropdown-menu-end pt-0">
-                        <a class="dropdown-item" href="{{ route('whattodo') }}">
-                            <svg class="icon me-2">
-                                <use xlink:href="{{ asset('icons/coreui.svg#cil-airplay') }}"></use>
-                            </svg> What To Do
-                        </a>
-
-                        <a class="dropdown-item" href="{{ route('profile.cuti', Auth::user()->id) }}">
-                            <svg class="icon me-2">
-                                <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
-                            </svg>
-                            {{ __('Cuti') }}
-                        </a>
-
-                        <a class="dropdown-item" href="{{ route('profile.gaji', Auth::user()->id) }}">
-                            <svg class="icon me-2">
-                                <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
-                            </svg>
-                            {{ __('Gaji') }}
-                        </a>
-
-                        <a class="dropdown-item" href="{{ route('profile.lembur', Auth::user()->id) }}">
-                            <svg class="icon me-2">
-                                <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
-                            </svg>
-                            {{ __('Lembur') }}
-                        </a>
-
-                        <a class="dropdown-item" href="{{ route('profile.show', Auth::user()->id) }}">
-                            <svg class="icon me-2">
-                                <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
-                            </svg>
-                            {{ __('Ganti Password') }}
-                        </a>
-
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <a class="dropdown-item" href="{{ route('logout') }}"
-                                onclick="event.preventDefault(); this.closest('form').submit();">
+                    <div class="dropdown-menu dropdown-menu-end pt-0" style="z-index:1050;min-width:220px;">
+                        <div class="px-3 py-2 border-bottom">
+                            <div class="fw-semibold" style="font-size:.875rem;">{{ Auth::user()->name }}</div>
+                            <div class="text-muted" style="font-size:.75rem;">{{ Auth::user()->email ?? '' }}</div>
+                        </div>
+                        <div class="p-1">
+                            <a class="dropdown-item" href="{{ route('whattodo') }}">
                                 <svg class="icon me-2">
-                                    <use xlink:href="{{ asset('icons/coreui.svg#cil-account-logout') }}"></use>
+                                    <use xlink:href="{{ asset('icons/coreui.svg#cil-task') }}"></use>
                                 </svg>
-                                {{ __('Logout') }}
+                                What To Do
                             </a>
-                        </form>
+                            <a class="dropdown-item" href="{{ route('profile.cuti', Auth::user()->id) }}">
+                                <svg class="icon me-2">
+                                    <use xlink:href="{{ asset('icons/coreui.svg#cil-calendar-check') }}"></use>
+                                </svg>
+                                {{ __('Cuti') }}
+                            </a>
+                            <a class="dropdown-item" href="{{ route('profile.gaji', Auth::user()->id) }}">
+                                <svg class="icon me-2">
+                                    <use xlink:href="{{ asset('icons/coreui.svg#cil-dollar') }}"></use>
+                                </svg>
+                                {{ __('Gaji') }}
+                            </a>
+                            <a class="dropdown-item" href="{{ route('profile.lembur', Auth::user()->id) }}">
+                                <svg class="icon me-2">
+                                    <use xlink:href="{{ asset('icons/coreui.svg#cil-clock') }}"></use>
+                                </svg>
+                                {{ __('Lembur') }}
+                            </a>
+                            <a class="dropdown-item" href="{{ route('profile.show', Auth::user()->id) }}">
+                                <svg class="icon me-2">
+                                    <use xlink:href="{{ asset('icons/coreui.svg#cil-lock-locked') }}"></use>
+                                </svg>
+                                {{ __('Ganti Password') }}
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <a class="dropdown-item text-danger" href="{{ route('logout') }}"
+                                    onclick="event.preventDefault(); this.closest('form').submit();">
+                                    <svg class="icon me-2">
+                                        <use xlink:href="{{ asset('icons/coreui.svg#cil-account-logout') }}"></use>
+                                    </svg>
+                                    {{ __('Logout') }}
+                                </a>
+                            </form>
+                        </div>
                     </div>
                 </li>
             </ul>

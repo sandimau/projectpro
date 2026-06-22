@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 
 <head>
     <base href="./">
@@ -7,9 +7,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>{{ config('app.name', 'sablonku') }}</title>
-    <meta name="theme-color" content="#ffffff">
+    <meta name="theme-color" content="#6366f1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     @stack('before-styles')
-    <link rel="stylesheet" href="{{ asset('build/assets/app-c3db2d24.css') }}">
+    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css" />
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     @stack('after-styles')
@@ -17,7 +20,7 @@
 
 <body>
 
-    <div class="bg-light min-vh-100 d-flex flex-row align-items-center">
+    <div class="min-vh-100 d-flex flex-row align-items-center" style="background: linear-gradient(135deg, #eef2ff 0%, #f1f5f9 50%, #e0e7ff 100%);">
         <div class="container">
             <div class="row justify-content-center">
                 @yield('content')
@@ -25,7 +28,6 @@
         </div>
     </div>
     @stack('before-scripts')
-    <script src="{{ asset('build/assets/app-0a6d7623.js') }}"></script>
     <script src="{{ asset('js/jquery.min.js') }}"></script>
     <script src="{{ asset('js/coreui.bundle.min.js') }}"></script>
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>

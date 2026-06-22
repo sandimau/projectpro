@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 
 <head>
     <base href="./">
@@ -13,10 +13,12 @@
             {{ config('app.name', 'sablonku') }}
         @endif
     </title>
-    <meta name="theme-color" content="#ffffff">
+    <meta name="theme-color" content="#6366f1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     @stack('before-styles')
-    <link rel="stylesheet" href="{{ asset('build/assets/app-c3db2d24.css') }}">
-    {{-- @vite('resources/sass/app.scss') --}}
+    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css" />
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     @stack('after-styles')
@@ -28,59 +30,48 @@
             @if (session()->has('Logo'))
                 <img style="height:50px"
                     src="{{ url('uploads/Logo/' . session('Logo')) }}"
-                    alt="" srcset="">
+                    alt="{{ config('app.name') }}"
+                    srcset="">
             @endif
         </div>
         @include('layouts.navigation')
         <button class="sidebar-toggler" type="button" data-coreui-toggle="unfoldable"></button>
     </div>
-    <div class="wrapper d-flex flex-column min-vh-100 bg-light">
-        <!-- Header block -->
+    <div class="wrapper d-flex flex-column min-vh-100">
         @include('layouts.includes.header')
-        <!-- / Header block -->
 
         <div class="body flex-grow-1 px-3">
             <div class="container-fluid">
-                <!-- Errors block -->
                 @include('layouts.includes.errors')
-                <!-- / Errors block -->
                 <div class="mb-4">@yield('content')</div>
             </div>
         </div>
 
-        <!-- Footer block -->
         @include('layouts.includes.footer')
-        <!-- / Footer block -->
     </div>
 
-    <div class="modal fade" id="modal-hapus" tabindex="-1" role="dialog" aria-labelledby="modal-notification"
-        aria-hidden="true">
-        <div class="modal-dialog">
+    <div class="modal fade" id="modal-hapus" tabindex="-1" aria-labelledby="modalHapusLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title" id="myModalLabel">Yakin ingin menghapus data ini?</h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h5 class="modal-title" id="modalHapusLabel">Konfirmasi Hapus</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
                 <div class="modal-body">
-                    <h4>pilih "hapus" jika anda yakin</h4>
+                    <p class="mb-0">Yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan.</p>
                 </div>
                 <div class="modal-footer">
-                    <form action="" method="post">
+                    <form action="" method="post" class="d-flex gap-2 w-100 justify-content-end">
                         {{ csrf_field() }}
                         {{ method_field('delete') }}
-                        <p>
-                            <button type="button" class="btn btn-info waves-effect" data-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-danger waves-effect">Hapus</button>
-                        </p>
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-danger">Hapus</button>
                     </form>
                 </div>
             </div>
-            <!-- /.modal-content -->
         </div>
-        <!-- /.modal-dialog -->
     </div>
 
-    <!-- Scripts -->
     @stack('before-scripts')
     <script src="{{ asset('js/jquery.min.js') }}"></script>
     <script src="{{ asset('js/coreui.bundle.min.js') }}"></script>
@@ -88,10 +79,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous">
     </script>
-    {{-- @vite('resources/js/app.js') --}}
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
     @stack('after-scripts')
-    <!-- / Scripts -->
 
 </body>
 
