@@ -68,12 +68,29 @@ class OrderDetailController extends Controller
         abort_if(! $this->canEditOrderDetailAll(), Response::HTTP_FORBIDDEN, '403 Forbidden');
     }
 
+    private function canShowOrderHeaderActions(): bool
+    {
+        if ($this->isMarketingOnly()) {
+            return true;
+        }
+
+        $user = auth()->user();
+
+        return $this->canEditOrderDetailAll() && $user->can('order_detail_create');
+    }
+
+    private function authorizeOrderDetailCreate(): void
+    {
+        abort_if(! $this->canShowOrderHeaderActions(), Response::HTTP_FORBIDDEN, '403 Forbidden');
+    }
+
     private function orderDetailAccessFlags(): array
     {
         return [
             'canEditAll' => $this->canEditOrderDetailAll(),
             'canEditLimited' => $this->canEditOrderDetailLimited(),
             'isMarketingOnly' => $this->isMarketingOnly(),
+            'canShowOrderActions' => $this->canShowOrderHeaderActions(),
         ];
     }
 
@@ -99,8 +116,7 @@ class OrderDetailController extends Controller
 
     public function create(Order $order)
     {
-        $this->authorizeOrderDetailAll();
-        abort_if(Gate::denies('order_detail_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $this->authorizeOrderDetailCreate();
 
         $speks = Spek::all();
         return view('admin.orderDetails.create', compact('order', 'speks'));
@@ -108,7 +124,7 @@ class OrderDetailController extends Controller
 
     public function store(Request $request)
     {
-        $this->authorizeOrderDetailAll();
+        $this->authorizeOrderDetailCreate();
 
         $request->validate([
             'produk_id' => 'required',

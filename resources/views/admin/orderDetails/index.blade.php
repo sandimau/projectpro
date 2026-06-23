@@ -50,21 +50,19 @@
                                 </div>
                             </div>
                             <div class="col-md-4 text-end">
-                                @if ($canEditAll)
-                                    @can('order_detail_create')
-                                        <a href="{{ route('orderDetail.add', $order->id) }}"
-                                            class="btn btn-success rounded-pill text-white">
-                                            <i class='bx bx-plus-circle'></i> tambah
-                                        </a>
-                                        <a href="{{ route('order.edit', $order->id) }}"
-                                            class="btn btn-info rounded-pill text-white">
-                                            edit
-                                        </a>
-                                        <a href="{{ route('order.invoice', $order->id) }}"
-                                            class="btn btn-primary rounded-pill text-white">
-                                            invoice
-                                        </a>
-                                    @endcan
+                                @if ($canShowOrderActions)
+                                    <a href="{{ route('orderDetail.add', $order->id) }}"
+                                        class="btn btn-success rounded-pill text-white">
+                                        <i class='bx bx-plus-circle'></i> tambah
+                                    </a>
+                                    <a href="{{ route('order.edit', $order->id) }}"
+                                        class="btn btn-info rounded-pill text-white">
+                                        edit
+                                    </a>
+                                    <a href="{{ route('order.invoice', $order->id) }}"
+                                        class="btn btn-primary rounded-pill text-white">
+                                        invoice
+                                    </a>
                                 @endif
                             </div>
                         </div>

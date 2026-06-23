@@ -67,11 +67,11 @@ class SistemController extends Controller
                     $img_resize->resize(700, null, function ($constraint) {
                         $constraint->aspectRatio();
                     });
-                    $save_path = 'uploads/'.$value->nama.'/';
+                    $save_path = public_path('uploads/' . $value->nama . '/');
                     if (!file_exists($save_path)) {
-                        mkdir($save_path, 666, true);
+                        mkdir($save_path, 0755, true);
                     }
-                    $img_resize->save(public_path($save_path . $filename));
+                    $img_resize->save($save_path . $filename);
                     $gambar = $filename;
                 }
                 $value->update([
