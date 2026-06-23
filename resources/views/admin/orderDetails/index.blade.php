@@ -6,12 +6,6 @@
 
 @section('content')
     <div class="bg-light rounded">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item active" aria-current="page"> <a href="{{ route('order.dashboard') }}" >Dashboard</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Order Detail</li>
-            </ol>
-        </nav>
         @include('layouts.includes.messages')
         <div class="row">
             <div class="col-lg-12">
@@ -149,32 +143,14 @@
                                             </td>
                                             <td>
                                                 @if ($detail->gambar)
-                                                    <a href="#" data-bs-toggle="modal" data-bs-target="#imageModal{{ $detail->id }}">
-                                                        <img style="height: 60px"
+                                                    <a href="#"
+                                                        class="order-detail-image-thumb"
+                                                        data-image-src="{{ asset('uploads/order/' . $detail->gambar) }}"
+                                                        @if ($canEditAll) data-edit-url="{{ route('orderDetail.editGambar', $detail->id) }}" @endif>
+                                                        <img style="width: 100px"
                                                             src="{{ asset('uploads/order/' . $detail->gambar) }}"
                                                             alt="" srcset="">
                                                     </a>
-
-                                                    <!-- Modal -->
-                                                    <div class="modal fade" id="imageModal{{ $detail->id }}" tabindex="-1" aria-labelledby="imageModalLabel{{ $detail->id }}" aria-hidden="true">
-                                                        <div class="modal-dialog modal-lg">
-                                                            <div class="modal-content">
-                                                                <div class="modal-header">
-                                                                    <h5 class="modal-title" id="imageModalLabel{{ $detail->id }}">Gambar Order</h5>
-                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                                </div>
-                                                                <div class="modal-body text-center">
-                                                                    <img class="img-fluid" style="width: 100%;" src="{{ asset('uploads/order/' . $detail->gambar) }}" alt="">
-                                                                </div>
-                                                                <div class="modal-footer">
-                                                                    @if ($canEditAll)
-                                                                        <a href="{{ route('orderDetail.editGambar', $detail->id) }}" class="btn btn-primary">Edit Gambar</a>
-                                                                    @endif
-                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
                                                 @elseif ($canEditAll)
                                                     <a href="{{ route('orderDetail.gambar', $detail->id) }}"
                                                         class="btn btn-success text-white"><i

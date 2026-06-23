@@ -5,6 +5,9 @@
     const modalBody = document.getElementById('detailOrderBody');
     const modalTitle = document.getElementById('detailOrderModalLabel');
     const backBtn = document.getElementById('detailOrderModalBack');
+    const imagePreview = document.getElementById('detailOrderImagePreview');
+    const imagePreviewImg = imagePreview?.querySelector('.detail-order-image-preview-img');
+    const imagePreviewEdit = imagePreview?.querySelector('.detail-order-image-preview-edit');
     const bsModal = new bootstrap.Modal(modalEl);
     let modalWasOpened = false;
     let modalHistory = [];
@@ -43,8 +46,19 @@
             }
         }
 
+        const cardTitle = doc.querySelector('.card-title');
+        if (cardTitle) {
+            return cardTitle.textContent.replace(/\s+/g, ' ').trim();
+        }
+
         const title = doc.querySelector('title');
-        return title ? title.textContent.trim() : 'Detail Order';
+        if (title) {
+            const titleText = title.textContent.trim();
+            const parts = titleText.split('|');
+            return parts[0].trim() || 'Detail Order';
+        }
+
+        return 'Detail Order';
     }
 
     function shouldSkipModalScript(code) {
@@ -53,7 +67,9 @@
         return /new Autocomplete\s*\(\s*['"]#autocomplete/i.test(code) ||
             /getElementById\s*\(\s*['"]closeBrg/i.test(code) ||
             /initOrderDetailProdukAutocomplete/.test(code) ||
-            /function clearProduk\s*\(/.test(code);
+            /function clearProduk\s*\(/.test(code) ||
+            /\$\(['"]#print['"]\)/.test(code) ||
+            /printArea\s*\(/.test(code);
     }
 
     function injectPageAssets(doc) {
@@ -224,14 +240,80 @@
         });
     }
 
+    function initModalInvoicePrint() {
+        const printBtn = modalBody.querySelector('#print');
+        const printableArea = modalBody.querySelector('.printableArea');
+        if (!printBtn || !printableArea) return Promise.resolve();
+
+        if (printBtn.dataset.modalBound === '1') return Promise.resolve();
+        printBtn.dataset.modalBound = '1';
+
+        printBtn.addEventListener('click', function() {
+            if (typeof jQuery === 'undefined' || typeof jQuery.fn.printArea !== 'function') {
+                window.print();
+                return;
+            }
+
+            jQuery(printableArea).printArea({
+                mode: 'iframe',
+                popClose: false
+            });
+        });
+
+        return Promise.resolve();
+    }
+
+    function getFlashFromDoc(doc) {
+        const content = doc.querySelector('.body .container-fluid .mb-4') ||
+            doc.querySelector('.body .container-fluid') ||
+            doc.querySelector('.body');
+
+        if (!content) return null;
+
+        const success = content.querySelector('.alert-success');
+        if (success) {
+            return {
+                message: success.textContent.replace(/\s+/g, ' ').trim(),
+                type: 'success'
+            };
+        }
+
+        const danger = content.querySelector('.alert-danger');
+        if (danger) {
+            return {
+                message: danger.textContent.replace(/\s+/g, ' ').trim(),
+                type: 'danger'
+            };
+        }
+
+        return null;
+    }
+
+    function stripServerFlashAlerts(container) {
+        container.querySelectorAll('.alert-success, .alert-danger').forEach(function(alert) {
+            if (!alert.classList.contains('modal-ajax-alert')) {
+                alert.remove();
+            }
+        });
+    }
+
     function renderModalPage(html) {
+        closeImagePreview();
+        closeInnerModals();
+
         const doc = parseHtml(html);
+        const flash = getFlashFromDoc(doc);
         modalBody.innerHTML = extractContent(doc);
+        stripServerFlashAlerts(modalBody);
         modalTitle.textContent = extractTitle(doc);
         injectPageAssets(doc);
         return runPageScripts(doc).then(function() {
             bindModalForms();
             return initModalOrderDetailAutocomplete();
+        }).then(function() {
+            return initModalInvoicePrint();
+        }).then(function() {
+            return flash;
         });
     }
 
@@ -260,13 +342,15 @@
     }
 
     function showModalAlert(message, type) {
-        let alert = modalBody.querySelector('.modal-ajax-alert');
-        if (!alert) {
-            alert = document.createElement('div');
-            modalBody.prepend(alert);
-        }
+        modalBody.querySelectorAll('.modal-ajax-alert').forEach(function(el) {
+            el.remove();
+        });
+
+        const alert = document.createElement('div');
         alert.className = 'modal-ajax-alert alert alert-' + type + ' mb-3';
         alert.textContent = message;
+        modalBody.prepend(alert);
+
         setTimeout(function() {
             alert.remove();
         }, 3000);
@@ -279,7 +363,67 @@
             return true;
         }
 
-        return /\/admin\/order\/\d+/.test(path);
+        if (/\/admin\/order\/\d+/.test(path)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    function closeImagePreview() {
+        if (!imagePreview) return;
+
+        imagePreview.classList.add('d-none');
+        imagePreview.setAttribute('aria-hidden', 'true');
+
+        if (imagePreviewImg) {
+            imagePreviewImg.removeAttribute('src');
+        }
+
+        if (imagePreviewEdit) {
+            imagePreviewEdit.classList.add('d-none');
+            imagePreviewEdit.setAttribute('href', '#');
+        }
+    }
+
+    function openImagePreview(imageSrc, editUrl) {
+        if (!imagePreview || !imagePreviewImg) return;
+
+        if (imagePreviewImg) {
+            imagePreviewImg.src = imageSrc;
+        }
+
+        if (imagePreviewEdit) {
+            if (editUrl) {
+                imagePreviewEdit.href = editUrl;
+                imagePreviewEdit.classList.remove('d-none');
+            } else {
+                imagePreviewEdit.classList.add('d-none');
+                imagePreviewEdit.setAttribute('href', '#');
+            }
+        }
+
+        imagePreview.classList.remove('d-none');
+        imagePreview.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeInnerModals() {
+        modalBody.querySelectorAll('.modal').forEach(function(innerModal) {
+            const instance = bootstrap.Modal.getInstance(innerModal);
+            if (instance) {
+                instance.hide();
+            }
+        });
+    }
+
+    function navigateInModal(url) {
+        closeImagePreview();
+        closeInnerModals();
+
+        return loadDetailContent(url, true).catch(function(err) {
+            modalBody.innerHTML =
+                '<div class="alert alert-danger">' + err.message + '</div>';
+        });
     }
 
     function shouldSkipModalLink(link) {
@@ -393,8 +537,12 @@
             })
             .then(function(data) {
                 replaceCurrentHistory(data.url);
-                return renderModalPage(data.html).then(function() {
-                    showModalAlert('Berhasil disimpan', 'success');
+                return renderModalPage(data.html).then(function(flash) {
+                    if (flash) {
+                        showModalAlert(flash.message, flash.type);
+                    } else {
+                        showModalAlert('Berhasil disimpan', 'success');
+                    }
                 });
             })
             .catch(function(err) {
@@ -458,22 +606,49 @@
         loadDetailInModal(link.getAttribute('href'));
     });
 
-    modalBody.addEventListener('click', function(e) {
+    modalEl.addEventListener('click', function(e) {
+        if (e.target.closest('[data-image-preview-close]')) {
+            e.preventDefault();
+            closeImagePreview();
+            return;
+        }
+
+        const thumb = e.target.closest('.order-detail-image-thumb');
+        if (thumb && modalBody.contains(thumb)) {
+            e.preventDefault();
+            openImagePreview(thumb.dataset.imageSrc, thumb.dataset.editUrl || '');
+            return;
+        }
+
         const link = e.target.closest('a[href]');
         if (!link || !modalBody.contains(link)) return;
         if (shouldSkipModalLink(link)) return;
 
         e.preventDefault();
-        loadDetailContent(link.href, true).catch(function(err) {
-            modalBody.innerHTML =
-                '<div class="alert alert-danger">' + err.message + '</div>';
+        e.stopPropagation();
+        navigateInModal(link.href);
+    }, true);
+
+    if (imagePreviewEdit) {
+        imagePreviewEdit.addEventListener('click', function(e) {
+            const href = imagePreviewEdit.getAttribute('href');
+            if (!href || href === '#') return;
+
+            e.preventDefault();
+            navigateInModal(href);
         });
+    }
+
+    modalEl.addEventListener('hide.bs.modal', function(e) {
+        if (modalBody.querySelector('.modal.show')) {
+            e.preventDefault();
+            closeInnerModals();
+        }
     });
 
     modalEl.addEventListener('hidden.bs.modal', function() {
+        closeImagePreview();
         resetHistory();
-        if (modalWasOpened) {
-            location.reload();
-        }
+        modalWasOpened = false;
     });
 })();

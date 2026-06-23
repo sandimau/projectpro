@@ -24,6 +24,10 @@ a.popup:hover {
     margin: 0;
 }
 
+#detailOrderModal .card > .card-header:has(.card-title) {
+    display: none !important;
+}
+
 #detailOrderModal .order-detail-produk-autocomplete {
     max-width: 600px;
     position: relative;
@@ -68,4 +72,59 @@ a.popup:hover {
 
 #detailOrderModal input[type="hidden"][name="nota"] {
     display: none !important;
+}
+
+#detailOrderImagePreview {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+#detailOrderImagePreview.d-none {
+    display: none !important;
+}
+
+#detailOrderModal .modal-content {
+    position: relative;
+}
+
+.detail-order-image-preview-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+}
+
+.detail-order-image-preview-panel {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 900px);
+    max-height: calc(100% - 2rem);
+    background: #fff;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-order-image-preview-body {
+    padding: 1rem;
+    overflow: auto;
+}
+
+.detail-order-image-preview-img {
+    max-height: 70vh;
+    width: auto;
+}
+
+.detail-order-image-preview-footer {
+    padding: 0.75rem 1rem 1rem;
+    border-top: 1px solid #dee2e6;
+}
+
+.order-detail-image-thumb {
+    display: inline-block;
 }

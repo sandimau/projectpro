@@ -21,6 +21,18 @@
                     </div>
                 </div>
             </div>
+            <div id="detailOrderImagePreview" class="detail-order-image-preview d-none" aria-hidden="true">
+                <div class="detail-order-image-preview-backdrop" data-image-preview-close></div>
+                <div class="detail-order-image-preview-panel">
+                    <div class="detail-order-image-preview-body text-center">
+                        <img class="img-fluid detail-order-image-preview-img" src="" alt="Gambar order">
+                    </div>
+                    <div class="detail-order-image-preview-footer d-flex justify-content-center gap-2">
+                        <a href="#" class="btn btn-primary detail-order-image-preview-edit d-none">Edit Gambar</a>
+                        <button type="button" class="btn btn-secondary" data-image-preview-close>Tutup</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
