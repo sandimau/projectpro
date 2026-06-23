@@ -357,6 +357,9 @@ class OrderDetailController extends Controller
 
         $request->validate([
             'gambar' => 'required|mimes:jpeg,png,jpg',
+        ], [
+            'gambar.required' => 'Pilih file gambar terlebih dahulu.',
+            'gambar.mimes' => 'Gambar harus berformat JPEG, PNG, atau JPG.',
         ]);
 
         $orderDetail = OrderDetail::find($request->order_detail_id);
@@ -388,6 +391,13 @@ class OrderDetailController extends Controller
             'gambar' => $gambar,
         ]);
 
-        return redirect('/admin/order/' . $orderDetail->order->id . '/detail')->withSuccess(__('Gambar detail updated successfully.'));
+        $redirectUrl = route('order.detail', $orderDetail->order->id);
+        $message = __('Gambar detail updated successfully.');
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['message' => $message]);
+        }
+
+        return redirect($redirectUrl)->withSuccess($message);
     }
 }

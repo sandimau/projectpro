@@ -341,6 +341,22 @@
         }
     }
 
+    function parseFetchErrorMessage(res, fallback) {
+        return res.json().then(function(data) {
+            if (data.errors) {
+                return Object.values(data.errors).flat().join(' ');
+            }
+
+            if (data.message) {
+                return data.message;
+            }
+
+            return fallback;
+        }).catch(function() {
+            return fallback;
+        });
+    }
+
     function showModalAlert(message, type) {
         modalBody.querySelectorAll('.modal-ajax-alert').forEach(function(el) {
             el.remove();
@@ -488,7 +504,12 @@
                 }
             })
             .then(function(res) {
-                if (!res.ok) throw new Error('Gagal menyimpan (' + res.status + ')');
+                if (!res.ok) {
+                    return parseFetchErrorMessage(res, 'Gagal menyimpan. Silakan coba lagi.').then(function(message) {
+                        throw new Error(message);
+                    });
+                }
+
                 return res.json();
             })
             .then(function(data) {

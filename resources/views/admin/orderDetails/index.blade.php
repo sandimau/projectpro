@@ -143,14 +143,21 @@
                                             </td>
                                             <td>
                                                 @if ($detail->gambar)
-                                                    <a href="#"
-                                                        class="order-detail-image-thumb"
-                                                        data-image-src="{{ asset('uploads/order/' . $detail->gambar) }}"
-                                                        @if ($canEditAll) data-edit-url="{{ route('orderDetail.editGambar', $detail->id) }}" @endif>
-                                                        <img style="width: 100px"
-                                                            src="{{ asset('uploads/order/' . $detail->gambar) }}"
-                                                            alt="" srcset="">
-                                                    </a>
+                                                    @if ($canEditAll)
+                                                        <a href="{{ route('orderDetail.editGambar', $detail->id) }}">
+                                                            <img style="width: 100px"
+                                                                src="{{ asset('uploads/order/' . $detail->gambar) }}"
+                                                                alt="">
+                                                        </a>
+                                                    @else
+                                                        <a href="#"
+                                                            class="order-detail-image-thumb"
+                                                            data-image-src="{{ asset('uploads/order/' . $detail->gambar) }}">
+                                                            <img style="width: 100px"
+                                                                src="{{ asset('uploads/order/' . $detail->gambar) }}"
+                                                                alt="">
+                                                        </a>
+                                                    @endif
                                                 @elseif ($canEditAll)
                                                     <a href="{{ route('orderDetail.gambar', $detail->id) }}"
                                                         class="btn btn-success text-white"><i
