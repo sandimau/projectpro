@@ -336,7 +336,7 @@ class OrderController extends Controller
         $order['jenis_pembayaran'] = $request->jenis_pembayaran;
         $order['ket_kirim'] = $request->ket_kirim;
         $order['deathline'] = $request->deathline;
-        $order['nota'] = $request->nota;
+        $order['nota'] = $request->nota ?: rand(1000000, 100);
 
         // ambil order flow setiap perusahaan
         $produksi = Produksi::where('grup', 'awal')->first();
@@ -352,6 +352,7 @@ class OrderController extends Controller
         $dataDetail['keterangan'] = $request->keterangan;
         $dataDetail['produksi_id'] = $produksi->id;
         $dataDetail['deathline'] = $request->deathline;
+        $dataDetail['nota'] = $dataOrder->nota;
 
         $produk = Produk::find($request->produk_id);
         $dataDetail['hpp'] = $produk->hpp;
