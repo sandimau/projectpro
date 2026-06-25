@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\RespondsToMemberModal;
 use App\Http\Controllers\Controller;
 use App\Models\Lembur;
 use App\Models\Member;
@@ -9,6 +10,7 @@ use Illuminate\Http\Request;
 
 class LemburController extends Controller
 {
+    use RespondsToMemberModal;
     // Helper untuk nama bulan
     protected function getBulans()
     {
@@ -52,7 +54,11 @@ class LemburController extends Controller
             'status' => 'waiting',
         ]);
 
-        return redirect()->route('members.lembur', $request->member_id)->with('success', __('Lembur created successfully.'));
+        return $this->memberModalResponse(
+            $request,
+            __('Lembur created successfully.'),
+            route('members.lembur', $request->member_id)
+        );
     }
 
     public function edit(Lembur $lembur)
@@ -78,7 +84,11 @@ class LemburController extends Controller
             // Tidak memperbarui tahun dan dibayar pada update
         ]);
 
-        return redirect()->route('members.show', $request->member_id)->with('success', __('Lembur updated successfully.'));
+        return $this->memberModalResponse(
+            $request,
+            __('Lembur updated successfully.'),
+            route('members.show', $request->member_id)
+        );
     }
 
     public function approve(Lembur $lembur)
@@ -87,7 +97,11 @@ class LemburController extends Controller
             'status' => 'approved',
         ]);
 
-        return redirect()->route('members.lembur', $lembur->member_id)->with('success', __('Lembur approved successfully.'));
+        return $this->memberModalResponse(
+            request(),
+            __('Lembur approved successfully.'),
+            route('members.lembur', $lembur->member_id)
+        );
     }
 
     public function reject(Lembur $lembur)
@@ -96,6 +110,10 @@ class LemburController extends Controller
             'status' => 'rejected',
         ]);
 
-        return redirect()->route('members.lembur', $lembur->member_id)->with('success', __('Lembur approved successfully.'));
+        return $this->memberModalResponse(
+            request(),
+            __('Lembur rejected successfully.'),
+            route('members.lembur', $lembur->member_id)
+        );
     }
 }

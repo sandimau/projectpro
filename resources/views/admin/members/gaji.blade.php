@@ -11,8 +11,13 @@
         </div>
         <div class="card mt-4">
             <div class="card-header">
-                <a href="{{ route('gaji.create', $member->id) }}" class="btn btn-success text-white me-1"><i
-                        class='bx bxs-edit'></i> add gaji</a>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title">Gaji</h5>
+                    </div>
+                    <a href="{{ route('gaji.create', $member->id) }}" class="popup btn btn-success text-white"><i
+                            class='bx bxs-edit'></i> add gaji</a>
+                </div>
             </div>
             <div class="card-body">
                 {{ $gajis->links() }}

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\RespondsToMemberModal;
 use App\Http\Controllers\Controller;
 use App\Models\Bagian;
 use App\Models\Gaji;
@@ -11,6 +12,7 @@ use Illuminate\Http\Request;
 
 class GajiController extends Controller
 {
+    use RespondsToMemberModal;
 
     public function create(Member $member)
     {
@@ -38,6 +40,10 @@ class GajiController extends Controller
             'jumlah_lain' => $request->jumlah_lain,
         ]);
 
-        return redirect()->route('members.show', $request->member_id)->withSuccess(__('Gaji created successfully.'));
+        return $this->memberModalResponse(
+            $request,
+            __('Gaji created successfully.'),
+            route('members.show', $request->member_id)
+        );
     }
 }

@@ -17,7 +17,7 @@
                         <h6 class="card-subtitle mb-2 text-muted">List penggajian freelance</h6>
                     </div>
                     @can('penggajian_access')
-                        <a href="{{ route('penggajian.createFreelance', $member->id) }}" class="btn btn-success text-white">
+                        <a href="{{ route('penggajian.createFreelance', $member->id) }}" class="popup btn btn-success text-white">
                             <i class='bx bx-plus-circle'></i> Tambah Penggajian
                         </a>
                     @endcan
@@ -70,7 +70,7 @@
                                     <td>{{ number_format($item->lembur) }}</td>
                                     <td>{{ number_format($item->total) }}</td>
                                     <td><a href="{{ route('penggajian.slip', $item->id) }}"
-                                            class="btn btn-primary btn-sm">slip gaji</a></td>
+                                            class="popup btn btn-primary btn-sm">slip gaji</a></td>
                                 </tr>
                             @endforeach
                         </tbody>

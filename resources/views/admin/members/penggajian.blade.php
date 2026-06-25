@@ -17,17 +17,17 @@
                         <h6 class="card-subtitle mb-2 text-muted">Manage your penggajians here.</h6>
                     </div>
                     <div>
-                        <a href="{{ route('members.gaji', $member->id) }}" class="btn btn-primary">format gaji</a>
+                        <a href="{{ route('members.gaji', $member->id) }}" class="popup btn btn-primary">format gaji</a>
                         @if ($gajis->where('member_id', $member->id)->first())
                             @if ($gajian)
                                 @if ($gajian->bulan != date('n'))
                                     <a href="{{ route('penggajian.create', $member->id) }}"
-                                        class="btn btn-success text-white me-1"><i class='bx bxs-edit'></i> add
+                                        class="popup btn btn-success text-white me-1"><i class='bx bxs-edit'></i> add
                                         penggajian</a>
                                 @endif
                             @else
                                 <a href="{{ route('penggajian.create', $member->id) }}"
-                                    class="btn btn-success text-white me-1"><i class='bx bxs-edit'></i> add
+                                    class="popup btn btn-success text-white me-1"><i class='bx bxs-edit'></i> add
                                     penggajian</a>
                             @endif
                         @endif
@@ -114,7 +114,7 @@
                                     <td>{{ number_format($item->kasbon) }}</td>
                                     <td>{{ number_format($item->bonus) }}</td>
                                     <td><a href="{{ route('penggajian.slip', $item->id) }}"
-                                            class="btn btn-primary btn-sm">slip gaji</a></td>
+                                            class="popup btn btn-primary btn-sm">slip gaji</a></td>
                                 </tr>
                             @endforeach
                         </tbody>

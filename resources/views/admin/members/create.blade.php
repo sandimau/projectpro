@@ -7,7 +7,10 @@ Create Member
 @section('content')
 <div class="card">
     <div class="card-header">
-        <h5>Add Member</h5>
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">Add Member</h5>
+            <a href="{{ route('members.index') }}" class="btn btn-primary" data-modal-skip>back</a>
+        </div>
     </div>
 
     <div class="card-body">

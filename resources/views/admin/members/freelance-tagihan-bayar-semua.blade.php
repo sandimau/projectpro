@@ -9,7 +9,7 @@
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">Bayar Semua Tagihan - {{ $member->nama_lengkap }}</h5>
-                <a href="{{ route('members.freelanceTagihan', $member->id) }}" class="btn btn-secondary btn-sm">Kembali</a>
+                <a href="{{ route('members.freelanceTagihan', $member->id) }}" class="popup btn btn-secondary btn-sm">Kembali</a>
             </div>
         </div>
         <div class="card-body">

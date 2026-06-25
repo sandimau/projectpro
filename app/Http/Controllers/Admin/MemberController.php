@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\RespondsToMemberModal;
 use App\Http\Controllers\Controller;
 use App\Models\AkunDetail;
 use App\Models\BukuBesar;
@@ -20,6 +21,7 @@ use Illuminate\Support\Facades\DB;
 
 class MemberController extends Controller
 {
+    use RespondsToMemberModal;
 
     public function index()
     {
@@ -60,7 +62,11 @@ class MemberController extends Controller
         $data['jenis'] = 'karyawan';
         $member = Member::create($data);
 
-        return redirect()->route('members.index')->withSuccess(__('Member created successfully.'));
+        return $this->memberModalResponse(
+            $request,
+            __('Member created successfully.'),
+            route('members.index')
+        );
     }
 
     public function edit(Member $member)
@@ -84,7 +90,11 @@ class MemberController extends Controller
     {
         $member->update($request->all());
 
-        return redirect()->route('members.index')->withSuccess(__('Member created successfully.'));
+        return $this->memberModalResponse(
+            $request,
+            __('Member updated successfully.'),
+            route('members.show', $member->id)
+        );
     }
 
     public function show(Member $member)
@@ -211,7 +221,11 @@ class MemberController extends Controller
             'jenis' => 'freelance',
         ]);
 
-        return redirect()->route('members.freelance')->withSuccess(__('Freelance created successfully.'));
+        return $this->memberModalResponse(
+            $request,
+            __('Freelance created successfully.'),
+            route('members.freelance')
+        );
     }
 
     public function editFreelance(Member $member)
@@ -222,7 +236,11 @@ class MemberController extends Controller
     public function updateFreelance(Request $request, Member $member)
     {
         $member->update($request->all());
-        return redirect()->route('members.freelance')->withSuccess(__('Freelance updated successfully.'));
+        return $this->memberModalResponse(
+            $request,
+            __('Freelance updated successfully.'),
+            route('members.showFreelance', $member->id)
+        );
     }
 
     /** Form bayar satu tagihan (halaman terpisah) */
@@ -279,8 +297,11 @@ class MemberController extends Controller
             ]);
         });
 
-        return redirect()->route('members.freelanceTagihan', $tagihan->member_id)
-            ->withSuccess('Tagihan berhasil dibayar.');
+        return $this->memberModalResponse(
+            $request,
+            'Tagihan berhasil dibayar.',
+            route('members.freelanceTagihan', $tagihan->member_id)
+        );
     }
 
     /** Form bayar semua tagihan (halaman terpisah, bukan createFreelance) */
@@ -356,7 +377,10 @@ class MemberController extends Controller
             ]);
         });
 
-        return redirect()->route('members.freelanceTagihan', $member->id)
-            ->withSuccess('Tagihan dan lembur berhasil dibayar.');
+        return $this->memberModalResponse(
+            $request,
+            'Tagihan dan lembur berhasil dibayar.',
+            route('members.freelanceTagihan', $member->id)
+        );
     }
 }

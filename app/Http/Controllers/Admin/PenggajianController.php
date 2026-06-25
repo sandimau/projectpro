@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\RespondsToMemberModal;
 use App\Models\Absensi;
 use App\Models\Gaji;
 use App\Models\Level;
@@ -19,6 +20,7 @@ use App\Http\Controllers\Controller;
 
 class PenggajianController extends Controller
 {
+    use RespondsToMemberModal;
 
     public function create(Member $member)
     {
@@ -167,7 +169,11 @@ class PenggajianController extends Controller
             ]);
         });
 
-        return redirect()->route('members.penggajian', $request->member_id)->withSuccess(__('Penggajian created successfully.'));
+        return $this->memberModalResponse(
+            $request,
+            __('Penggajian created successfully.'),
+            route('members.penggajian', $request->member_id)
+        );
     }
 
     public function slip(Penggajian $penggajian)
@@ -231,6 +237,10 @@ class PenggajianController extends Controller
             ]);
         });
 
-        return redirect()->route('members.penggajianFreelance', $request->member_id)->withSuccess(__('Penggajian created successfully.'));
+        return $this->memberModalResponse(
+            $request,
+            __('Penggajian created successfully.'),
+            route('members.penggajianFreelance', $request->member_id)
+        );
     }
 }

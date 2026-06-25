@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\RespondsToMemberModal;
 use App\Models\Kasbon;
 use App\Models\Member;
 use App\Models\BukuBesar;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Controller;
 
 class KasbonController extends Controller
 {
+    use RespondsToMemberModal;
     public function create(Member $member)
     {
         $kas = AkunDetail::pluck('nama', 'id')->toArray();
@@ -67,7 +69,11 @@ class KasbonController extends Controller
             ]);
         });
 
-        return redirect()->route('members.kasbon', $request->member_id)->withSuccess(__('Kasbon created successfully.'));
+        return $this->memberModalResponse(
+            $request,
+            __('Kasbon created successfully.'),
+            route('members.kasbon', $request->member_id)
+        );
     }
 
     public function bayar(Member $member)
@@ -126,6 +132,10 @@ class KasbonController extends Controller
             ]);
         });
 
-        return redirect()->route('members.show', $request->member_id)->withSuccess(__('Kasbon created successfully.'));
+        return $this->memberModalResponse(
+            $request,
+            __('Kasbon payment recorded successfully.'),
+            route('members.kasbon', $request->member_id)
+        );
     }
 }

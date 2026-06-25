@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\RespondsToMemberModal;
 use App\Models\Member;
 use App\Models\Sistem;
 use App\Models\Whattodo;
@@ -10,6 +11,7 @@ use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
+    use RespondsToMemberModal;
     /**
      * Create a new controller instance.
      *
@@ -84,7 +86,11 @@ class HomeController extends Controller
             'user_id' => $request->user_id
         ]);
 
-        return redirect('/whattodo')->withSuccess(__('Whattodo created successfully.'));
+        return $this->memberModalResponse(
+            $request,
+            __('Whattodo created successfully.'),
+            url('/whattodo')
+        );
     }
 
     public function edit(Whattodo $what)
@@ -95,7 +101,11 @@ class HomeController extends Controller
     public function update(Whattodo $what, Request $request)
     {
         $what->update($request->all());
-        return redirect('/whattodo')->withSuccess(__('Whattodo updated successfully.'));
+        return $this->memberModalResponse(
+            $request,
+            __('Whattodo updated successfully.'),
+            url('/whattodo')
+        );
     }
 
     public function destroy(Whattodo $what)

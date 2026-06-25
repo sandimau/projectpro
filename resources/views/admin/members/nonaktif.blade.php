@@ -10,9 +10,10 @@
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h5 class="card-title">Members</h5>
+                        <h5 class="card-title">Members Nonaktif</h5>
                         <h6 class="card-subtitle mb-2 text-muted">Manage your members here.</h6>
                     </div>
+                    <a href="{{ route('members.index') }}" class="btn btn-primary" data-modal-skip><i class='bx bx-arrow-back'></i> aktif</a>
                 </div>
             </div>
             <div class="card-body">
@@ -56,7 +57,7 @@
                             @foreach ($members as $member)
                                 <tr data-entry-id="{{ $member->id }}">
                                     <td>
-                                        <a href="{{ route('members.show', $member->id) }}">{{ $member->nama_lengkap ?? '' }}</a>
+                                        <a class="popup" href="{{ route('members.show', $member->id) }}">{{ $member->nama_lengkap ?? '' }}</a>
                                     </td>
                                     <td>{{ $member->tgl_masuk }}</td>
                                     <td>{{ $member->tgl_keluar }}</td>
@@ -74,4 +75,15 @@
             </div>
         </div>
     </div>
+
+    @include('admin.members.partials.detail-member-modal')
 @endsection
+
+@push('after-scripts')
+    <script>
+        @include('admin.members.partials.detail-member-modal-js')
+    </script>
+    <style>
+        @include('admin.members.partials.detail-member-modal-styles')
+    </style>
+@endpush

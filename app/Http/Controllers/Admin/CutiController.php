@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\RespondsToMemberModal;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\MassDestroyCutiRequest;
 use App\Http\Requests\StoreCutiRequest;
@@ -14,6 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CutiController extends Controller
 {
+    use RespondsToMemberModal;
     public function create(Member $member)
     {
         return view('admin.cutis.create', compact('member'));
@@ -38,7 +40,11 @@ class CutiController extends Controller
             'member_id' => $request->member_id,
         ]);
 
-        return redirect()->route('members.cuti', $request->member_id)->withSuccess(__('Cuti created successfully.'));
+        return $this->memberModalResponse(
+            $request,
+            __('Cuti created successfully.'),
+            route('members.cuti', $request->member_id)
+        );
     }
 
     function storeIjin(Request $request)
@@ -55,7 +61,11 @@ class CutiController extends Controller
             'member_id' => $request->member_id,
         ]);
 
-        return redirect()->route('members.ijin', $request->member_id)->withSuccess(__('Ijin created successfully.'));
+        return $this->memberModalResponse(
+            $request,
+            __('Ijin created successfully.'),
+            route('members.ijin', $request->member_id)
+        );
     }
 
     public function edit(Cuti $cuti)
@@ -68,6 +78,10 @@ class CutiController extends Controller
     {
         $cuti->update($request->all());
 
-        return redirect()->route('members.show', $request->member_id)->withSuccess(__('Cuti updated successfully.'));
+        return $this->memberModalResponse(
+            $request,
+            __('Cuti updated successfully.'),
+            route('members.show', $request->member_id)
+        );
     }
 }

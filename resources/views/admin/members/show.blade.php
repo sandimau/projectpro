@@ -23,15 +23,15 @@
                 <div class="card mt-4">
                     <div class="card-header">
                         @if ($member->status == 0)
-                            <a class="btn btn-primary" href="{{ route('members.nonaktif') }}">
+                            <a class="btn btn-primary" href="{{ route('members.nonaktif') }}" data-modal-skip>
                                 <i class='bx bx-arrow-back'></i> back
                             </a>
                         @else
-                            <a class="btn btn-primary" href="{{ route('members.index') }}">
+                            <a class="btn btn-primary" href="{{ route('members.index') }}" data-modal-skip>
                                 <i class='bx bx-arrow-back'></i> back
                             </a>
                         @endif
-                        <a class="btn btn-warning" href="{{ route('members.edit', $member->id) }}">
+                        <a class="popup btn btn-warning" href="{{ route('members.edit', $member->id) }}">
                             <i class='bx bxs-edit'></i> edit
                         </a>
                     </div>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\RespondsToMemberModal;
 use App\Http\Controllers\Controller;
 use App\Models\AkunDetail;
 use App\Models\BukuBesar;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 
 class TunjanganController extends Controller
 {
+    use RespondsToMemberModal;
     public function create(Member $member)
     {
         $kas = AkunDetail::pluck('nama', 'id')->toArray();
@@ -65,7 +67,11 @@ class TunjanganController extends Controller
             ]);
         });
 
-        return redirect()->route('members.tunjangan', $request->member_id)->withSuccess(__('Tunjangan created successfully.'));
+        return $this->memberModalResponse(
+            $request,
+            __('Tunjangan created successfully.'),
+            route('members.tunjangan', $request->member_id)
+        );
     }
 }
 

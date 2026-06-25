@@ -13,7 +13,7 @@
                         <h5 class="card-title">Freelance</h5>
                     </div>
                     @can('member_create')
-                        <a href="{{ route('freelance.create') }}" class="btn btn-primary"><i class='bx bx-plus-circle'></i> Add</a>
+                        <a href="{{ route('freelance.create') }}" class="popup btn btn-primary"><i class='bx bx-plus-circle'></i> Add</a>
                     @endcan
                 </div>
             </div>
@@ -40,12 +40,12 @@
                             @foreach ($members as $member)
                                 <tr data-entry-id="{{ $member->id }}">
                                     <td>
-                                        <a
+                                        <a class="popup"
                                             href="{{ route('members.showFreelance', $member->id) }}">{{ $member->nama_lengkap ?? '' }}</a>
                                     </td>
                                     <td>
                                         @can('lembur_access')
-                                            <a href={{ route('members.lembur', $member->id) }}>{{ $member->countLembur }}</a>
+                                            <a class="popup" href="{{ route('members.lembur', $member->id) }}">{{ $member->countLembur }}</a>
                                         @elsecan('member_access')
                                             {{ $member->countLembur }}
                                         @endcan
@@ -67,24 +67,20 @@
                                             $totalBelumDibayar = $member->total_upah_belum_dibayar ?? 0;
                                         @endphp
                                         @can('penggajian_access')
-                                            @if ($totalBelumDibayar > 0)
-                                                <a
-                                                    href="{{ route('members.freelanceTagihan', $member->id) }}">{{ number_format($totalBelumDibayar) }}</a>
-                                            @else
-                                                <a href="{{ route('members.freelanceTagihan', $member->id) }}">0</a>
-                                            @endif
+                                            <a class="popup"
+                                                href="{{ route('members.freelanceTagihan', $member->id) }}">{{ number_format($totalBelumDibayar) }}</a>
                                         @endcan
                                     </td>
                                     <td>
                                         @can('penggajian_access')
-                                            <a href="{{ route('members.penggajianFreelance', $member->id) }}">Penggajian</a>
+                                            <a class="popup" href="{{ route('members.penggajianFreelance', $member->id) }}">Penggajian</a>
                                         @elsecan('member_access')
                                             -
                                         @endcan
                                     </td>
                                     <td>
                                         <a href="{{ route('whattodo.create', ['member_id' => $member->id]) }}"
-                                            class="btn btn-info btn-sm me-1 text-white"><i class='bx bxs-add-to-queue'></i>
+                                            class="popup btn btn-info btn-sm me-1 text-white"><i class='bx bxs-add-to-queue'></i>
                                             add</a>
                                     </td>
                                 </tr>
@@ -95,4 +91,15 @@
             </div>
         </div>
     </div>
+
+    @include('admin.members.partials.detail-member-modal')
 @endsection
+
+@push('after-scripts')
+    <script>
+        @include('admin.members.partials.detail-member-modal-js')
+    </script>
+    <style>
+        @include('admin.members.partials.detail-member-modal-styles')
+    </style>
+@endpush

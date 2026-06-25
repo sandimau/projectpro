@@ -7,7 +7,10 @@ Edit Freelance
 @section('content')
 <div class="card">
     <div class="card-header">
-        edit freelance
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">Edit Freelance</h5>
+            <a href="{{ route('members.showFreelance', $member->id) }}" class="popup btn btn-primary">back</a>
+        </div>
     </div>
 
     <div class="card-body">

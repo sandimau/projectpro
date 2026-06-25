@@ -16,14 +16,14 @@
                         <h5 class="card-title">Tagihan Upah - {{ $member->nama_lengkap }}</h5>
                         <h6 class="card-subtitle mb-2 text-muted">Daftar tagihan upah dari absensi (belum dibayar akan masuk saat penggajian)</h6>
                     </div>
-                    <a href="{{ route('members.freelance') }}" class="btn btn-secondary"><i class='bx bx-arrow-back'></i> Kembali</a>
+                    <a href="{{ route('members.freelance') }}" class="btn btn-secondary" data-modal-skip><i class='bx bx-arrow-back'></i> Kembali</a>
                 </div>
             </div>
             <div class="card-body">
                 @if($totalBelumDibayar > 0)
                     <div class="alert alert-info mb-3 d-flex justify-content-between align-items-center">
                         <span><strong>Total upah belum dibayar:</strong> {{ number_format($totalBelumDibayar) }}</span>
-                        <a href="{{ route('members.freelanceTagihan.bayarSemua', $member->id) }}" class="btn btn-sm btn-success">Bayar Semua</a>
+                        <a href="{{ route('members.freelanceTagihan.bayarSemua', $member->id) }}" class="popup btn btn-sm btn-success">Bayar Semua</a>
                     </div>
                 @endif
                 {{ $tagihans->links() }}
@@ -53,7 +53,7 @@
                                     </td>
                                     <td>
                                         @if($item->dibayar === 'belum')
-                                            <a href="{{ route('members.freelanceTagihan.bayar', $item->id) }}" class="btn btn-sm btn-primary">Bayar</a>
+                                            <a href="{{ route('members.freelanceTagihan.bayar', $item->id) }}" class="popup btn btn-sm btn-primary">Bayar</a>
                                         @else
                                             -
                                         @endif

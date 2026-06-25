@@ -7,7 +7,10 @@ Edit Member
 @section('content')
 <div class="card">
     <div class="card-header">
-        edit members
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">Edit Member</h5>
+            <a href="{{ route('members.show', $member->id) }}" class="popup btn btn-primary">back</a>
+        </div>
     </div>
 
     <div class="card-body">

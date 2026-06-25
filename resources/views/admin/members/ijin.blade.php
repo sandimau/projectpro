@@ -17,7 +17,7 @@
                         <h6 class="card-subtitle mb-2 text-muted">Manage your cutis here.</h6>
                     </div>
                     @can('cuti_create')
-                        <a href="{{ route('ijin.create', $member->id) }}" class="btn btn-primary"><i class='bx bx-plus-circle'></i> tambah</a>
+                        <a href="{{ route('ijin.create', $member->id) }}" class="popup btn btn-primary"><i class='bx bx-plus-circle'></i> tambah</a>
                     @endcan
                 </div>
             </div>
@@ -49,7 +49,7 @@
                                     <td>{{ $item->cuti ? 'cuti' : 'ijin' }}</td>
                                     <td>
                                         <div class="d-flex">
-                                            <a href="{{ route('cuti.edit', $item->id) }}" class="btn btn-info btn-sm me-1"><i
+                                            <a href="{{ route('cuti.edit', $item->id) }}" class="popup btn btn-info btn-sm me-1"><i
                                                     class='bx bxs-edit'></i>
                                                 Edit</a>
                                         </div>

@@ -17,7 +17,7 @@
                         <h6 class="card-subtitle mb-2 text-muted">Manage your tunjangans here.</h6>
                     </div>
                     @can('tunjangan_create')
-                        <a href="{{ route('tunjangan.create', $member->id) }}" class="btn btn-primary"><i class='bx bx-plus-circle'></i> tambah</a>
+                        <a href="{{ route('tunjangan.create', $member->id) }}" class="popup btn btn-primary"><i class='bx bx-plus-circle'></i> tambah</a>
                     @endcan
                 </div>
             </div>

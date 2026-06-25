@@ -14,7 +14,7 @@
                         <h6 class="card-subtitle mb-2 text-muted">Manage your members here.</h6>
                     </div>
                     @can('member_create')
-                        <a href="{{ route('members.create') }}" class="btn btn-primary"><i class='bx bx-plus-circle'></i> Add</a>
+                        <a href="{{ route('members.create') }}" class="popup btn btn-primary"><i class='bx bx-plus-circle'></i> Add</a>
                     @endcan
                 </div>
             </div>
@@ -42,42 +42,42 @@
                             @foreach ($members as $member)
                                 <tr data-entry-id="{{ $member->id }}">
                                     <td>
-                                        <a
+                                        <a class="popup"
                                             href="{{ route('members.show', $member->id) }}">{{ $member->nama_lengkap ?? '' }}</a>
                                     </td>
                                     <td>
                                         @can('cuti_access')
-                                            <a href={{ route('members.cuti', $member->id) }}>{{ $member->countCuti }}</a>
+                                            <a class="popup" href="{{ route('members.cuti', $member->id) }}">{{ $member->countCuti }}</a>
                                         @elsecan('member_access')
                                             {{ $member->countCuti }}
                                         @endcan
                                     </td>
                                     <td>
                                         @can('cuti_access')
-                                            <a href={{ route('members.ijin', $member->id) }}>{{ $member->countIjin }}</a>
+                                            <a class="popup" href="{{ route('members.ijin', $member->id) }}">{{ $member->countIjin }}</a>
                                         @elsecan('member_access')
                                             {{ $member->countIjin }}
                                         @endcan
                                     </td>
                                     <td>
                                         @can('kasbon_access')
-                                            <a
-                                                href={{ route('members.kasbon', $member->id) }}>{{ number_format($member->countKasbon) }}</a>
+                                            <a class="popup"
+                                                href="{{ route('members.kasbon', $member->id) }}">{{ number_format($member->countKasbon) }}</a>
                                         @elsecan('member_access')
                                             {{ number_format($member->countKasbon) }}
                                         @endcan
                                     </td>
                                     <td>
                                         @can('lembur_access')
-                                            <a href={{ route('members.lembur', $member->id) }}>{{ $member->countLembur }}</a>
+                                            <a class="popup" href="{{ route('members.lembur', $member->id) }}">{{ $member->countLembur }}</a>
                                         @elsecan('member_access')
                                             {{ $member->countLembur }}
                                         @endcan
                                     </td>
                                     <td>
                                         @can('tunjangan_access')
-                                            <a
-                                                href={{ route('members.tunjangan', $member->id) }}>{{ number_format($member->countTunjangan) }}</a>
+                                            <a class="popup"
+                                                href="{{ route('members.tunjangan', $member->id) }}">{{ number_format($member->countTunjangan) }}</a>
                                         @elsecan('member_access')
                                             {{ number_format($member->countTunjangan) }}
                                         @endcan
@@ -90,15 +90,15 @@
                                     </td>
                                     <td>
                                         @can('penggajian_access')
-                                            <a
-                                                href={{ route('members.penggajian', $member->id) }}>{{ $member->tgl_gajian }}</a>
+                                            <a class="popup"
+                                                href="{{ route('members.penggajian', $member->id) }}">{{ $member->tgl_gajian }}</a>
                                         @elsecan('member_access')
                                             {{ $member->tgl_gajian }}
                                         @endcan
                                     </td>
                                     <td><a href="{{ route('whattodo.create', ['member_id' => $member->id]) }}"
-                                            class="btn btn-info btn-sm me-1 text-white"><i class='bx bxs-add-to-queue'></i>
-                                            add</a></a></td>
+                                            class="popup btn btn-info btn-sm me-1 text-white"><i class='bx bxs-add-to-queue'></i>
+                                            add</a></td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -107,4 +107,15 @@
             </div>
         </div>
     </div>
+
+    @include('admin.members.partials.detail-member-modal')
 @endsection
+
+@push('after-scripts')
+    <script>
+        @include('admin.members.partials.detail-member-modal-js')
+    </script>
+    <style>
+        @include('admin.members.partials.detail-member-modal-styles')
+    </style>
+@endpush

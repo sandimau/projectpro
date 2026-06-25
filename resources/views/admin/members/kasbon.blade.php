@@ -17,21 +17,24 @@
                         <h6 class="card-subtitle mb-2 text-muted">Manage your kasbons here.</h6>
                     </div>
                     @can('kasbon_create')
-                        <a href="{{ route('kasbon.create', $member->id) }}" class="btn btn-success text-white me-1"><i
-                                class='bx bxs-edit'></i> tambah kasbon</a>
-                        @if (!$member->kasbon())
-                            @if ($member->kasbon()->latest('id')->first()->saldo > 0)
-                                <a href="{{ route('kasbon.bayar', $member->id) }}" class="btn btn-primary text-white me-1"><i
+                        <div class="d-flex gap-1">
+                            <a href="{{ route('kasbon.create', $member->id) }}" class="popup btn btn-success text-white"><i
+                                    class='bx bxs-edit'></i> tambah kasbon</a>
+                            @php
+                                $latestKasbon = $member->kasbon()->latest('id')->first();
+                            @endphp
+                            @if ($latestKasbon && $latestKasbon->saldo > 0)
+                                <a href="{{ route('kasbon.bayar', $member->id) }}" class="popup btn btn-primary text-white"><i
                                         class='bx bxs-edit'></i> bayar kasbon</a>
                             @endif
-                        @endif
+                        </div>
                     @endcan
                 </div>
             </div>
             <div class="card-body">
                 {{ $kasbons->links() }}
                 <div class="table-responsive">
-                    <table class="table table-bordered table-striped table-hover" >
+                    <table class="table table-bordered table-striped table-hover">
                         <thead>
                             <tr>
                                 <th>
