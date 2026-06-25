@@ -12,7 +12,25 @@ class Chat extends Model
 
     public function member()
     {
-        return $this->belongsTo(Member::class);
+        return $this->belongsTo(Member::class)->withTrashed();
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function getAuthorNameAttribute(): ?string
+    {
+        if ($this->member) {
+            return $this->member->nama_lengkap;
+        }
+
+        if ($this->user) {
+            return $this->user->name ?: $this->user->email;
+        }
+
+        return null;
     }
 
     public function order()

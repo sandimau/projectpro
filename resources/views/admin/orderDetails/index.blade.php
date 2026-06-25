@@ -219,9 +219,8 @@
                                     @foreach ($chats as $chat)
                                         <li class="d-flex justify-content-between align-items-end pt-2">
                                             <div class="chat-content">
-                                                @if ($chat->member)
-                                                    <div class="text-primary"><b>{{ $chat->member->nama_lengkap }}</b>
-                                                    </div>
+                                                @if ($chat->author_name)
+                                                    <div class="text-primary"><b>{{ $chat->author_name }}</b></div>
                                                 @endif
                                                 <div class="box">{{ $chat->isi }}</div>
                                             </div>

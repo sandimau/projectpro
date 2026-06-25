@@ -479,8 +479,9 @@ class OrderController extends Controller
 
         Chat::create([
             'isi' => $request->isi,
-            'member_id' => $member->id ?? null,
-            'order_id' => $order->id
+            'member_id' => $member?->id,
+            'user_id' => $member ? null : auth()->id(),
+            'order_id' => $order->id,
         ]);
 
         if ($request->ajax() || $request->wantsJson()) {

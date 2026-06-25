@@ -103,7 +103,9 @@ class OrderDetailController extends Controller
             ->get();
         $produksi = Produksi::orderBy('urutan')->get();
         $pemproses = Pemproses::orderBy('nama')->get();
-        $chats = Chat::where('order_id',$order->id)->get();
+        $chats = Chat::where('order_id', $order->id)
+            ->with(['member', 'user'])
+            ->get();
 
         return view(
             'admin.orderDetails.index',
