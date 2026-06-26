@@ -23,10 +23,12 @@ class KasbonController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'tanggal' => 'required',
-            'jumlah' => 'required',
-            'keterangan' => 'required',
+        $this->validateMemberModal($request, [
+            'member_id' => 'required|exists:members,id',
+            'tanggal' => 'required|date',
+            'jumlah' => 'required|numeric|min:1',
+            'keterangan' => 'required|string',
+            'akun_detail_id' => 'required|exists:akun_details,id',
         ]);
 
         DB::transaction(function () use ($request) {
@@ -71,7 +73,7 @@ class KasbonController extends Controller
 
         return $this->memberModalResponse(
             $request,
-            __('Kasbon created successfully.'),
+            __('Kasbon berhasil ditambahkan.'),
             route('members.kasbon', $request->member_id)
         );
     }
@@ -86,10 +88,12 @@ class KasbonController extends Controller
 
     public function bayarStore(Request $request)
     {
-        $request->validate([
-            'tanggal' => 'required',
-            'jumlah' => 'required',
-            'keterangan' => 'required',
+        $this->validateMemberModal($request, [
+            'member_id' => 'required|exists:members,id',
+            'tanggal' => 'required|date',
+            'jumlah' => 'required|numeric|min:1',
+            'keterangan' => 'required|string',
+            'akun_detail_id' => 'required|exists:akun_details,id',
         ]);
 
         DB::transaction(function () use ($request) {
@@ -134,7 +138,7 @@ class KasbonController extends Controller
 
         return $this->memberModalResponse(
             $request,
-            __('Kasbon payment recorded successfully.'),
+            __('Pembayaran kasbon berhasil dicatat.'),
             route('members.kasbon', $request->member_id)
         );
     }

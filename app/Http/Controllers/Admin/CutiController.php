@@ -4,18 +4,23 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Concerns\RespondsToMemberModal;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\MassDestroyCutiRequest;
-use App\Http\Requests\StoreCutiRequest;
-use App\Http\Requests\UpdateCutiRequest;
 use App\Models\Cuti;
 use App\Models\Member;
-use Gate;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
 
 class CutiController extends Controller
 {
     use RespondsToMemberModal;
+
+    private function cutiValidationRules(): array
+    {
+        return [
+            'tanggal' => 'required|date',
+            'keterangan' => 'required|string',
+            'member_id' => 'required|exists:members,id',
+        ];
+    }
+
     public function create(Member $member)
     {
         return view('admin.cutis.create', compact('member'));
@@ -28,10 +33,7 @@ class CutiController extends Controller
 
     function store(Request $request)
     {
-        $request->validate([
-            'tanggal' => 'required',
-            'keterangan' => 'required',
-        ]);
+        $this->validateMemberModal($request, $this->cutiValidationRules());
 
         Cuti::create([
             'tanggal' => $request->tanggal,
@@ -42,17 +44,14 @@ class CutiController extends Controller
 
         return $this->memberModalResponse(
             $request,
-            __('Cuti created successfully.'),
+            __('Cuti berhasil ditambahkan.'),
             route('members.cuti', $request->member_id)
         );
     }
 
     function storeIjin(Request $request)
     {
-        $request->validate([
-            'tanggal' => 'required',
-            'keterangan' => 'required',
-        ]);
+        $this->validateMemberModal($request, $this->cutiValidationRules());
 
         Cuti::create([
             'tanggal' => $request->tanggal,
@@ -63,25 +62,36 @@ class CutiController extends Controller
 
         return $this->memberModalResponse(
             $request,
-            __('Ijin created successfully.'),
+            __('Ijin berhasil ditambahkan.'),
             route('members.ijin', $request->member_id)
         );
     }
 
     public function edit(Cuti $cuti)
     {
-        $cuti = $cuti;
         return view('admin.cutis.edit', compact('cuti'));
     }
 
     public function update(Request $request, Cuti $cuti)
     {
-        $cuti->update($request->all());
+        $this->validateMemberModal($request, array_merge($this->cutiValidationRules(), [
+            'cuti' => 'required|in:0,1',
+        ]));
 
-        return $this->memberModalResponse(
-            $request,
-            __('Cuti updated successfully.'),
-            route('members.show', $request->member_id)
-        );
+        $cuti->update([
+            'tanggal' => $request->tanggal,
+            'keterangan' => $request->keterangan,
+            'cuti' => $request->cuti,
+        ]);
+
+        $redirectRoute = $request->cuti == '1'
+            ? route('members.cuti', $request->member_id)
+            : route('members.ijin', $request->member_id);
+
+        $message = $request->cuti == '1'
+            ? __('Cuti berhasil diperbarui.')
+            : __('Ijin berhasil diperbarui.');
+
+        return $this->memberModalResponse($request, $message, $redirectRoute);
     }
 }

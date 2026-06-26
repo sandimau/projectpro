@@ -36,7 +36,7 @@ Create Cuti
             <div class="form-group">
                 <label>cuti/ijin</label>
                 <select class="form-select {{ $errors->has('cuti') ? 'is-invalid' : '' }}" aria-label="Default select example" name="cuti" name="cuti">
-                    <option>pilih cuti/ijin</option>
+                    <option value="" disabled>pilih cuti/ijin</option>
                     <option value="1" {{ $cuti->cuti == '1' ? 'selected' : ''  }} >cuti</option>
                     <option value="0" {{ $cuti->cuti == '0' ? 'selected' : ''  }}>ijin</option>
                 </select>

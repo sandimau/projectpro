@@ -48,7 +48,7 @@
                     <label for="performance">performance</label>
                     <select class="form-select {{ $errors->has('performance') ? 'is-invalid' : '' }}" aria-label="Default select example"
                         name="performance" id="performance">
-                        <option>pilih performance</option>
+                        <option value="" disabled>pilih performance</option>
                         <option value="0" {{ ($gaji ? $gaji->performance == 0 : null) ? 'selected' : '' }}>0</option>
                         <option value="1" {{ ($gaji ? $gaji->performance == 1 : null) ? 'selected' : '' }}>1</option>
                         <option value="2" {{ ($gaji ? $gaji->performance == 2 : null) ? 'selected' : '' }}>2</option>

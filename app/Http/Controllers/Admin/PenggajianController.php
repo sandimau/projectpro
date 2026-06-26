@@ -94,8 +94,9 @@ class PenggajianController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'akun_detail_id' => 'required',
+        $this->validateMemberModal($request, [
+            'member_id' => 'required|exists:members,id',
+            'akun_detail_id' => 'required|exists:akun_details,id',
         ]);
 
         DB::transaction(function () use($request) {
@@ -171,7 +172,7 @@ class PenggajianController extends Controller
 
         return $this->memberModalResponse(
             $request,
-            __('Penggajian created successfully.'),
+            __('Penggajian berhasil ditambahkan.'),
             route('members.penggajian', $request->member_id)
         );
     }
@@ -192,8 +193,9 @@ class PenggajianController extends Controller
 
     public function storeFreelance(Request $request)
     {
-        $request->validate([
-            'akun_detail_id' => 'required',
+        $this->validateMemberModal($request, [
+            'member_id' => 'required|exists:members,id',
+            'akun_detail_id' => 'required|exists:akun_details,id',
             'jumlah_hari' => 'required|numeric|min:0',
         ]);
         DB::transaction(function () use($request) {
@@ -239,7 +241,7 @@ class PenggajianController extends Controller
 
         return $this->memberModalResponse(
             $request,
-            __('Penggajian created successfully.'),
+            __('Penggajian berhasil ditambahkan.'),
             route('members.penggajianFreelance', $request->member_id)
         );
     }

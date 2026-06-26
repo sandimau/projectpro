@@ -75,8 +75,10 @@ class HomeController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'isi' => 'required',
+        $this->validateMemberModal($request, [
+            'isi' => 'required|string',
+            'member_id' => 'nullable|exists:members,id',
+            'user_id' => 'nullable|exists:users,id',
         ]);
 
         Whattodo::create([
@@ -100,10 +102,17 @@ class HomeController extends Controller
 
     public function update(Whattodo $what, Request $request)
     {
-        $what->update($request->all());
+        $validated = $this->validateMemberModal($request, [
+            'isi' => 'required|string',
+        ]);
+
+        $what->update([
+            'isi' => $validated['isi'],
+        ]);
+
         return $this->memberModalResponse(
             $request,
-            __('Whattodo updated successfully.'),
+            __('Tugas berhasil diperbarui.'),
             url('/whattodo')
         );
     }

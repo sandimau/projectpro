@@ -55,9 +55,9 @@
                             <option value="{{ $id }}" {{ old('akun_detail_id') == $id ? 'selected' : '' }}>{{ $entry }}</option>
                         @endforeach
                     </select>
-                    @if($errors->has('akun'))
+                    @if($errors->has('akun_detail_id'))
                         <div class="invalid-feedback">
-                            {{ $errors->first('akun') }}
+                            {{ $errors->first('akun_detail_id') }}
                         </div>
                     @endif
                 </div>

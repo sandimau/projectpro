@@ -72,8 +72,8 @@ Create Member
             </div>
             <div class="form-group">
                 <label for="tgl_gajian">Tanggal Gajian</label>
-                <select class="form-select" name="tgl_gajian" name="tgl_gajian">
-                    <option>pilih tanggal</option>
+                <select class="form-select {{ $errors->has('tgl_gajian') ? 'is-invalid' : '' }}" name="tgl_gajian">
+                    <option value="" disabled selected>pilih tanggal</option>
                     @foreach ($tglGaji as $key => $value)
                         <option value={{ $key }}>{{ $value }}</option>
                     @endforeach
@@ -95,8 +95,8 @@ Create Member
             </div>
             <div class="form-group">
                 <label>status</label>
-                <select class="form-select" name="status" name="status">
-                    <option>pilih status</option>
+                <select class="form-select {{ $errors->has('status') ? 'is-invalid' : '' }}" name="status">
+                    <option value="" disabled selected>pilih status</option>
                     <option value="1">aktif</option>
                     <option value="0">tidak aktif</option>
                 </select>

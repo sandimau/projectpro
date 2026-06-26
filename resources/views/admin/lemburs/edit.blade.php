@@ -17,7 +17,7 @@ Create lembur
             <input type="hidden" name="member_id" value="{{ $lembur->member()->first()->id }}">
                 <div class="form-group">
                     <label for="jam">jam</label>
-                    <input type="number" class="form-control" name="jam" value="{{ old('jam',$lembur->jam) }}" >
+                    <input type="number" class="form-control {{ $errors->has('jam') ? 'is-invalid' : '' }}" name="jam" value="{{ old('jam',$lembur->jam) }}" >
                     @if ($errors->has('jam'))
                         <div class="invalid-feedback">
                             {{ $errors->first('jam') }}

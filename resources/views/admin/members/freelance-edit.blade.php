@@ -55,7 +55,7 @@ Edit Freelance
             </div>
             <div class="form-group">
                 <label for="alamat">Alamat</label>
-                <textarea class="form-control {{ $errors->has('alamat') ? 'is-invalid' : '' }}" name="alamat" id="" cols="30" rows="10">{{ old('alamat',$member->nama_lengkap) }}</textarea>
+                <textarea class="form-control {{ $errors->has('alamat') ? 'is-invalid' : '' }}" name="alamat" id="" cols="30" rows="10">{{ old('alamat',$member->alamat) }}</textarea>
                 @if($errors->has('alamat'))
                     <div class="invalid-feedback">
                         {{ $errors->first('alamat') }}
@@ -101,8 +101,8 @@ Edit Freelance
             </div>
             <div class="form-group">
                 <label>status</label>
-                <select class="form-select" name="status" name="status">
-                    <option>pilih status</option>
+                <select class="form-select {{ $errors->has('status') ? 'is-invalid' : '' }}" name="status">
+                    <option value="" disabled>pilih status</option>
                     <option value="1" {{ $member->status == "1" ? 'selected' : '' }}>aktif</option>
                     <option value="0" {{ $member->status == "0" ? 'selected' : '' }}>tidak aktif</option>
                 </select>
@@ -115,8 +115,8 @@ Edit Freelance
 
             <div class="form-group">
                 <label>Jenis</label>
-                <select class="form-select" name="jenis" name="jenis">
-                    <option>pilih status</option>
+                <select class="form-select {{ $errors->has('jenis') ? 'is-invalid' : '' }}" name="jenis">
+                    <option value="" disabled>pilih jenis</option>
                     <option value="karyawan" {{ $member->jenis == "karyawan" ? 'selected' : '' }}>karyawan</option>
                     <option value="freelance" {{ $member->jenis == "freelance" ? 'selected' : '' }}>freelance</option>
                 </select>

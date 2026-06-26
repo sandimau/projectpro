@@ -23,10 +23,12 @@ class TunjanganController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'ket' => 'required',
-            'jumlah' => 'required',
-            'akun_detail_id' => 'required',
+        $this->validateMemberModal($request, [
+            'member_id' => 'required|exists:members,id',
+            'tanggal' => 'required|date',
+            'ket' => 'required|string',
+            'jumlah' => 'required|numeric|min:1',
+            'akun_detail_id' => 'required|exists:akun_details,id',
         ]);
 
         DB::transaction(function () use ($request) {
@@ -69,7 +71,7 @@ class TunjanganController extends Controller
 
         return $this->memberModalResponse(
             $request,
-            __('Tunjangan created successfully.'),
+            __('Tunjangan berhasil ditambahkan.'),
             route('members.tunjangan', $request->member_id)
         );
     }

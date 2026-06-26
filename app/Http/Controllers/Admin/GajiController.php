@@ -24,26 +24,29 @@ class GajiController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'bagian_id' => 'required',
-            'level_id' => 'required',
-            'performance' => 'required',
+        $this->validateMemberModal($request, [
+            'member_id' => 'required|exists:members,id',
+            'bagian_id' => 'required|exists:bagians,id',
+            'level_id' => 'required|exists:levels,id',
+            'performance' => 'required|in:0,1,2,3,4,5',
+            'lain_lain' => 'nullable|string',
+            'jumlah_lain' => 'nullable|numeric|min:0',
         ]);
 
-        $gaji = Gaji::create([
+        Gaji::create([
             'member_id' => $request->member_id,
             'bagian_id' => $request->bagian_id,
             'level_id' => $request->level_id,
             'performance' => $request->performance,
-            'transportasi' => $request->transportasi == 'on' ? 1 : 0 ,
+            'transportasi' => $request->transportasi == 'on' ? 1 : 0,
             'lain_lain' => $request->lain_lain,
             'jumlah_lain' => $request->jumlah_lain,
         ]);
 
         return $this->memberModalResponse(
             $request,
-            __('Gaji created successfully.'),
-            route('members.show', $request->member_id)
+            __('Gaji berhasil ditambahkan.'),
+            route('members.gaji', $request->member_id)
         );
     }
 }

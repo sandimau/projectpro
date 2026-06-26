@@ -197,9 +197,13 @@
     function applyValidationErrorsToForm(form, errors) {
         clearFormValidationErrors(form);
 
+        const messages = [];
+
         Object.keys(errors).forEach(function(field) {
-            const messages = errors[field];
-            if (!messages || !messages.length) return;
+            const fieldMessages = errors[field];
+            if (!fieldMessages || !fieldMessages.length) return;
+
+            messages.push(fieldMessages[0]);
 
             const input = form.querySelector('[name="' + field + '"]');
             if (!input) return;
@@ -208,7 +212,7 @@
 
             const feedback = document.createElement('div');
             feedback.className = 'invalid-feedback modal-field-error d-block';
-            feedback.textContent = messages[0];
+            feedback.textContent = fieldMessages[0];
 
             const group = input.closest('.form-group') || input.parentElement;
             if (group) {
@@ -216,7 +220,58 @@
             }
         });
 
-        showModalAlert('Periksa kembali isian formulir.', 'danger');
+        showModalAlert(messages.length ? messages.join(' ') : 'Periksa kembali isian formulir.', 'danger');
+    }
+
+    function parseFetchErrorMessage(res, fallback) {
+        const contentType = res.headers.get('content-type') || '';
+
+        if (contentType.indexOf('application/json') !== -1) {
+            return res.json().then(function(data) {
+                if (data.errors) {
+                    return Object.values(data.errors).flat().join(' ');
+                }
+
+                if (data.message) {
+                    return data.message;
+                }
+
+                return fallback;
+            }).catch(function() {
+                return fallback;
+            });
+        }
+
+        return res.text().then(function(html) {
+            const validationErrors = getValidationErrorsFromHtml(parseHtml(html));
+            if (validationErrors.length) {
+                return validationErrors.join(' ');
+            }
+
+            return fallback;
+        }).catch(function() {
+            return fallback;
+        });
+    }
+
+    function getValidationErrorsObjectFromHtml(doc) {
+        const errors = {};
+
+        doc.querySelectorAll('.form-group, .mb-3').forEach(function(group) {
+            const input = group.querySelector('.is-invalid[name]');
+            const feedback = group.querySelector('.invalid-feedback');
+
+            if (!input || !feedback) return;
+
+            const field = input.getAttribute('name');
+            const text = feedback.textContent.replace(/\s+/g, ' ').trim();
+
+            if (field && text) {
+                errors[field] = [text];
+            }
+        });
+
+        return errors;
     }
 
     function showModalAlert(message, type) {
@@ -365,7 +420,7 @@
                 body: new FormData(form),
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'text/html'
+                    'Accept': 'application/json, text/html'
                 },
                 credentials: 'same-origin',
                 redirect: 'follow'
@@ -385,7 +440,7 @@
                         if (!res.ok) {
                             const message = data.errors ?
                                 Object.values(data.errors).flat().join(' ') :
-                                (data.message || 'Gagal menyimpan.');
+                                (data.message || 'Gagal menyimpan. Silakan coba lagi.');
                             throw new Error(message);
                         }
 
@@ -396,8 +451,23 @@
                 }
 
                 return res.text().then(function(html) {
-                    if (!res.ok && res.status !== 422) {
-                        throw new Error('Gagal menyimpan (' + res.status + ')');
+                    if (res.status === 422) {
+                        const validationErrors = getValidationErrorsObjectFromHtml(parseHtml(html));
+
+                        if (Object.keys(validationErrors).length) {
+                            return {
+                                validationErrors: validationErrors,
+                                form: form
+                            };
+                        }
+                    }
+
+                    if (!res.ok) {
+                        const validationErrors = getValidationErrorsFromHtml(parseHtml(html));
+                        const message = validationErrors.length ?
+                            validationErrors.join(' ') :
+                            'Gagal menyimpan. Silakan coba lagi.';
+                        throw new Error(message);
                     }
 
                     return {
@@ -431,6 +501,25 @@
                 replaceCurrentHistory(data.url);
                 return renderModalPage(data.html).then(function(result) {
                     if (result.validationErrors && result.validationErrors.length) {
+                        const currentForm = modalBody.querySelector('form');
+                        if (currentForm) {
+                            const fieldErrors = {};
+                            currentForm.querySelectorAll('.is-invalid[name]').forEach(function(input) {
+                                const group = input.closest('.form-group') || input.parentElement;
+                                const feedback = group ? group.querySelector('.invalid-feedback') : null;
+                                const text = feedback ? feedback.textContent.replace(/\s+/g, ' ').trim() : '';
+
+                                if (text) {
+                                    fieldErrors[input.getAttribute('name')] = [text];
+                                }
+                            });
+
+                            if (Object.keys(fieldErrors).length) {
+                                applyValidationErrorsToForm(currentForm, fieldErrors);
+                                return;
+                            }
+                        }
+
                         showModalAlert(result.validationErrors.join(' '), 'danger');
                         return;
                     }

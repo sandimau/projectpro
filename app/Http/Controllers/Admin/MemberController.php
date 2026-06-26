@@ -52,19 +52,24 @@ class MemberController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'nama_lengkap' => 'required',
-            'no_telp' => 'required',
-            'status' => 'required',
+        $validated = $this->validateMemberModal($request, [
+            'nama_lengkap' => 'required|string',
+            'no_telp' => 'required|string',
+            'status' => 'required|in:0,1',
+            'tgl_masuk' => 'nullable|date',
+            'tgl_lahir' => 'nullable|date',
+            'tempat_lahir' => 'nullable|string',
+            'alamat' => 'nullable|string',
+            'tgl_gajian' => 'nullable',
+            'no_rek' => 'nullable|string',
         ]);
 
-        $data = $request->all();
-        $data['jenis'] = 'karyawan';
-        $member = Member::create($data);
+        $validated['jenis'] = 'karyawan';
+        Member::create($validated);
 
         return $this->memberModalResponse(
             $request,
-            __('Member created successfully.'),
+            __('Member berhasil ditambahkan.'),
             route('members.index')
         );
     }
@@ -88,11 +93,25 @@ class MemberController extends Controller
 
     public function update(Request $request, Member $member)
     {
-        $member->update($request->all());
+        $validated = $this->validateMemberModal($request, [
+            'nama_lengkap' => 'required|string',
+            'no_telp' => 'required|string',
+            'status' => 'required|in:0,1',
+            'jenis' => 'required|in:karyawan,freelance',
+            'tgl_masuk' => 'nullable|date',
+            'tgl_keluar' => 'nullable|date',
+            'tgl_lahir' => 'nullable|date',
+            'tempat_lahir' => 'nullable|string',
+            'alamat' => 'nullable|string',
+            'tgl_gajian' => 'nullable',
+            'no_rek' => 'nullable|string',
+        ]);
+
+        $member->update($validated);
 
         return $this->memberModalResponse(
             $request,
-            __('Member updated successfully.'),
+            __('Member berhasil diperbarui.'),
             route('members.show', $member->id)
         );
     }
@@ -203,27 +222,25 @@ class MemberController extends Controller
 
     public function freelanceStore(Request $request)
     {
-        $request->validate([
-            'nama_lengkap' => 'required',
-            'no_telp' => 'required',
+        $validated = $this->validateMemberModal($request, [
+            'nama_lengkap' => 'required|string',
+            'no_telp' => 'required|string',
+            'tgl_lahir' => 'nullable|date',
+            'tempat_lahir' => 'nullable|string',
+            'alamat' => 'nullable|string',
+            'no_rek' => 'nullable|string',
+            'upah' => 'nullable|numeric|min:0',
+            'lembur' => 'nullable|numeric|min:0',
         ]);
 
-        Member::create([
-            'nama_lengkap' => $request->nama_lengkap,
-            'tgl_lahir' => $request->tgl_lahir,
-            'tempat_lahir' => $request->tempat_lahir,
-            'alamat' => $request->alamat,
-            'no_telp' => $request->no_telp,
-            'no_rek' => $request->no_rek,
-            'upah' => $request->upah,
-            'lembur' => $request->lembur,
+        Member::create(array_merge($validated, [
             'status' => 1,
             'jenis' => 'freelance',
-        ]);
+        ]));
 
         return $this->memberModalResponse(
             $request,
-            __('Freelance created successfully.'),
+            __('Freelance berhasil ditambahkan.'),
             route('members.freelance')
         );
     }
@@ -235,10 +252,25 @@ class MemberController extends Controller
 
     public function updateFreelance(Request $request, Member $member)
     {
-        $member->update($request->all());
+        $validated = $this->validateMemberModal($request, [
+            'nama_lengkap' => 'required|string',
+            'no_telp' => 'required|string',
+            'status' => 'required|in:0,1',
+            'jenis' => 'required|in:karyawan,freelance',
+            'tgl_masuk' => 'nullable|date',
+            'tgl_lahir' => 'nullable|date',
+            'tempat_lahir' => 'nullable|string',
+            'alamat' => 'nullable|string',
+            'no_rek' => 'nullable|string',
+            'upah' => 'nullable|numeric|min:0',
+            'lembur' => 'nullable|numeric|min:0',
+        ]);
+
+        $member->update($validated);
+
         return $this->memberModalResponse(
             $request,
-            __('Freelance updated successfully.'),
+            __('Freelance berhasil diperbarui.'),
             route('members.showFreelance', $member->id)
         );
     }
@@ -258,7 +290,7 @@ class MemberController extends Controller
     /** Proses bayar satu tagihan → buat 1 penggajian */
     public function storeBayarTagihan(Request $request)
     {
-        $request->validate([
+        $this->validateMemberModal($request, [
             'freelance_tagihan_id' => 'required|exists:freelance_tagihans,id',
             'akun_detail_id' => 'required|exists:akun_details,id',
         ]);
@@ -323,7 +355,7 @@ class MemberController extends Controller
     /** Proses bayar semua tagihan + lembur → 1 penggajian */
     public function storeBayarSemuaTagihan(Request $request)
     {
-        $request->validate([
+        $this->validateMemberModal($request, [
             'member_id' => 'required|exists:members,id',
             'akun_detail_id' => 'required|exists:akun_details,id',
         ]);

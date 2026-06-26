@@ -38,10 +38,10 @@ class LemburController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $this->validateMemberModal($request, [
             'member_id' => 'required|exists:members,id',
             'keterangan' => 'required|string',
-            'jam' => 'required|numeric|min:0',
+            'jam' => 'required|numeric|min:0.5',
         ]);
 
         Lembur::create([
@@ -56,7 +56,7 @@ class LemburController extends Controller
 
         return $this->memberModalResponse(
             $request,
-            __('Lembur created successfully.'),
+            __('Lembur berhasil ditambahkan.'),
             route('members.lembur', $request->member_id)
         );
     }
@@ -69,25 +69,21 @@ class LemburController extends Controller
 
     public function update(Request $request, Lembur $lembur)
     {
-        $request->validate([
-            'bulan' => 'required|integer|min:1|max:12',
+        $this->validateMemberModal($request, [
             'keterangan' => 'required|string',
-            'jam' => 'required|numeric|min:0',
+            'jam' => 'required|numeric|min:0.5',
             'member_id' => 'required|exists:members,id',
         ]);
 
         $lembur->update([
-            'bulan' => $request->bulan,
-            'keterangan' => $request->keterangan,
             'jam' => $request->jam,
-            'member_id' => $request->member_id,
-            // Tidak memperbarui tahun dan dibayar pada update
+            'keterangan' => $request->keterangan,
         ]);
 
         return $this->memberModalResponse(
             $request,
-            __('Lembur updated successfully.'),
-            route('members.show', $request->member_id)
+            __('Lembur berhasil diperbarui.'),
+            route('members.lembur', $request->member_id)
         );
     }
 
@@ -99,7 +95,7 @@ class LemburController extends Controller
 
         return $this->memberModalResponse(
             request(),
-            __('Lembur approved successfully.'),
+            __('Lembur berhasil disetujui.'),
             route('members.lembur', $lembur->member_id)
         );
     }
@@ -112,7 +108,7 @@ class LemburController extends Controller
 
         return $this->memberModalResponse(
             request(),
-            __('Lembur rejected successfully.'),
+            __('Lembur berhasil ditolak.'),
             route('members.lembur', $lembur->member_id)
         );
     }
