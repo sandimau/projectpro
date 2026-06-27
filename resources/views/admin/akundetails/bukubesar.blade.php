@@ -49,9 +49,9 @@
                                     <td>
                                         @if ($bukubesar->detail_id)
                                             @if ($bukubesar->kode == 'blj')
-                                                <a href="{{ route('belanja.detail', $bukubesar->detail_id) }}">{{ $bukubesar->ket }}</a>
+                                                <a class="popup" href="{{ route('belanja.detail', $bukubesar->detail_id) }}">{{ $bukubesar->ket }}</a>
                                             @elseif ($bukubesar->kode == 'byr')
-                                                <a href="{{ url('admin/order/' . $bukubesar->detail_id . '/detail') }}">{{ $bukubesar->ket }}</a>
+                                                <a class="popup" href="{{ route('order.detail', $bukubesar->detail_id) }}">{{ $bukubesar->ket }}</a>
                                             @else
                                                 {{ $bukubesar->ket }}
                                             @endif
@@ -72,9 +72,15 @@
             </div>
         </div>
     </div>
+
+    @include('admin.orders.partials.detail-order-modal')
 @endsection
+
 @push('after-scripts')
     <script>
-        let table = new DataTable('#myTable');
+        @include('admin.orders.partials.detail-order-modal-js')
     </script>
+    <style>
+        @include('admin.orders.partials.detail-order-modal-styles')
+    </style>
 @endpush

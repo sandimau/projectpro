@@ -383,6 +383,10 @@
             return true;
         }
 
+        if (/\/admin\/belanja\/\d+/.test(path)) {
+            return true;
+        }
+
         return false;
     }
 
