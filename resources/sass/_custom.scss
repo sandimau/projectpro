@@ -28,6 +28,9 @@
     --app-radius-sm: .5rem;
     --app-radius-lg: 1rem;
     --app-transition: .2s ease;
+    --app-tab-inactive-bg: #e2e8f0;
+    --app-tab-inactive-color: #64748b;
+    --app-tab-active-bg: #fff;
 }
 
 [data-theme="dark"] {
@@ -53,6 +56,9 @@
     --app-shadow-sm: 0 1px 2px rgba(0, 0, 0, .2);
     --app-shadow: 0 1px 3px rgba(0, 0, 0, .25), 0 4px 12px rgba(0, 0, 0, .2);
     --app-shadow-lg: 0 4px 6px rgba(0, 0, 0, .3), 0 10px 24px rgba(0, 0, 0, .35);
+    --app-tab-inactive-bg: #334155;
+    --app-tab-inactive-color: #94a3b8;
+    --app-tab-active-bg: #1e293b;
     --cui-table-color: var(--app-text);
     --cui-table-bg: var(--app-surface);
     --cui-table-border-color: var(--app-border);
@@ -880,33 +886,82 @@ a {
     }
 }
 
-// Nav tabs
+// Nav tabs (dashboard produksi, marketplace, dll.)
 .nav-tabs {
     border-bottom: 2px solid var(--app-border);
-    gap: .25rem;
+    gap: 0.35rem;
 
     .nav-link {
-        border: none;
+        margin-bottom: -2px;
+        border: 1px solid transparent;
+        border-bottom: 3px solid transparent;
         border-radius: var(--app-radius-sm) var(--app-radius-sm) 0 0;
+        color: var(--app-tab-inactive-color) !important;
         font-weight: 500;
-        font-size: .875rem;
-        color: var(--app-text-muted);
-        padding: .625rem 1.125rem;
-        transition: all var(--app-transition);
+        background-color: var(--app-tab-inactive-bg) !important;
+        transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
 
-        &:hover {
-            color: var(--app-primary);
-            background: var(--app-primary-light);
-            border: none;
+        &:not(.active) {
+            color: var(--app-tab-inactive-color) !important;
+            background-color: var(--app-tab-inactive-bg) !important;
+            border-bottom-color: transparent !important;
         }
 
-        &.active {
+        &:hover:not(.active),
+        &:focus:not(.active) {
+            background-color: var(--app-border) !important;
+            border-color: transparent !important;
+            border-bottom-color: transparent !important;
+            color: var(--app-text) !important;
+        }
+
+        &.active,
+        &.active:hover,
+        &.active:focus {
+            background-color: var(--app-tab-active-bg) !important;
+            border-color: var(--app-border) var(--app-border) transparent;
+            border-bottom: 3px solid var(--app-primary) !important;
             color: var(--app-primary) !important;
-            background: var(--app-surface);
-            border: none;
-            border-bottom: 2px solid var(--app-primary);
-            font-weight: 600;
+            font-weight: 700;
         }
+    }
+}
+
+// Legacy order / produksi list
+.text-default {
+    color: #398bf7 !important;
+    font-weight: 700 !important;
+    margin: 0;
+    padding: 10px 5px;
+}
+
+[data-theme="dark"] .text-default {
+    color: #93c5fd !important;
+}
+
+.label {
+    border-radius: 5px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 400;
+    margin-right: 8px;
+    padding: 2px 5px;
+}
+
+a.popup {
+    align-items: center;
+    border-bottom: 1px solid var(--app-border);
+    text-decoration: none;
+
+    &:hover {
+        background-color: rgba(99, 102, 241, 0.03);
+        border-radius: 6px;
+        text-decoration: none;
+    }
+
+    p span[style*="color:#222222"],
+    p span[style*="color:#636363"] {
+        color: var(--app-text-muted) !important;
     }
 }
 

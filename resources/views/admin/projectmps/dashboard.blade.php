@@ -49,8 +49,7 @@
                                 <button class="nav-link {{ $loop->first ? 'active' : '' }} nav-nonaktif"
                                     id="{{ $item->nama }}-tab" data-bs-toggle="tab"
                                     data-bs-target="#{{ $item->nama }}" type="button" role="tab"
-                                    aria-controls="{{ $item->nama }}" aria-selected="false"
-                                    style="border-left: 4px solid {{ $item->warna ?? '#ccc' }};">
+                                    aria-controls="{{ $item->nama }}" aria-selected="false">
                                     {{ $item->nama }}
                                     <span class="badge bg-success rounded-pill">{{ $count }}</span>
                                 </button>

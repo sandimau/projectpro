@@ -201,35 +201,5 @@
     </script>
     <style>
         @include('admin.orders.partials.detail-order-modal-styles')
-
-        a {
-            text-decoration: none;
-        }
-
-        .text-default {
-            font-weight: 700 !important;
-            margin: 0;
-            padding: 10px 5px;
-            color: #398bf7 !important;
-        }
-
-        .label {
-            font-weight: 400;
-            font-size: 13px;
-            color: #ffffff;
-            padding: 2px 5px;
-            border-radius: 5px;
-            margin-right: 8px;
-        }
-
-        .popup {
-            align-items: center;
-            border-bottom: 1px solid #e9e9e9;
-        }
-
-        .popup:hover {
-            background-color: #e0e0e0;
-            border-radius: 6px;
-        }
     </style>
 @endpush

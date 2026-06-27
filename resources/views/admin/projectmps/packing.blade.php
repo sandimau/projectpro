@@ -37,8 +37,7 @@
                                 id="{{ Str::slug($statusKey) }}-tab" data-bs-toggle="tab"
                                 data-bs-target="#tab-{{ Str::slug($statusKey) }}" type="button" role="tab"
                                 aria-controls="tab-{{ Str::slug($statusKey) }}"
-                                aria-selected="{{ $loop->first ? 'true' : 'false' }}"
-                                style="border-left: 4px solid {{ $statusData['warna'] }};">
+                                aria-selected="{{ $loop->first ? 'true' : 'false' }}">
                                 {{ $statusData['nama'] }}
                                 <span class="badge bg-success rounded-pill">{{ $count }}</span>
                             </button>
