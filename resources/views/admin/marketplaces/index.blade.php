@@ -34,6 +34,7 @@
                                 <th scope="col">konsumen</th>
                                 <th scope="col">produk Iklan</th>
                                 @can('marketplace_edit')
+                                    <th scope="col">sinkron</th>
                                     <th scope="col">actions</th>
                                 @endcan
                             </tr>
@@ -50,18 +51,18 @@
                                     <td>{{ $marketplace->kasPenarikan->nama ?? '-' }}</td>
                                     <td>{{ $marketplace->kontak->nama ?? '-' }}</td>
                                     <td>{{ $marketplace->produk->namaLengkap ?? '-' }}</td>
-                                    <td>{!! $marketplace->sinkron !!}</td>
                                     @can('marketplace_edit')
+                                        <td>{!! $marketplace->sinkron !!}</td>
                                         <td>
                                             <div class="d-flex">
                                                 <a href="{{ route('marketplaces.edit', $marketplace->id) }}"
-                                                    class="btn btn-info btn-sm me-1"><i class='bx bxs-edit'></i> Edit</a>
-                                                <form action="{{ route('marketplaces.destroy', $marketplace->id) }}" method="post">
+                                                    class="btn btn-info btn-sm me-1"><i class='bx bxs-edit'></i></a>
+                                                <form action="{{ route('marketplaces.destroy', $marketplace->id) }}"
+                                                    method="post">
                                                     {{ csrf_field() }}
                                                     {{ method_field('delete') }}
                                                     <button type="submit" onclick="return confirm('Are you sure?')"
-                                                        class="btn btn-danger btn-sm"><i class='bx bxs-trash'></i>
-                                                        delete</button>
+                                                        class="btn btn-danger btn-sm"><i class='bx bxs-trash'></i></button>
                                                 </form>
                                             </div>
                                         </td>
