@@ -69,7 +69,11 @@ class PenggajianController extends Controller
         }
 
         // $totalLembur = ($gapok / 25 / 8) * 1.5 * $jmlLembur;
-        $totalLembur = $level->harga_lembur * $jmlLembur;
+        $hargaLembur = $level->harga_lembur;
+        if (empty($hargaLembur)) {
+            $hargaLembur = ($gapok / 25 / 8) * 1.5;
+        }
+        $totalLembur = (int) round($hargaLembur * $jmlLembur);
 
         // Tunjangan kehadiran berdasarkan absensi
         // Cuti = aman. Sakit/ijin/terlambat/alpha = mengurangi

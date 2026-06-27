@@ -30,6 +30,18 @@
                 @endrole
 
                 <li class="nav-item">
+                    <button type="button" class="header-theme-toggle" id="theme-toggle"
+                        aria-label="Mode gelap" title="Mode gelap">
+                        <svg class="icon theme-icon-light" style="width:1rem;height:1rem;">
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-moon') }}"></use>
+                        </svg>
+                        <svg class="icon theme-icon-dark d-none" style="width:1rem;height:1rem;">
+                            <use xlink:href="{{ asset('icons/coreui.svg#cil-sun') }}"></use>
+                        </svg>
+                    </button>
+                </li>
+
+                <li class="nav-item">
                     <div class="header-date">
                         <svg class="icon" style="width:1rem;height:1rem;">
                             <use xlink:href="{{ asset('icons/coreui.svg#cil-calendar') }}"></use>

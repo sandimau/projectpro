@@ -2,15 +2,23 @@
 <html lang="id">
 
 <head>
+    <script>
+        (function() {
+            var theme = localStorage.getItem('app-theme');
+            if (theme === 'dark' || theme === 'light') {
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+        })();
+    </script>
     <base href="./">
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>
         @if (trim($__env->yieldContent('title')))
-            @yield('title') | {{ config('app.name', 'sablonku') }}
+            @yield('title') | {{ config('app.name') }}
         @else
-            {{ config('app.name', 'sablonku') }}
+            {{ config('app.name') }}
         @endif
     </title>
     <meta name="theme-color" content="#6366f1">
@@ -25,13 +33,11 @@
 </head>
 
 <body>
-    <div class="sidebar sidebar-dark sidebar-fixed" id="sidebar">
+    <div class="sidebar sidebar-light sidebar-fixed" id="sidebar">
         <div class="sidebar-brand d-none d-md-flex">
             @if (session()->has('Logo'))
-                <img style="height:50px"
-                    src="{{ url('uploads/Logo/' . session('Logo')) }}"
-                    alt="{{ config('app.name') }}"
-                    srcset="">
+                <img style="height:50px" src="{{ url('uploads/Logo/' . session('Logo')) }}"
+                    alt="{{ config('app.name') }}" srcset="">
             @endif
         </div>
         @include('layouts.navigation')

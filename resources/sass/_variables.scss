@@ -33,7 +33,19 @@ $card-box-shadow:    0 1px 3px rgba(15, 23, 42, .06), 0 1px 2px rgba(15, 23, 42,
 $input-border-radius: .5rem !default;
 $btn-border-radius:   .5rem !default;
 
-$sidebar-bg:    #0f172a !default;
-$sidebar-color: rgba(255, 255, 255, .75) !default;
+$sidebar-bg:    #ffffff !default;
+$sidebar-color: #64748b !default;
+
+$sidebar-nav-link-color:                   #64748b !default;
+$sidebar-nav-link-icon-color:              #64748b !default;
+$sidebar-nav-link-hover-color:             #334155 !default;
+$sidebar-nav-link-hover-icon-color:        #334155 !default;
+$sidebar-nav-link-active-color:            #4f46e5 !default;
+$sidebar-nav-link-active-icon-color:       #6366f1 !default;
+$sidebar-nav-group-indicator-color:        #64748b !default;
+$sidebar-nav-group-indicator-hover-color:  #334155 !default;
+$sidebar-nav-group-toggle-show-color:      #334155 !default;
+$sidebar-toggler-indicator-color:          #94a3b8 !default;
+$sidebar-toggler-indicator-hover-color:    #334155 !default;
 
 $header-bg:     rgba(255, 255, 255, .92) !default;
