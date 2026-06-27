@@ -74,7 +74,7 @@
                                             <label for="jumlah" class="mb-2">Jumlah</label>
                                             <input type="number" name="jumlah" id="jumlah"
                                                 class="form-control @error('jumlah') is-invalid @enderror"
-                                                value="{{ old('jumlah', $hutang->jumlah) }}" max="{{ $hutang->sisa }}"
+                                                value="{{ old('jumlah', $hutang->sisa) }}" max="{{ $hutang->sisa }}"
                                                 required>
                                             @error('jumlah')
                                                 <span class="invalid-feedback">{{ $message }}</span>
