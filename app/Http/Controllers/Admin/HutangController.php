@@ -105,7 +105,7 @@ class HutangController extends Controller
             'debet' => $debet,
             'kredit' => $kredit,
             'ket' => $keterangan,
-            'detail_id' => $hutang->id,
+            'detail_id' => $request->jenis == 'belanja' ? $hutang->detail_id : $hutang->id,
         ]);
 
         return redirect()->route('hutang.index')

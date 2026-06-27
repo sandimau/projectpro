@@ -288,6 +288,7 @@ class POController extends Controller
                     'jumlah' => $sisa_hutang,
                     'keterangan' => 'pembelian ke ' . $po->kontak->nama,
                     'jenis' => 'belanja',
+                    'detail_id' => $belanja->id,
                 ]);
             }
 

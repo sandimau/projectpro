@@ -97,27 +97,27 @@ class BelanjaController extends Controller
                 'gambar' => $gambar ?? null,
             ]);
 
-            if ($request->pembayaran > 0 && $request->pembayaran <= $request->total) {
-                //get supplier
-                $supplier = Kontak::where('id', $request->kontak_id)->first();
+            $supplier = Kontak::where('id', $request->kontak_id)->first();
+            $pembayaran = (float) ($request->pembayaran ?? 0);
+            $total = (float) $request->total;
 
-                if ($request->akun_detail_id) {
-                    //insert into buku besar table
-                    BukuBesar::create([
-                        'akun_detail_id' => $request->akun_detail_id,
-                        'ket' => 'pembelian ke ' . $supplier->nama,
-                        'kredit' => $request->pembayaran,
-                        'debet' => 0,
-                        'kode' => 'blj',
-                        'detail_id' => $belanja->id,
-                    ]);
-                }
-            } else {
-                $supplier = Kontak::where('id', $request->kontak_id)->first();
+            if ($pembayaran > 0 && $pembayaran <= $total && $request->akun_detail_id) {
+                BukuBesar::create([
+                    'akun_detail_id' => $request->akun_detail_id,
+                    'ket' => 'pembelian ke ' . $supplier->nama,
+                    'kredit' => $pembayaran,
+                    'debet' => 0,
+                    'kode' => 'blj',
+                    'detail_id' => $belanja->id,
+                ]);
+            }
+
+            $sisaHutang = $total - ($pembayaran > 0 && $pembayaran <= $total ? $pembayaran : 0);
+            if ($sisaHutang > 0) {
                 Hutang::create([
                     'kontak_id' => $request->kontak_id,
                     'tanggal' => $request->tanggal_beli,
-                    'jumlah' => $request->total,
+                    'jumlah' => $sisaHutang,
                     'keterangan' => 'pembelian ke ' . $supplier->nama,
                     'jenis' => 'belanja',
                     'detail_id' => $belanja->id,
