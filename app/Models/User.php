@@ -43,4 +43,19 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public function userDevice()
+    {
+        return $this->hasOne(UserDevice::class);
+    }
+
+    public function member()
+    {
+        return $this->hasOne(Member::class);
+    }
+
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class);
+    }
 }

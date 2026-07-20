@@ -33,9 +33,9 @@
         'admin/members*',
         'admin/freelance*',
         'admin/nonaktif*',
-        'admin/absensi*',
         'admin/ars*',
     );
+    $openAbsensi = $navOpen('admin/absensi*', 'absensi*');
     $openKeuangan =
         $navOpen('admin/akunKategoris*', 'admin/akunDetails*', 'admin/belanja*', 'admin/hutang*', 'admin/kas') ||
         $activeBelumLunas;
@@ -74,6 +74,7 @@
 
     $showProduksiOrder = $user->hasAnyPermission($navReads['proses_order']);
     $showData = $user->hasAnyPermission($navReads['data']);
+    $showAbsensi = $user->hasAnyPermission($navReads['absensi']);
     $showKeuangan = $user->hasAnyPermission($navReads['keuangan']);
     $showMarketplace = $user->hasAnyPermission($navReads['marketplace']);
     $showInventory = $user->hasAnyPermission($navReads['inventory']);
@@ -253,17 +254,6 @@
                         </a>
                     </li>
                 @endcanany
-                @can('absensi_access')
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('admin/absensi*') || request()->is('absensi*') ? 'active' : '' }}"
-                            href="{{ route('absensi.index') }}">
-                            <svg class="nav-icon">
-                                <use xlink:href="{{ asset('icons/coreui.svg#cil-calendar') }}"></use>
-                            </svg>
-                            Absensi
-                        </a>
-                    </li>
-                @endcan
                 @can('ar_access')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('admin/ars*') || request()->is('ars*') ? 'active' : '' }}"
@@ -272,6 +262,61 @@
                                 <use xlink:href="{{ asset('icons/coreui.svg#cil-headphones') }}"></use>
                             </svg>
                             {{ __('cs') }}
+                        </a>
+                    </li>
+                @endcan
+            </ul>
+        </li>
+    @endif
+
+    @if ($showAbsensi)
+        <li class="nav-group{{ $openAbsensi ? ' show' : '' }}" aria-expanded="{{ $openAbsensi ? 'true' : 'false' }}">
+            <a class="nav-link nav-group-toggle" href="#">
+                <svg class="nav-icon">
+                    <use xlink:href="{{ asset('icons/coreui.svg#cil-calendar') }}"></use>
+                </svg>
+                Absensi
+            </a>
+            <ul class="nav-group-items">
+                @can('absensi_scan')
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('absensi/scan') ? 'active' : '' }}"
+                            href="{{ route('absensi.scan') }}">
+                            <svg class="nav-icon">
+                                <use xlink:href="{{ asset('icons/coreui.svg#cil-camera') }}"></use>
+                            </svg>
+                            Scan Absensi
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('absensi/riwayat') ? 'active' : '' }}"
+                            href="{{ route('absensi.riwayat') }}">
+                            <svg class="nav-icon">
+                                <use xlink:href="{{ asset('icons/coreui.svg#cil-list') }}"></use>
+                            </svg>
+                            Riwayat
+                        </a>
+                    </li>
+                @endcan
+                @can('absensi_access')
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('admin/absensi') || request()->is('admin/absensi/create') ? 'active' : '' }}"
+                            href="{{ route('absensi.index') }}">
+                            <svg class="nav-icon">
+                                <use xlink:href="{{ asset('icons/coreui.svg#cil-spreadsheet') }}"></use>
+                            </svg>
+                            Data Absensi
+                        </a>
+                    </li>
+                @endcan
+                @can('absensi_edit')
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('admin/absensi/settings*') ? 'active' : '' }}"
+                            href="{{ route('absensi.settings') }}">
+                            <svg class="nav-icon">
+                                <use xlink:href="{{ asset('icons/coreui.svg#cil-settings') }}"></use>
+                            </svg>
+                            Pengaturan
                         </a>
                     </li>
                 @endcan

@@ -309,13 +309,23 @@ class Permissions
                 ],
             ],
             'absensi' => [
-                'label' => 'Absensi',
-                'group' => 'Pegawai',
+                'label' => 'Data Absensi',
+                'group' => 'Absensi',
                 'actions' => [
                     'read' => 'absensi_access',
                     'create' => 'absensi_create',
                     'update' => 'absensi_edit',
                     'delete' => 'absensi_delete',
+                ],
+            ],
+            'absensi_scan' => [
+                'label' => 'Scan Absensi',
+                'group' => 'Absensi',
+                'actions' => [
+                    'read' => 'absensi_scan',
+                    'create' => null,
+                    'update' => null,
+                    'delete' => null,
                 ],
             ],
             'cs' => [
@@ -637,8 +647,11 @@ class Permissions
                 'kontak_access',
                 'member_access',
                 'freelance_access',
-                'absensi_access',
                 'ar_access',
+            ],
+            'absensi' => [
+                'absensi_access',
+                'absensi_scan',
             ],
             'keuangan' => [
                 'akun_access',

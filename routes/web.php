@@ -50,6 +50,10 @@ Route::prefix('buffer')->name('buffer.')->group(function () {
 });
 
 Route::get('/absensi/sync', [\App\Http\Controllers\Admin\AbsensiController::class, 'syncFromApi'])->name('absensi.sync');
+
+Route::get('/api/csrf-token', function () {
+    return response()->json(['csrf_token' => csrf_token()]);
+})->middleware('web')->name('api.csrf-token');
 /**
  * Auth Routes
  */
@@ -67,6 +71,12 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
         Route::get('/profile/{id}/gaji', 'ProfileController@gaji')->name('profile.gaji');
         Route::get('/profile/{id}/lembur', 'ProfileController@lembur')->name('profile.lembur');
         Route::patch('/profile/{id}/update', 'ProfileController@update')->name('profile.update');
+
+        Route::middleware('permission:absensi_scan')->prefix('absensi')->group(function () {
+            Route::get('/scan', [\App\Http\Controllers\AttendanceScanController::class, 'scan'])->name('absensi.scan');
+            Route::get('/riwayat', [\App\Http\Controllers\AttendanceScanController::class, 'riwayat'])->name('absensi.riwayat');
+            Route::post('/store', [\App\Http\Controllers\AttendanceScanController::class, 'store'])->name('attendance.store');
+        });
 
         Route::get('/deleteOrders', 'HomeController@DeleteOrders')->name('deleteOrders');
 
@@ -113,6 +123,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
 
             // member
             Route::resource('members', 'MemberController');
+            Route::delete('/members/{member}/reset-device', 'MemberController@resetDevice')->name('members.reset-device');
             Route::get('/nonaktif', 'MemberController@nonaktif')->name('members.nonaktif');
             Route::get('/cuti/{member}', 'MemberController@cuti')->name('members.cuti');
             Route::get('/kasbon/{member}', 'MemberController@kasbon')->name('members.kasbon');
@@ -138,6 +149,8 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::get('/absensi', 'AbsensiController@index')->name('absensi.index');
             Route::get('/absensi/create', 'AbsensiController@create')->name('absensi.create');
             Route::post('/absensi', 'AbsensiController@store')->name('absensi.store');
+            Route::get('/absensi/settings', 'AbsensiController@settings')->name('absensi.settings');
+            Route::post('/absensi/settings', 'AbsensiController@settingsUpdate')->name('absensi.settings.update');
             Route::delete('/absensi/{absensi}', 'AbsensiController@destroy')->name('absensi.destroy');
 
             // absen wfh (input absen untuk member WFH)

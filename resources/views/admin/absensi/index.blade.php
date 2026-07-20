@@ -13,6 +13,14 @@
                     <div>
                         <h5 class="card-title">Absensi</h5>
                     </div>
+                    <div class="d-flex gap-2">
+                        @can('absensi_edit')
+                            <a href="{{ route('absensi.settings') }}" class="btn btn-outline-secondary btn-sm">Pengaturan</a>
+                        @endcan
+                        @can('absensi_create')
+                            <a href="{{ route('absensi.create') }}" class="btn btn-primary btn-sm">Tambah</a>
+                        @endcan
+                    </div>
                 </div>
             </div>
             <div class="card-body">

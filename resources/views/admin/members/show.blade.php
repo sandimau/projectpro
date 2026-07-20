@@ -34,6 +34,16 @@
                                 <i class='bx bxs-edit'></i> edit
                             </a>
                         @endcan
+                        @if ($member->user_id && auth()->user()->can('member_edit'))
+                            <form action="{{ route('members.reset-device', $member) }}" method="POST" class="d-inline"
+                                onsubmit="return confirm('Reset perangkat absensi untuk {{ $member->nama_lengkap }}? Karyawan harus login ulang di HP baru.')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-outline-danger">
+                                    <i class='bx bx-mobile'></i> Reset Perangkat Absensi
+                                </button>
+                            </form>
+                        @endif
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -86,6 +96,20 @@
                                         <th>User Name</th>
                                         <td>{{ $member->user->name ?? '' }}</td>
                                     </tr>
+                                    @if ($member->user_id)
+                                        <tr>
+                                            <th>Perangkat Absensi</th>
+                                            <td>
+                                                @if ($member->user?->userDevice)
+                                                    <span class="badge bg-success">Terdaftar</span>
+                                                    <small class="text-muted d-block mt-1">{{ \Illuminate\Support\Str::limit($member->user->userDevice->user_agent, 80) }}</small>
+                                                @else
+                                                    <span class="badge bg-secondary">Belum terdaftar</span>
+                                                    <small class="text-muted d-block mt-1">Akan terdaftar saat login pertama kali di HP karyawan.</small>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endif
                                 </tbody>
                             </table>
                         </div>

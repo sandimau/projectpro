@@ -66,3 +66,18 @@
         </div>
     </div>
 @endsection
+
+@push('after-scripts')
+    <script>
+        document.querySelector('form[action="{{ route('login') }}"]')?.addEventListener('submit', function() {
+            let input = this.querySelector('input[name="device_token"]');
+            if (!input) {
+                input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'device_token';
+                this.appendChild(input);
+            }
+            input.value = localStorage.getItem('device_token') || '';
+        });
+    </script>
+@endpush

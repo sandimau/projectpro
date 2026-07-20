@@ -16,6 +16,7 @@ use App\Models\Member;
 use App\Models\Penggajian;
 use App\Models\Tunjangan;
 use App\Models\User;
+use App\Services\UserDeviceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -157,7 +158,7 @@ class MemberController extends Controller
 
     public function show(Member $member)
     {
-        $member->load('user');
+        $member->load(['user.userDevice']);
 
         $cutis = Cuti::where('member_id', $member->id)->orderBy('created_at', 'desc')->orderBy('id','desc')->paginate(10);
         $lemburs = Lembur::where('member_id', $member->id)->orderBy('created_at', 'desc')->orderBy('id','desc')->paginate(10);
@@ -174,6 +175,17 @@ class MemberController extends Controller
         $member->delete();
 
         return back();
+    }
+
+    public function resetDevice(Member $member, UserDeviceService $userDeviceService)
+    {
+        if (! $member->user_id || ! $member->user) {
+            return back()->withErrors(['Member belum terhubung ke akun user.']);
+        }
+
+        $userDeviceService->resetDevice($member->user);
+
+        return back()->withSuccess('Perangkat absensi untuk '.$member->nama_lengkap.' berhasil direset.');
     }
 
     /**

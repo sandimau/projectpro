@@ -56,6 +56,7 @@ class RoleDefinitions
                 'member_edit',
                 'freelance_access',
                 'absensi_access',
+                'absensi_scan',
                 'ar_access',
                 'ar_create',
                 'cuti_access',
@@ -95,6 +96,7 @@ class RoleDefinitions
                 'kontak_access',
                 'produk_access',
                 'produk_stok_access',
+                'absensi_scan',
             ],
         ];
     }

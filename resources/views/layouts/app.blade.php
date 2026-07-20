@@ -96,6 +96,11 @@
         integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous">
     </script>
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
+    @if (session('absensi_device_token'))
+        <script>
+            localStorage.setItem('device_token', @json(session('absensi_device_token')));
+        </script>
+    @endif
     @stack('after-scripts')
 
 </body>
