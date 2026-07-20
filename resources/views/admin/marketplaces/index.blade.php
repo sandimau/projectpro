@@ -14,9 +14,7 @@
                     </div>
                     <div class="d-flex gap-2">
                         <a href="{{ route('marketplaces.syncStokStatus') }}" class="btn btn-outline-secondary btn-sm">Status Sync Stok</a>
-                        @can('marketplace_create')
-                            <a href="{{ route('marketplaces.create') }}" class="btn btn-primary ">Add marketplace</a>
-                        @endcan
+                        <x-crud-create permission="mp_config_create" :url="route('marketplaces.create')" label="Add marketplace" />
                     </div>
                 </div>
             </div>
@@ -34,10 +32,12 @@
                                 <th scope="col">kas penarikan</th>
                                 <th scope="col">konsumen</th>
                                 <th scope="col">produk Iklan</th>
-                                @can('marketplace_edit')
+                                @can('mp_config_edit')
                                     <th scope="col">sinkron</th>
-                                    <th scope="col">actions</th>
                                 @endcan
+                                @canany(['mp_config_edit', 'mp_config_delete'])
+                                    <th scope="col">actions</th>
+                                @endcanany
                             </tr>
                         </thead>
                         <tbody>
@@ -61,22 +61,28 @@
                                     <td>{{ $marketplace->kasPenarikan->nama ?? '-' }}</td>
                                     <td>{{ $marketplace->kontak->nama ?? '-' }}</td>
                                     <td>{{ $marketplace->produk->namaLengkap ?? '-' }}</td>
-                                    @can('marketplace_edit')
+                                    @can('mp_config_edit')
                                         <td>{!! $marketplace->sinkron !!}</td>
+                                    @endcan
+                                    @canany(['mp_config_edit', 'mp_config_delete'])
                                         <td>
                                             <div class="d-flex">
-                                                <a href="{{ route('marketplaces.edit', $marketplace->id) }}"
-                                                    class="btn btn-info btn-sm me-1"><i class='bx bxs-edit'></i></a>
-                                                <form action="{{ route('marketplaces.destroy', $marketplace->id) }}"
-                                                    method="post">
-                                                    {{ csrf_field() }}
-                                                    {{ method_field('delete') }}
-                                                    <button type="submit" onclick="return confirm('Are you sure?')"
-                                                        class="btn btn-danger btn-sm"><i class='bx bxs-trash'></i></button>
-                                                </form>
+                                                @can('mp_config_edit')
+                                                    <a href="{{ route('marketplaces.edit', $marketplace->id) }}"
+                                                        class="btn btn-info btn-sm me-1"><i class='bx bxs-edit'></i></a>
+                                                @endcan
+                                                @can('mp_config_delete')
+                                                    <form action="{{ route('marketplaces.destroy', $marketplace->id) }}"
+                                                        method="post">
+                                                        {{ csrf_field() }}
+                                                        {{ method_field('delete') }}
+                                                        <button type="submit" onclick="return confirm('Are you sure?')"
+                                                            class="btn btn-danger btn-sm"><i class='bx bxs-trash'></i></button>
+                                                    </form>
+                                                @endcan
                                             </div>
                                         </td>
-                                    @endcan
+                                    @endcanany
                                 </tr>
                             @endforeach
                         </tbody>

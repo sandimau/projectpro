@@ -1,73 +1,72 @@
 @extends('layouts.app')
 
 @section('title')
-Create Role
+    Create Role
 @endsection
 
 @section('content')
-<div class="bg-light rounded">
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Add new role</h5>
-            <div class="p-4 rounded">
-                <div class="container mt-4">
+    <div class="bg-light rounded">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Tambah Role</h5>
+            </div>
+            <div class="card-body">
+                @include('layouts.includes.messages')
 
-                    <form method="POST" action="{{ route('roles.store') }}">
-                        @csrf
-                        <div class="mb-3">
-                            <label for="name" class="form-label">Name</label>
-                            <input value="{{ old('name') }}" type="text" class="form-control" name="name"
-                                placeholder="Name" required>
-                        </div>
+                <form method="POST" action="{{ route('roles.store') }}">
+                    @csrf
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Nama Role</label>
+                        <input value="{{ old('name') }}" type="text"
+                            class="form-control @error('name') is-invalid @enderror" name="name"
+                            id="name" placeholder="contoh: supervisor" required>
+                        @error('name')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
 
-                        <label for="permissions" class="form-label">Assign Permissions</label>
+                    @include('roles._permission-groups', [
+                        'menus' => $menus,
+                        'rolePermissions' => old('permission', $rolePermissions),
+                    ])
 
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <th scope="col" width="1%"><input type="checkbox" name="all_permission"></th>
-                                    <th scope="col" width="20%">Name</th>
-                                    <th scope="col" width="1%">Guard</th>
-                                </thead>
-
-                                @foreach($permissions as $permission)
-                                <tr>
-                                    <td>
-                                        <input type="checkbox" name="permission[{{ $permission->name }}]"
-                                            value="{{ $permission->name }}" class='permission'>
-                                    </td>
-                                    <td>{{ $permission->name }}</td>
-                                    <td>{{ $permission->guard_name }}</td>
-                                </tr>
-                                @endforeach
-                            </table>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary">Save user</button>
-                        <a href="{{ route('users.index') }}" class="btn btn-default">Back</a>
-                    </form>
-                </div>
-
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-primary">Simpan</button>
+                        <a href="{{ route('roles.index') }}" class="btn btn-secondary">Kembali</a>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
+@endsection
 
-    @endsection
-
-    @push('after-scripts')
-    <script type="text/javascript">
-    $(document).ready(function() {
-        $('[name="all_permission"]').on('click', function() {
-            if ($(this).is(':checked')) {
-                $.each($('.permission'), function() {
-                    $(this).prop('checked', true);
-                });
-            } else {
-                $.each($('.permission'), function() {
-                    $(this).prop('checked', false);
-                });
+@push('after-scripts')
+    <script>
+        $(document).ready(function() {
+            function syncMenuToggle(menu) {
+                const boxes = $('.menu-' + menu);
+                const checked = boxes.filter(':checked').length;
+                $('#menu_all_' + menu).prop('checked', boxes.length > 0 && checked === boxes.length);
             }
+
+            $('.menu-toggle').each(function() {
+                syncMenuToggle($(this).data('menu'));
+            });
+
+            $('#all_permission').on('change', function() {
+                const on = $(this).is(':checked');
+                $('.permission').prop('checked', on);
+                $('.menu-toggle').prop('checked', on);
+            });
+
+            $('.menu-toggle').on('change', function() {
+                $('.menu-' + $(this).data('menu')).prop('checked', $(this).is(':checked'));
+            });
+
+            $('.permission').on('change', function() {
+                const menu = $(this).attr('class').match(/menu-([\w_]+)/);
+                if (menu) syncMenuToggle(menu[1]);
+            });
         });
-    });
     </script>
-    @endpush
+@endpush

@@ -8,7 +8,7 @@
     <header class="header mb-4">
         <div class="container-fluid">
             <h5 class="card-title">Data Pemakaian</h5>
-            @can('pakaiStok_create')
+            @can('pemakaian_create')
                 <a href="{{ route('pemakaian.create') }}" class="btn btn-primary">Tambah Pemakaian</a>
             @endcan
         </div>
@@ -64,7 +64,7 @@
                                     <td>{{ $pemakaian->keterangan ?? '-' }}</td>
                                     <td>{{ $pemakaian->user->name ?? '-' }}</td>
                                     <td>
-                                        @can('pakaiStok_Edit')
+                                        @can('pemakaian_edit')
                                             @if ($pemakaian->produkStok->status != 'manual')
                                                 <a href="{{ route('pemakaian.edit', $pemakaian->id) }}"
                                                     class="btn btn-sm btn-danger text-white">Balikin</a>

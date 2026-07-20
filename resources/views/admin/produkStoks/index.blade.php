@@ -13,7 +13,7 @@
                         <h5 class="card-title"><a href="{{route('produkModel.index', $produk->produkModel->kategori_id)}}">{{ $produk->namaLengkap }}</a></h5>
                     </div>
                     <div style="text-align: right">
-                        @can('kontak_create')
+                        @can('produk_stok_create')
                             <a href="{{ route('produkStok.create', $produk->id) }}" class="btn btn-primary mb-2">opname</a>
                         @endcan
                     </div>

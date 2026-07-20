@@ -12,9 +12,7 @@
                     <div>
                         <h5 class="card-title mb-0">Users</h5>
                     </div>
-                    @can('user_create')
-                        <a href="{{ route('users.create') }}" class="btn btn-primary">Add user</a>
-                    @endcan
+                    <x-crud-create permission="user_create" :url="route('users.create')" label="Add user" />
                 </div>
             </div>
             <div class="card-body">
@@ -27,7 +25,9 @@
                                 <th scope="col">Name</th>
                                 <th scope="col">Email</th>
                                 <th scope="col">Roles</th>
-                                <th scope="col">Action</th>
+                                @canany(['user_edit', 'user_delete'])
+                                    <th scope="col">Action</th>
+                                @endcanany
                             </tr>
                         </thead>
                         <tbody>
@@ -43,18 +43,17 @@
                                             <span class="text-muted">—</span>
                                         @endforelse
                                     </td>
-                                    <td>
-                                        <div class="d-flex gap-1">
-                                            <a href="{{ route('users.edit', $user->id) }}"
-                                                class="btn btn-info btn-sm"><i class='bx bxs-edit'></i> Edit</a>
-                                            <form action="{{ route('users.destroy', $user->id) }}" method="post">
-                                                @csrf
-                                                @method('delete')
-                                                <button type="submit" onclick="return confirm('Are you sure?')"
-                                                    class="btn btn-danger btn-sm"><i class='bx bxs-trash'></i> Delete</button>
-                                            </form>
-                                        </div>
-                                    </td>
+                                    @canany(['user_edit', 'user_delete'])
+                                        <td>
+                                            <x-crud-actions
+                                                edit="user_edit"
+                                                delete="user_delete"
+                                                :edit-url="route('users.edit', $user->id)"
+                                                :delete-url="route('users.destroy', $user->id)"
+                                                confirm="Are you sure?"
+                                            />
+                                        </td>
+                                    @endcanany
                                 </tr>
                             @endforeach
                         </tbody>
@@ -71,7 +70,7 @@
             pageLength: 10,
             order: [[0, 'asc']],
             columnDefs: [
-                { orderable: false, targets: 4 },
+                { orderable: false, targets: -1 },
             ],
         });
     </script>

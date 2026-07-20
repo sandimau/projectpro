@@ -13,8 +13,10 @@
                     <div>
                         <h5 class="card-title">Lembur</h5>
                     </div>
-                    <a href="{{ route('lembur.create', $member->id) }}" class="popup btn btn-primary"><i
-                            class='bx bx-plus-circle'></i> tambah</a>
+                    @can('lembur_create')
+                        <a href="{{ route('lembur.create', $member->id) }}" class="popup btn btn-primary"><i
+                                class='bx bx-plus-circle'></i> tambah</a>
+                    @endcan
                 </div>
             </div>
             <div class="card-body">
@@ -41,9 +43,11 @@
                                 <th>
                                     status
                                 </th>
-                                <th>
-                                    actions
-                                </th>
+                                @can('lembur_edit')
+                                    <th>
+                                        actions
+                                    </th>
+                                @endcan
                             </tr>
                         </thead>
                         <tbody>
@@ -71,15 +75,17 @@
                                         @endif
 
                                     </td>
-                                    <td>
-                                        <div class="d-flex">
-                                            @if (!in_array($item->status, ['approved', 'rejected']))
-                                                <a href="{{ route('lembur.edit', $item->id) }}"
-                                                    class="popup btn btn-info btn-sm me-1"><i class='bx bxs-edit'></i>
-                                                    Edit</a>
-                                            @endif
-                                        </div>
-                                    </td>
+                                    @can('lembur_edit')
+                                        <td>
+                                            <div class="d-flex">
+                                                @if (!in_array($item->status, ['approved', 'rejected']))
+                                                    <a href="{{ route('lembur.edit', $item->id) }}"
+                                                        class="popup btn btn-info btn-sm me-1"><i class='bx bxs-edit'></i>
+                                                        Edit</a>
+                                                @endif
+                                            </div>
+                                        </td>
+                                    @endcan
                                 </tr>
                             @endforeach
                         </tbody>

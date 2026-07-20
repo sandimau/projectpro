@@ -105,7 +105,7 @@
                                     {{ $gaji->created_at ?? '' }}
                                 </td>
                                 <td>
-                                    @can('gaji_show')
+                                    @can('gaji_access')
                                         <a class="btn btn-xs btn-primary" href="{{ route('admin.gajis.show', $gaji->id) }}">
                                             {{ trans('global.view') }}
                                         </a>

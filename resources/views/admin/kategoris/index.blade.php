@@ -12,9 +12,7 @@
                     <div>
                         <h5 class="card-title">Kategoris</h5>
                     </div>
-                    @can('akun_create')
-                        <a href="{{ route('kategori.create') }}" class="btn btn-primary ">Add Kategori</a>
-                    @endcan
+                    <x-crud-create permission="kategori_create" :url="route('kategori.create')" label="Add Kategori" />
                 </div>
             </div>
             <div class="card-body">
@@ -25,7 +23,9 @@
                             <tr>
                                 <th scope="col">#</th>
                                 <th scope="col">Nama</th>
-                                <th scope="col">actions</th>
+                                @canany(['kategori_edit', 'kategori_delete'])
+                                    <th scope="col">actions</th>
+                                @endcanany
                             </tr>
                         </thead>
                         <tbody>
@@ -33,12 +33,15 @@
                                 <tr>
                                     <td>{{ $kategori->id }}</td>
                                     <td><a href="{{ route('produks.index', $kategori->id) }}">{{ $kategori->nama }}</a></td>
-                                    <td>
-                                        <div class="d-flex">
-                                            <a href="{{ route('kategori.edit', $kategori->id) }}" class="btn btn-info btn-sm me-1"><i
-                                                    class='bx bxs-edit'></i> Edit</a>
-                                        </div>
-                                    </td>
+                                    @canany(['kategori_edit', 'kategori_delete'])
+                                        <td>
+                                            <x-crud-actions
+                                                class="d-flex"
+                                                edit="kategori_edit"
+                                                :edit-url="route('kategori.edit', $kategori->id)"
+                                            />
+                                        </td>
+                                    @endcanany
                                 </tr>
                             @endforeach
                         </tbody>

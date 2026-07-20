@@ -33,9 +33,11 @@
                                 <th>
                                     cuti
                                 </th>
-                                <th>
-                                    action
-                                </th>
+                                @can('cuti_edit')
+                                    <th>
+                                        action
+                                    </th>
+                                @endcan
                             </tr>
                         </thead>
                         <tbody>
@@ -44,13 +46,15 @@
                                     <td>{{ $item->tanggal }}</td>
                                     <td>{{ $item->keterangan }}</td>
                                     <td>{{ $item->cuti ? 'cuti' : 'ijin' }}</td>
-                                    <td>
-                                        <div class="d-flex">
-                                            <a href="{{ route('cuti.edit', $item->id) }}" class="popup btn btn-info btn-sm me-1"><i
-                                                    class='bx bxs-edit'></i>
-                                                Edit</a>
-                                        </div>
-                                    </td>
+                                    @can('cuti_edit')
+                                        <td>
+                                            <div class="d-flex">
+                                                <a href="{{ route('cuti.edit', $item->id) }}" class="popup btn btn-info btn-sm me-1"><i
+                                                        class='bx bxs-edit'></i>
+                                                    Edit</a>
+                                            </div>
+                                        </td>
+                                    @endcan
                                 </tr>
                             @endforeach
                         </tbody>

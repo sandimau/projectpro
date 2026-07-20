@@ -12,9 +12,7 @@
                     <div>
                         <h5 class="card-title">Kas</h5>
                     </div>
-                    @can('akun_kategori_create')
-                        <a href="{{ route('akunDetails.create') }}" class="btn btn-primary ">Add kas</a>
-                    @endcan
+                    <x-crud-create permission="akun_detail_create" :url="route('akunDetails.create')" label="Add kas" />
                 </div>
             </div>
             <div class="card-body">
@@ -27,7 +25,9 @@
                                 <th scope="col">nama</th>
                                 <th scope="col">kategori</th>
                                 <th scope="col">saldo</th>
-                                <th scope="col">actions</th>
+                                @canany(['akun_detail_edit', 'akun_detail_delete'])
+                                    <th scope="col">actions</th>
+                                @endcanany
                             </tr>
                         </thead>
                         <tbody>
@@ -38,21 +38,19 @@
                                     </td>
                                     <td>{{ $akun->akun_kategori->nama }}</td>
                                     <td>{{ number_format($akun->saldo) }}</td>
-                                    @can('akun_edit')
+                                    @canany(['akun_detail_edit', 'akun_detail_delete'])
                                         <td>
-                                            <div class="d-flex">
-                                                <a href="{{ route('akunDetails.edit', $akun->id) }}"
-                                                    class="btn btn-info btn-sm me-1"><i class='bx bxs-edit'></i> Edit</a>
-                                                <form action="{{ route('akunDetails.destroy', $akun->id) }}" method="post">
-                                                    {{ csrf_field() }}
-                                                    {{ method_field('delete') }}
-                                                    <button type="submit" onclick="return confirm('Are you sure?')"
-                                                        class="btn btn-danger btn-sm"><i class='bx bxs-trash'></i>
-                                                        delete</button>
-                                                </form>
-                                            </div>
+                                            <x-crud-actions
+                                                class="d-flex"
+                                                edit="akun_detail_edit"
+                                                delete="akun_detail_delete"
+                                                :edit-url="route('akunDetails.edit', $akun->id)"
+                                                :delete-url="route('akunDetails.destroy', $akun->id)"
+                                                confirm="Are you sure?"
+                                                delete-label="delete"
+                                            />
                                         </td>
-                                    @endcan
+                                    @endcanany
                                 </tr>
                             @endforeach
                         </tbody>

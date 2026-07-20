@@ -1,8 +1,9 @@
 @php
+    use App\Auth\Permissions;
+
     $navOpen = fn(...$patterns) => collect($patterns)->contains(fn($p) => request()->is($p));
 
     $orderKeuanganPaths = ['admin/order/belumLunas*'];
-    $orderOmzetPaths = ['admin/order/omzet*'];
     $orderProduksiExcluded = [
         'admin/order/dashboard*',
         'admin/order/marketplace*',
@@ -63,21 +64,20 @@
     );
 
     $user = auth()->user();
-    $showProduksiOrder = $user->can('order_access');
-    $showData = $user->can('kontak_access');
-    $showKeuangan =
-        $user->can('akun_detail_access') ||
-        $user->can('keuangan') ||
-        ($user->hasRole('super') && $user->can('akun_access'));
-    $showMarketplace = $user->can('marketplace_access');
-    $showInventory = $user->can('produk_access');
-    $showProduksiFactory = $user->can('produk_access');
-    $showPegawai = $user->can('member_access');
-    $showAnalisa = $user->can('laporan_access');
-    $showLaporan = $user->can('laporan_access');
-    $showOmzet = $user->can('omzet_access');
-    $showUserMgmt = $user->hasAnyPermission(['user_access', 'level_access', 'bagian_access']);
-    $showConfig = true;
+    $navReads = Permissions::navGroupReads();
+
+    $showProduksiOrder = $user->hasAnyPermission($navReads['proses_order']);
+    $showData = $user->hasAnyPermission($navReads['data']);
+    $showKeuangan = $user->hasAnyPermission($navReads['keuangan']);
+    $showMarketplace = $user->hasAnyPermission($navReads['marketplace']);
+    $showInventory = $user->hasAnyPermission($navReads['inventory']);
+    $showProduksiFactory = $user->hasAnyPermission($navReads['produksi']);
+    $showPegawai = $user->hasAnyPermission($navReads['pegawai']);
+    $showAnalisa = $user->hasAnyPermission($navReads['analisa']);
+    $showLaporan = $user->hasAnyPermission($navReads['laporan']);
+    $showOmzet = $user->hasAnyPermission($navReads['omzet']);
+    $showUserMgmt = $user->hasAnyPermission($navReads['user_mgmt']);
+    $showConfig = $user->hasAnyPermission($navReads['config']) || $user->hasRole('super');
 @endphp
 
 <ul class="sidebar-nav compact" data-coreui="navigation" data-simplebar>
@@ -91,7 +91,7 @@
                 Proses Order
             </a>
             <ul class="nav-group-items">
-                @can('order_access')
+                @can('order_proses_access')
                     <li class="nav-item">
                         <a class="nav-link {{ $activeOrderProses ? 'active' : '' }}" href="{{ route('order.dashboard') }}">
                             <svg class="nav-icon">
@@ -100,6 +100,8 @@
                             Proses
                         </a>
                     </li>
+                @endcan
+                @can('order_offline_access')
                     <li class="nav-item">
                         <a class="nav-link {{ $activeOrderArsip ? 'active' : '' }}" href="{{ route('order.index') }}">
                             <svg class="nav-icon">
@@ -108,6 +110,8 @@
                             Arsip Offline
                         </a>
                     </li>
+                @endcan
+                @can('order_online_access')
                     <li class="nav-item">
                         <a class="nav-link {{ $activeOrderOnline ? 'active' : '' }}"
                             href="{{ route('order.marketplace') }}">
@@ -132,7 +136,7 @@
                 Marketplace
             </a>
             <ul class="nav-group-items">
-                @can('marketplace_access')
+                @can('mp_custom_access')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('admin/projectmp/dashboard*') ? 'active' : '' }}"
                             href="{{ route('projectmp.dashboard') }}">
@@ -142,6 +146,8 @@
                             {{ __('Proses Custom') }}
                         </a>
                     </li>
+                @endcan
+                @can('mp_packing_access')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('admin/projectmp/packing*') ? 'active' : '' }}"
                             href="{{ route('projectmp.packing') }}">
@@ -151,6 +157,8 @@
                             {{ __('Proses Packing') }}
                         </a>
                     </li>
+                @endcan
+                @can('mp_arsip_access')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('admin/projectmp/index*') ? 'active' : '' }}"
                             href="{{ route('projectmp.index') }}">
@@ -161,7 +169,7 @@
                         </a>
                     </li>
                 @endcan
-                @can('marketplace_config')
+                @can('mp_produk_access')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('admin/marketplaceProduk*') ? 'active' : '' }}"
                             href="{{ route('marketplaces.produk') }}">
@@ -171,6 +179,8 @@
                             {{ __('Produk') }}
                         </a>
                     </li>
+                @endcan
+                @can('mp_config_access')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('marketplaces*') ? 'active' : '' }}"
                             href="{{ route('marketplaces.index') }}">
@@ -180,6 +190,8 @@
                             {{ __('Config') }}
                         </a>
                     </li>
+                @endcan
+                @can('mp_sync_access')
                     <li class="nav-item">
                         <a class="nav-link {{ $activeMarketplaceSyncStok ? 'active' : '' }}"
                             href="{{ route('marketplaces.syncStokStatus') }}">
@@ -189,6 +201,8 @@
                             {{ __('Sync Stok Shopee') }}
                         </a>
                     </li>
+                @endcan
+                @can('mp_analisa_access')
                     <li class="nav-item">
                         <a class="nav-link {{ $activeMarketplaceAnalisa ? 'active' : '' }}"
                             href="{{ route('marketplaces.analisa') }}">
@@ -199,7 +213,6 @@
                         </a>
                     </li>
                 @endcan
-
             </ul>
         </li>
     @endif
@@ -238,20 +251,18 @@
                 Keuangan
             </a>
             <ul class="nav-group-items">
-                @role('super')
-                    @can('akun_access')
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->is('akunKategoris*') ? 'active' : '' }}"
-                                href="{{ route('akunDetails.index') }}">
-                                <svg class="nav-icon">
-                                    <use xlink:href="{{ asset('icons/coreui.svg#cil-calculator') }}"></use>
-                                </svg>
-                                {{ __('akuns') }}
-                            </a>
-                        </li>
-                    @endcan
-                @endrole
-                @can('akun_detail_access')
+                @can('akun_access')
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('akunKategoris*') ? 'active' : '' }}"
+                            href="{{ route('akunDetails.index') }}">
+                            <svg class="nav-icon">
+                                <use xlink:href="{{ asset('icons/coreui.svg#cil-calculator') }}"></use>
+                            </svg>
+                            {{ __('akuns') }}
+                        </a>
+                    </li>
+                @endcan
+                @can('kas_access')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('akunDetails*') ? 'active' : '' }}"
                             href="{{ route('akunDetail.kas') }}">
@@ -261,6 +272,8 @@
                             {{ __('kas') }}
                         </a>
                     </li>
+                @endcan
+                @can('belum_lunas_access')
                     <li class="nav-item">
                         <a class="nav-link {{ $activeBelumLunas ? 'active' : '' }}" href="{{ route('order.unpaid') }}">
                             <svg class="nav-icon">
@@ -270,7 +283,7 @@
                         </a>
                     </li>
                 @endcan
-                @can('keuangan')
+                @can('belanja_access')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('belanjas*') ? 'active' : '' }}"
                             href="{{ route('belanja.index') }}">
@@ -280,6 +293,8 @@
                             Belanja
                         </a>
                     </li>
+                @endcan
+                @can('hutang_access')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('hutang*') ? 'active' : '' }}"
                             href="{{ route('hutang.index') }}">
@@ -314,6 +329,8 @@
                             {{ __('Produk') }}
                         </a>
                     </li>
+                @endcan
+                @can('pemakaian_access')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('pemakaian*') ? 'active' : '' }}"
                             href="{{ route('pemakaian.index') }}">
@@ -323,6 +340,8 @@
                             Pemakaian
                         </a>
                     </li>
+                @endcan
+                @can('opname_access')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('opnames*') ? 'active' : '' }}"
                             href="{{ route('opnames.index') }}">
@@ -332,6 +351,8 @@
                             {{ __('Opname') }}
                         </a>
                     </li>
+                @endcan
+                @can('po_access')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('po*') ? 'active' : '' }}" href="{{ route('po.index') }}">
                             <svg class="nav-icon">
@@ -355,7 +376,7 @@
                 Produksi
             </a>
             <ul class="nav-group-items">
-                @can('produk_access')
+                @can('produksi_proses_access')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('produksi*') ? 'active' : '' }}"
                             href="{{ route('produksi.index') }}">
@@ -365,8 +386,10 @@
                             Proses
                         </a>
                     </li>
+                @endcan
+                @can('produksi_produk_access')
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->is('produksi*') ? 'active' : '' }}"
+                        <a class="nav-link {{ request()->is('produkProduksi*') ? 'active' : '' }}"
                             href="{{ route('produkProduksi.index') }}">
                             <svg class="nav-icon">
                                 <use xlink:href="{{ asset('icons/coreui.svg#cil-factory') }}"></use>
@@ -399,7 +422,8 @@
                             Karyawan
                         </a>
                     </li>
-
+                @endcan
+                @can('freelance_access')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('members*') ? 'active' : '' }}"
                             href="{{ route('members.freelance') }}">
@@ -409,6 +433,8 @@
                             Freelance
                         </a>
                     </li>
+                @endcan
+                @can('absensi_access')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('absensi*') ? 'active' : '' }}"
                             href="{{ route('absensi.index') }}">
@@ -418,6 +444,8 @@
                             Absensi
                         </a>
                     </li>
+                @endcan
+                @can('ar_access')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('ars*') ? 'active' : '' }}"
                             href="{{ route('ars.index') }}">
@@ -442,7 +470,7 @@
                 Analisa
             </a>
             <ul class="nav-group-items">
-                @can('laporan_access')
+                @can('analisa_beban_access')
                     <li class="nav-item">
                         <a class="nav-link {{ $activeAnalisaBeban ? 'active' : '' }}"
                             href="{{ route('analisa.beban') }}">
@@ -452,6 +480,8 @@
                             Analisa Beban
                         </a>
                     </li>
+                @endcan
+                @can('analisa_operasional_access')
                     <li class="nav-item">
                         <a class="nav-link {{ $activeAnalisaOperasional ? 'active' : '' }}"
                             href="{{ route('analisa.operasional') }}">
@@ -461,6 +491,8 @@
                             Analisa Operasional
                         </a>
                     </li>
+                @endcan
+                @can('analisa_stok_access')
                     <li class="nav-item">
                         <a class="nav-link {{ $activeAnalisaStok ? 'active' : '' }}"
                             href="{{ route('analisa.stok') }}">
@@ -485,7 +517,7 @@
                 Laporan
             </a>
             <ul class="nav-group-items">
-                @can('laporan_access')
+                @can('laporan_tunjangan_access')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('laporan*') ? 'active' : '' }}"
                             href="{{ route('laporan.tunjangan') }}">
@@ -495,6 +527,8 @@
                             {{ __('Tunjangan') }}
                         </a>
                     </li>
+                @endcan
+                @can('laporan_penggajian_access')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('laporan*') ? 'active' : '' }}"
                             href="{{ route('laporan.penggajian') }}">
@@ -504,6 +538,8 @@
                             {{ __('Penggajian') }}
                         </a>
                     </li>
+                @endcan
+                @can('laporan_neraca_access')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('laporan*') ? 'active' : '' }}"
                             href="{{ route('laporan.neraca') }}">
@@ -513,6 +549,8 @@
                             {{ __('Neraca') }}
                         </a>
                     </li>
+                @endcan
+                @can('laporan_labarugi_access')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('laporan*') ? 'active' : '' }}"
                             href="{{ route('laporan.labarugi') }}">
@@ -536,7 +574,7 @@
                 Omzet
             </a>
             <ul class="nav-group-items">
-                @can('omzet_access')
+                @can('omzet_tahunan_access')
                     <li class="nav-item">
                         <a class="nav-link {{ $activeOmzetTahunan ? 'active' : '' }}"
                             href="{{ route('order.omzet') }}">
@@ -546,7 +584,8 @@
                             {{ __('Tahunan') }}
                         </a>
                     </li>
-
+                @endcan
+                @can('omzet_bulanan_access')
                     <li class="nav-item">
                         <a class="nav-link {{ $activeOmzetBulanan ? 'active' : '' }}"
                             href="{{ route('order.omzetBulan') }}">
@@ -556,7 +595,8 @@
                             {{ __('Bulanan') }}
                         </a>
                     </li>
-
+                @endcan
+                @can('omzet_marketplace_access')
                     <li class="nav-item">
                         <a class="nav-link {{ $activeOmzetMarketplace ? 'active' : '' }}"
                             href="{{ route('marketplaces.omzetBulan') }}">
@@ -566,7 +606,8 @@
                             {{ __('Marketplace') }}
                         </a>
                     </li>
-
+                @endcan
+                @can('omzet_aset_access')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('produk*') ? 'active' : '' }}"
                             href="{{ route('produk.aset') }}">
@@ -576,6 +617,8 @@
                             {{ __('Aset') }}
                         </a>
                     </li>
+                @endcan
+                @can('omzet_produk_access')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('produk*') ? 'active' : '' }}"
                             href="{{ route('produk.omzet') }}">
@@ -600,7 +643,6 @@
                 User Management
             </a>
             <ul class="nav-group-items">
-
                 @can('user_access')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('users*') ? 'active' : '' }}"
@@ -612,7 +654,6 @@
                         </a>
                     </li>
                 @endcan
-
                 @can('level_access')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('levels*') ? 'active' : '' }}"
@@ -624,7 +665,6 @@
                         </a>
                     </li>
                 @endcan
-
                 @can('bagian_access')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('bagians*') ? 'active' : '' }}"
@@ -650,77 +690,72 @@
                 Config
             </a>
             <ul class="nav-group-items">
-                @role('super')
+                @can('rbac.manage')
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->is('roles*') ? 'active' : '' }}"
-                            href="{{ route('roles.index') }}">
-                            <svg class="nav-icon">
-                                <use xlink:href="{{ asset('icons/coreui.svg#cil-group') }}"></use>
-                            </svg>
-                            {{ __('Roles') }}
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('permissions*') ? 'active' : '' }}"
+                        <a class="nav-link {{ request()->is('roles*') || request()->is('permissions*') ? 'active' : '' }}"
                             href="{{ route('permissions.index') }}">
                             <svg class="nav-icon">
                                 <use xlink:href="{{ asset('icons/coreui.svg#cil-lock-locked') }}"></use>
                             </svg>
-                            {{ __('Permissions') }}
+                            Roles & Akses
                         </a>
                     </li>
-                @endrole
-
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->is('produksis*') ? 'active' : '' }}"
-                        href="{{ route('produksis.index') }}">
-                        <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-wrench') }}"></use>
-                        </svg>
-                        {{ __('Setup Produksi') }}
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->is('speks*') ? 'active' : '' }}"
-                        href="{{ route('speks.index') }}">
-                        <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-list') }}"></use>
-                        </svg>
-                        {{ __('Spek Produk') }}
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->is('pemproses*') ? 'active' : '' }}"
-                        href="{{ route('pemproses.index') }}">
-                        <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-factory') }}"></use>
-                        </svg>
-                        {{ __('Pemproses') }}
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->is('sistems*') ? 'active' : '' }}"
-                        href="{{ route('sistem.index') }}">
-                        <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-settings') }}"></use>
-                        </svg>
-                        {{ __('Sistem') }}
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->is('admin/linkPages*') ? 'active' : '' }}"
-                        href="{{ route('linkPages.index') }}">
-                        <svg class="nav-icon">
-                            <use xlink:href="{{ asset('icons/coreui.svg#cil-link') }}"></use>
-                        </svg>
-                        {{ __('Link Pages') }}
-                    </a>
-                </li>
+                @endcan
+                @can('setup_produksi_access')
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('produksis*') ? 'active' : '' }}"
+                            href="{{ route('produksis.index') }}">
+                            <svg class="nav-icon">
+                                <use xlink:href="{{ asset('icons/coreui.svg#cil-wrench') }}"></use>
+                            </svg>
+                            {{ __('Setup Produksi') }}
+                        </a>
+                    </li>
+                @endcan
+                @can('spek_access')
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('speks*') ? 'active' : '' }}"
+                            href="{{ route('speks.index') }}">
+                            <svg class="nav-icon">
+                                <use xlink:href="{{ asset('icons/coreui.svg#cil-list') }}"></use>
+                            </svg>
+                            {{ __('Spek Produk') }}
+                        </a>
+                    </li>
+                @endcan
+                @can('pemproses_access')
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('pemproses*') ? 'active' : '' }}"
+                            href="{{ route('pemproses.index') }}">
+                            <svg class="nav-icon">
+                                <use xlink:href="{{ asset('icons/coreui.svg#cil-factory') }}"></use>
+                            </svg>
+                            {{ __('Pemproses') }}
+                        </a>
+                    </li>
+                @endcan
+                @can('sistem_access')
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('sistems*') ? 'active' : '' }}"
+                            href="{{ route('sistem.index') }}">
+                            <svg class="nav-icon">
+                                <use xlink:href="{{ asset('icons/coreui.svg#cil-settings') }}"></use>
+                            </svg>
+                            {{ __('Sistem') }}
+                        </a>
+                    </li>
+                @endcan
+                @can('link_page_access')
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('admin/linkPages*') ? 'active' : '' }}"
+                            href="{{ route('linkPages.index') }}">
+                            <svg class="nav-icon">
+                                <use xlink:href="{{ asset('icons/coreui.svg#cil-link') }}"></use>
+                            </svg>
+                            {{ __('Link Pages') }}
+                        </a>
+                    </li>
+                @endcan
             </ul>
         </li>
     @endif

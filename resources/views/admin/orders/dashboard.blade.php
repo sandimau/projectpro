@@ -18,7 +18,7 @@
                 <input type="search" id="orderDashboardKontakSearch"
                     class="form-control form-control-sm dashboard-page-header__search"
                     placeholder="Cari nama kontak..." autocomplete="off">
-                @can('order_create')
+                @can('order_proses_create')
                     <a href="{{ route('order.create') }}"
                         class="btn btn-primary rounded-pill text-white text-nowrap dashboard-page-header__btn">
                         <i class="bx bx-plus-circle"></i> Orders

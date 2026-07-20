@@ -12,9 +12,7 @@
                     <div>
                         <h5 class="card-title">Level</h5>
                     </div>
-                    @can('level_create')
-                        <a href="{{ route('level.create') }}" class="btn btn-primary ">Add level</a>
-                    @endcan
+                    <x-crud-create permission="level_create" :url="route('level.create')" label="Add level" />
                 </div>
             </div>
             <div class="card-body">
@@ -30,7 +28,9 @@
                                 <th scope="col">kehadiran</th>
                                 <th scope="col">lama kerja (%)</th>
                                 <th scope="col">harga lembur</th>
-                                <th scope="col">actions</th>
+                                @canany(['level_edit', 'level_delete'])
+                                    <th scope="col">actions</th>
+                                @endcanany
                             </tr>
                         </thead>
                         <tbody>
@@ -43,12 +43,15 @@
                                     <td>{{ number_format($level->kehadiran) }}</td>
                                     <td>{{ number_format($level->lama_kerja) }}</td>
                                     <td>{{ number_format($level->harga_lembur) }}</td>
-                                    <td>
-                                        <div class="d-flex">
-                                            <a href="{{ route('level.edit', $level->id) }}" class="btn btn-info btn-sm me-1"><i
-                                                    class='bx bxs-edit'></i> Edit</a>
-                                        </div>
-                                    </td>
+                                    @canany(['level_edit', 'level_delete'])
+                                        <td>
+                                            <x-crud-actions
+                                                class="d-flex"
+                                                edit="level_edit"
+                                                :edit-url="route('level.edit', $level->id)"
+                                            />
+                                        </td>
+                                    @endcanany
                                 </tr>
                             @endforeach
                         </tbody>

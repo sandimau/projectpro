@@ -2,97 +2,168 @@
 
 namespace App\Http\Controllers;
 
+use App\Auth\PermissionLevel;
+use App\Auth\Permissions;
+use App\Auth\RoleDefinitions;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class PermissionsController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function index()
     {
-        $permissions = Permission::all();
+        $this->ensureCatalogSynced();
+        $purged = $this->purgeOrphans();
+        $this->grantAllToSuper();
 
-        return view('permissions.index', [
-            'permissions' => $permissions
-        ]);
+        $menus = Permissions::menus();
+        $roles = Role::query()
+            ->where('guard_name', Permissions::GUARD)
+            ->with('permissions')
+            ->orderBy('id')
+            ->get();
+
+        $matrix = [];
+        $available = [];
+
+        foreach ($menus as $menuKey => $menu) {
+            $available[$menuKey] = PermissionLevel::availableForMenu($menu);
+            foreach ($roles as $role) {
+                $owned = $role->permissions->pluck('name')->all();
+                $matrix[$menuKey][$role->id] = PermissionLevel::detect($menu, $owned);
+            }
+        }
+
+        $levelMeta = PermissionLevel::meta();
+
+        return view('permissions.index', compact(
+            'menus',
+            'roles',
+            'matrix',
+            'available',
+            'levelMeta',
+            'purged'
+        ));
+    }
+
+    public function saveMatrix(Request $request)
+    {
+        $menus = Permissions::menus();
+        $roles = Role::query()
+            ->where('guard_name', Permissions::GUARD)
+            ->get()
+            ->keyBy('id');
+
+        $payload = $request->input('matrix', []);
+        if (! is_array($payload)) {
+            $payload = [];
+        }
+
+        $validLevels = PermissionLevel::CYCLE;
+
+        $this->ensureCatalogSynced();
+        $this->purgeOrphans();
+
+        foreach ($roles as $roleId => $role) {
+            $assigned = [];
+
+            foreach ($menus as $menuKey => $menu) {
+                $level = $payload[$menuKey][$roleId] ?? PermissionLevel::NONE;
+                if ($level === '-' || $level === null) {
+                    $level = PermissionLevel::NONE;
+                }
+                if (! in_array($level, $validLevels, true)) {
+                    $level = PermissionLevel::NONE;
+                }
+
+                foreach (PermissionLevel::permissionNames($menu, $level) as $name) {
+                    $assigned[] = $name;
+                }
+            }
+
+            // Hanya permission katalog — orphan tidak dipertahankan
+            $role->syncPermissions(array_values(array_unique($assigned)));
+        }
+
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+
+        return redirect()
+            ->route('permissions.index')
+            ->with('success', 'Matriks permission berhasil disimpan.');
+    }
+
+    public function sync()
+    {
+        $created = $this->ensureCatalogSynced(true);
+        $purged = $this->purgeOrphans();
+        $superCount = $this->grantAllToSuper();
+
+        $parts = [];
+        if ($created > 0) {
+            $parts[] = "{$created} permission baru";
+        }
+        if ($purged > 0) {
+            $parts[] = "{$purged} orphan dihapus";
+        }
+        $parts[] = "super = ALL ({$superCount})";
+
+        return redirect()
+            ->route('permissions.index')
+            ->with('success', 'Sinkronisasi selesai: '.implode(', ', $parts).'.');
+    }
+
+    private function ensureCatalogSynced(bool $countCreated = false): int
+    {
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+
+        $created = 0;
+        foreach (Permissions::all() as $name) {
+            $permission = Permission::findOrCreate($name, Permissions::GUARD);
+            if ($countCreated && $permission->wasRecentlyCreated) {
+                $created++;
+            }
+        }
+
+        return $created;
     }
 
     /**
-     * Show form for creating permissions
-     *
-     * @return \Illuminate\Http\Response
+     * Hapus semua permission di DB yang tidak ada di katalog.
      */
-    public function create()
+    private function purgeOrphans(): int
     {
-        return view('permissions.create');
+        $catalog = Permissions::all();
+
+        $orphans = Permission::query()
+            ->where('guard_name', Permissions::GUARD)
+            ->whereNotIn('name', $catalog)
+            ->get();
+
+        $count = $orphans->count();
+        foreach ($orphans as $orphan) {
+            $orphan->delete();
+        }
+
+        if ($count > 0) {
+            app()[PermissionRegistrar::class]->forgetCachedPermissions();
+        }
+
+        return $count;
     }
 
     /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * Role super selalu full akses (ALL permission katalog).
      */
-    public function store(Request $request)
+    private function grantAllToSuper(): int
     {
-        $request->validate([
-            'name' => 'required|unique:users,name'
-        ]);
+        $role = Role::findOrCreate(RoleDefinitions::SUPER, Permissions::GUARD);
+        $all = Permissions::all();
+        $role->syncPermissions($all);
 
-        Permission::create($request->only('name'));
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        return redirect()->route('permissions.index')
-            ->withSuccess(__('Permission created successfully.'));
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  Permission  $post
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Permission $permission)
-    {
-        return view('permissions.edit', [
-            'permission' => $permission
-        ]);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  Permission  $permission
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Permission $permission)
-    {
-        $request->validate([
-            'name' => 'required|unique:permissions,name,'.$permission->id
-        ]);
-
-        $permission->update($request->only('name'));
-
-        return redirect()->route('permissions.index')
-            ->withSuccess(__('Permission updated successfully.'));
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Post  $post
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Permission $permission)
-    {
-        $permission->delete();
-
-        return redirect()->route('permissions.index')
-            ->withSuccess(__('Permission deleted successfully.'));
+        return $role->permissions()->count();
     }
 }

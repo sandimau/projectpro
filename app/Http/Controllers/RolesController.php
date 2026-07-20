@@ -2,79 +2,79 @@
 
 namespace App\Http\Controllers;
 
-use DB;
-use Illuminate\Http\Request;
+use App\Auth\Permissions;
+use App\Http\Requests\StoreRoleRequest;
+use App\Http\Requests\UpdateRoleRequest;
 use Spatie\Permission\Models\Role;
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Route;
-use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 
 class RolesController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        $roles = Role::with('permissions')->orderBy('id', 'asc')->get();
-
-        return view('roles.index', compact('roles'));
+        return redirect()->route('permissions.index');
     }
 
     public function create()
     {
-        $permissions = Permission::get();
-        return view('roles.create', compact('permissions'));
+        return redirect()->route('permissions.index');
     }
 
-    public function store(Request $request)
+    public function store(StoreRoleRequest $request)
     {
-        $this->validate($request, [
-            'name' => 'required|unique:roles,name',
-            'permission' => 'required',
+        Role::create([
+            'name' => $request->validated('name'),
+            'guard_name' => Permissions::GUARD,
         ]);
 
-        $role = Role::create(['name' => $request->get('name')]);
-        $role->syncPermissions($request->get('permission'));
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        return redirect()->route('roles.index')
-                        ->with('success','Role created successfully');
+        return redirect()
+            ->route('permissions.index')
+            ->with('success', 'Role berhasil dibuat. Atur akses di matriks di bawah.');
     }
 
     public function show(Role $role)
     {
-        $role = $role;
-        $rolePermissions = $role->permissions;
-
-        return view('roles.show', compact('role', 'rolePermissions'));
+        return redirect()->route('permissions.index');
     }
 
     public function edit(Role $role)
     {
-        $role = $role;
-        $rolePermissions = $role->permissions->pluck('name')->toArray();
-        $permissions = Permission::get();
-
-        return view('roles.edit', compact('role', 'rolePermissions', 'permissions'));
+        return redirect()->route('permissions.index');
     }
 
-    public function update(Role $role, Request $request)
+    public function update(UpdateRoleRequest $request, Role $role)
     {
-        $this->validate($request, [
-            'name' => 'required',
-            'permission' => 'required',
-        ]);
+        if ($role->name === 'super' && $request->validated('name') !== 'super') {
+            return redirect()
+                ->route('permissions.index')
+                ->with('error', 'Nama role super tidak boleh diubah.');
+        }
 
-        $role->update($request->only('name'));
+        $role->update(['name' => $request->validated('name')]);
 
-        $role->syncPermissions($request->get('permission'));
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        return redirect()->route('roles.index')
-                        ->with('success','Role updated successfully');
+        return redirect()
+            ->route('permissions.index')
+            ->with('success', 'Role berhasil diperbarui.');
     }
 
     public function destroy(Role $role)
     {
+        if ($role->name === 'super') {
+            return redirect()
+                ->route('permissions.index')
+                ->with('error', 'Role super tidak boleh dihapus.');
+        }
+
         $role->delete();
 
-        return redirect()->route('roles.index')
-                        ->with('success','Role deleted successfully');
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+
+        return redirect()
+            ->route('permissions.index')
+            ->with('success', 'Role berhasil dihapus.');
     }
 }

@@ -18,11 +18,13 @@
         </div>
         <div class="card-body">
             <div class="form-group">
-                <div class="form-group">
-                    <a class="btn btn-success text-white mb-3" href="{{ route('sistem.edit') }}">
-                        edit
-                    </a>
-                </div>
+                @can('sistem_edit')
+                    <div class="form-group">
+                        <a class="btn btn-success text-white mb-3" href="{{ route('sistem.edit') }}">
+                            edit
+                        </a>
+                    </div>
+                @endcan
                 <div class="table-responsive">
                     <table class="table table-bordered table-striped">
                         <tbody>

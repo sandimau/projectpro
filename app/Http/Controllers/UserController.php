@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Models\Member;
-use Illuminate\Http\Request;
-use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Models\Member;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
@@ -21,25 +20,23 @@ class UserController extends Controller
 
     public function create()
     {
-        return view('users.create');
+        return view('users.create', [
+            'roles' => Role::orderBy('name')->get(),
+        ]);
     }
 
-    public function store(User $user, Request $request)
+    public function store(StoreUserRequest $request)
     {
-        $request->validate([
-            'name' => 'required|unique:users,name',
-            'email' => 'required|email',
-            'password' => 'required|min:6|confirmed',
-            'password_confirmation' => 'required|min:6',
+        $user = User::create([
+            'name' => $request->validated('name'),
+            'email' => $request->validated('email'),
+            'password' => Hash::make($request->validated('password')),
         ]);
 
-        $user->create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password)
-        ]);
+        $user->syncRoles([(int) $request->validated('role')]);
 
-        return redirect()->route('users.index')
+        return redirect()
+            ->route('users.index')
             ->withSuccess(__('User created successfully.'));
     }
 
@@ -48,26 +45,26 @@ class UserController extends Controller
         return view('users.edit', [
             'user' => $user,
             'userRole' => $user->roles->pluck('name')->toArray(),
-            'roles' => Role::latest()->get(),
-            'members' => Member::get(),
+            'roles' => Role::orderBy('name')->get(),
+            'members' => Member::query()->orderBy('nama_lengkap')->get(),
         ]);
     }
 
-    public function update(User $user, Request $request)
+    public function update(UpdateUserRequest $request, User $user)
     {
-        $user->update($request->all());
+        $user->update($request->only('name', 'email'));
+        $user->syncRoles([(int) $request->validated('role')]);
 
-        $user->syncRoles($request->get('role'));
+        if ($request->filled('member_id')) {
+            Member::where('user_id', $user->id)->update(['user_id' => null]);
 
-        //update member
-        $member = Member::find($request->member_id);
-        if ($member) {
-            $member->update([
-                'user_id' => $user->id
+            Member::whereKey($request->validated('member_id'))->update([
+                'user_id' => $user->id,
             ]);
         }
 
-        return redirect()->route('users.index')
+        return redirect()
+            ->route('users.index')
             ->withSuccess(__('User updated successfully.'));
     }
 
@@ -75,7 +72,8 @@ class UserController extends Controller
     {
         $user->delete();
 
-        return redirect()->route('users.index')
+        return redirect()
+            ->route('users.index')
             ->withSuccess(__('User deleted successfully.'));
     }
 }

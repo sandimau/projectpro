@@ -77,11 +77,15 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
         Route::patch('/whattodo/{what}/update', 'HomeController@update')->name('whattodo.update');
         Route::delete('/whattodo/{what}/delete', 'HomeController@destroy')->name('whattodo.destroy');
 
-        Route::resource('roles', RolesController::class);
+        Route::middleware('role:super')->group(function () {
+            Route::get('permissions', 'PermissionsController@index')->name('permissions.index');
+            Route::post('permissions/matrix', 'PermissionsController@saveMatrix')->name('permissions.matrix.save');
+            Route::post('permissions/sync', 'PermissionsController@sync')->name('permissions.sync');
 
-        Route::resource('permissions', PermissionsController::class);
+            Route::resource('roles', RolesController::class)->except(['show', 'create', 'edit']);
+        });
 
-        Route::group(['prefix' => 'users'], function() {
+        Route::middleware('permission:user_access')->prefix('users')->group(function () {
             Route::get('/', 'UserController@index')->name('users.index');
             Route::get('/create', 'UserController@create')->name('users.create');
             Route::post('/create', 'UserController@store')->name('users.store');

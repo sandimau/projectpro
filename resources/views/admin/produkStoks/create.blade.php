@@ -11,7 +11,7 @@
                 <div>
                     <h5 class="card-title">Add Produk Stoks > {{ $produk->nama }}</h5>
                 </div>
-                @can('kontak_create')
+                @can('produk_stok_create')
                     <a href="{{ route('produkStok.index', $produk->id) }}" class="btn btn-secondary">back</a>
                 @endcan
             </div>

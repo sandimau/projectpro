@@ -52,7 +52,7 @@ class ProsesController extends Controller
 
     public function show(Proce $proce)
     {
-        abort_if(Gate::denies('proce_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Gate::denies('proce_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         return view('admin.proces.show', compact('proce'));
     }

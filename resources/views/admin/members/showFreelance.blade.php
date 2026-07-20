@@ -29,9 +29,11 @@
                                 <i class='bx bx-arrow-back'></i> back
                             </a>
                         @endif
-                        <a class="popup btn btn-warning" href="{{ route('freelance.edit', $member->id) }}">
-                            <i class='bx bxs-edit'></i> edit
-                        </a>
+                        @can('member_edit')
+                            <a class="popup btn btn-warning" href="{{ route('freelance.edit', $member->id) }}">
+                                <i class='bx bxs-edit'></i> edit
+                            </a>
+                        @endcan
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">

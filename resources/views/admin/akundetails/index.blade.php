@@ -12,9 +12,7 @@
                     <div>
                         <h5 class="card-title">Akun</h5>
                     </div>
-                    @can('akun_kategori_create')
-                        <a href="{{ route('akunDetails.create') }}" class="btn btn-primary ">Add akun</a>
-                    @endcan
+                    <x-crud-create permission="akun_detail_create" :url="route('akunDetails.create')" label="Add akun" />
                 </div>
             </div>
             <div class="card-body">
@@ -27,7 +25,9 @@
                                 <th scope="col">nama</th>
                                 <th scope="col">kategori</th>
                                 <th scope="col">saldo</th>
-                                <th scope="col">actions</th>
+                                @canany(['akun_detail_edit', 'akun_detail_delete'])
+                                    <th scope="col">actions</th>
+                                @endcanany
                             </tr>
                         </thead>
                         <tbody>
@@ -37,12 +37,15 @@
                                     <td><a href="{{ route('akundetail.bukubesar', $akun->id) }}">{{ $akun->nama }}</a></td>
                                     <td>{{ $akun->akun_kategori->nama }}</td>
                                     <td>{{ number_format($akun->saldo) }}</td>
-                                    <td>
-                                        <div class="d-flex">
-                                            <a href="{{ route('akunDetails.edit', $akun->id) }}" class="btn btn-info btn-sm me-1"><i
-                                                    class='bx bxs-edit'></i> Edit</a>
-                                        </div>
-                                    </td>
+                                    @canany(['akun_detail_edit', 'akun_detail_delete'])
+                                        <td>
+                                            <x-crud-actions
+                                                class="d-flex"
+                                                edit="akun_detail_edit"
+                                                :edit-url="route('akunDetails.edit', $akun->id)"
+                                            />
+                                        </td>
+                                    @endcanany
                                 </tr>
                             @endforeach
                         </tbody>

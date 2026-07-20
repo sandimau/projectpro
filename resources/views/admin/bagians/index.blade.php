@@ -12,9 +12,7 @@
                     <div>
                         <h5 class="card-title">Bagian</h5>
                     </div>
-                    @can('level_create')
-                        <a href="{{ route('bagian.create') }}" class="btn btn-primary ">Add bagian</a>
-                    @endcan
+                    <x-crud-create permission="bagian_create" :url="route('bagian.create')" label="Add bagian" />
                 </div>
             </div>
             <div class="card-body">
@@ -25,7 +23,9 @@
                             <tr>
                                 <th scope="col">nama</th>
                                 <th scope="col">grade</th>
-                                <th scope="col">action</th>
+                                @canany(['bagian_edit', 'bagian_delete'])
+                                    <th scope="col">action</th>
+                                @endcanany
                             </tr>
                         </thead>
                         <tbody>
@@ -33,12 +33,15 @@
                                 <tr>
                                     <td>{{ $bagian->nama }}</td>
                                     <td>{{ $bagian->grade }}</td>
-                                    <td>
-                                        <div class="d-flex">
-                                            <a href="{{ route('bagian.edit', $bagian->id) }}" class="btn btn-info btn-sm me-1"><i
-                                                    class='bx bxs-edit'></i> Edit</a>
-                                        </div>
-                                    </td>
+                                    @canany(['bagian_edit', 'bagian_delete'])
+                                        <td>
+                                            <x-crud-actions
+                                                class="d-flex"
+                                                edit="bagian_edit"
+                                                :edit-url="route('bagian.edit', $bagian->id)"
+                                            />
+                                        </td>
+                                    @endcanany
                                 </tr>
                             @endforeach
                         </tbody>

@@ -15,7 +15,7 @@
                             Buku Besar</h5>
                     </div>
                     <div style="text-align: right" class="col-lg-6">
-                        @can('akun_kategori_create')
+                        @can('akun_detail_create')
                             @if ($akunDetail->akun_kategori_id == 1)
                                 <a href="{{ route('akundetail.transferLain', $akunDetail->id) }}"
                                     class="btn btn-success text-white">pemasukan lain</a>
