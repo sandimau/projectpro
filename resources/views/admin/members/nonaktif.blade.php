@@ -10,51 +10,47 @@
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h5 class="card-title">Members Nonaktif</h5>
+                        <h5 class="card-title">Members</h5>
                     </div>
-                    <a href="{{ route('members.index') }}" class="btn btn-primary" data-modal-skip><i class='bx bx-arrow-back'></i> aktif</a>
                 </div>
             </div>
             <div class="card-body">
                 @include('layouts.includes.messages')
+
+                @include('admin.members.partials.jenis-tabs', ['jenis' => 'nonaktif'])
+
                 <div class="table-responsive">
                     <table class="table table-bordered table-striped table-hover">
                         <thead>
                             <tr>
-                                <th>
-                                    nama lengkap
-                                </th>
-                                <th>
-                                    tgl masuk
-                                </th>
-                                <th>
-                                    tgl keluar
-                                </th>
-                                <th>
-                                    tgl lahir
-                                </th>
-                                <th>
-                                    tempat lahir
-                                </th>
-                                <th>
-                                    alamat
-                                </th>
-                                <th>
-                                    hp
-                                </th>
-                                <th>
-                                    umur
-                                </th>
-                                <th>
-                                    lama kerja
-                                </th>
+                                <th>nama lengkap</th>
+                                <th>jenis</th>
+                                <th>tgl masuk</th>
+                                <th>tgl keluar</th>
+                                <th>tgl lahir</th>
+                                <th>tempat lahir</th>
+                                <th>alamat</th>
+                                <th>hp</th>
+                                <th>umur</th>
+                                <th>lama kerja</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($members as $member)
                                 <tr data-entry-id="{{ $member->id }}">
                                     <td>
-                                        <a class="popup" href="{{ route('members.show', $member->id) }}">{{ $member->nama_lengkap ?? '' }}</a>
+                                        @if (($member->jenis ?? 'karyawan') === 'freelance')
+                                            <a class="popup" href="{{ route('members.showFreelance', $member->id) }}">{{ $member->nama_lengkap ?? '' }}</a>
+                                        @else
+                                            <a class="popup" href="{{ route('members.show', $member->id) }}">{{ $member->nama_lengkap ?? '' }}</a>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if (($member->jenis ?? 'karyawan') === 'freelance')
+                                            <span class="badge bg-info">Freelance</span>
+                                        @else
+                                            <span class="badge bg-secondary">Karyawan</span>
+                                        @endif
                                     </td>
                                     <td>{{ $member->tgl_masuk }}</td>
                                     <td>{{ $member->tgl_keluar }}</td>

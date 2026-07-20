@@ -28,7 +28,14 @@
     $activeAnalisaStok = request()->is('admin/analisa/stok*');
 
     $openProduksiOrder = $activeOrderProses || $activeOrderArsip || $activeOrderOnline;
-    $openData = $navOpen('admin/kontaks*');
+    $openData = $navOpen(
+        'admin/kontaks*',
+        'admin/members*',
+        'admin/freelance*',
+        'admin/nonaktif*',
+        'admin/absensi*',
+        'admin/ars*',
+    );
     $openKeuangan =
         $navOpen('admin/akunKategoris*', 'admin/akunDetails*', 'admin/belanja*', 'admin/hutang*', 'admin/kas') ||
         $activeBelumLunas;
@@ -37,7 +44,6 @@
         $activeMarketplaceAnalisa;
     $openInventory = $navOpen('admin/produk-kategori-utama*', 'admin/pemakaian*', 'admin/opnames*', 'admin/po*');
     $openProduksiFactory = $navOpen('admin/produksi*', 'admin/produkProduksi*') && !$navOpen('admin/produksis*');
-    $openPegawai = $navOpen('admin/members*', 'admin/freelance*', 'admin/absensi*', 'admin/ars*');
     $openAnalisa = $activeAnalisaBeban || $activeAnalisaOperasional || $activeAnalisaStok;
     $openLaporan = $navOpen(
         'admin/neraca*',
@@ -72,7 +78,6 @@
     $showMarketplace = $user->hasAnyPermission($navReads['marketplace']);
     $showInventory = $user->hasAnyPermission($navReads['inventory']);
     $showProduksiFactory = $user->hasAnyPermission($navReads['produksi']);
-    $showPegawai = $user->hasAnyPermission($navReads['pegawai']);
     $showAnalisa = $user->hasAnyPermission($navReads['analisa']);
     $showLaporan = $user->hasAnyPermission($navReads['laporan']);
     $showOmzet = $user->hasAnyPermission($navReads['omzet']);
@@ -228,12 +233,45 @@
             <ul class="nav-group-items">
                 @can('kontak_access')
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->is('kontaks*') ? 'active' : '' }}"
+                        <a class="nav-link {{ request()->is('kontaks*') || request()->is('admin/kontaks*') ? 'active' : '' }}"
                             href="{{ route('kontaks.index') }}">
                             <svg class="nav-icon">
                                 <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
                             </svg>
                             {{ __('Kontak') }}
+                        </a>
+                    </li>
+                @endcan
+                @canany(['member_access', 'freelance_access'])
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('admin/members*') || request()->is('admin/freelance*') || request()->is('admin/nonaktif*') ? 'active' : '' }}"
+                            href="{{ auth()->user()->can('member_access') ? route('members.index') : route('members.freelance') }}">
+                            <svg class="nav-icon">
+                                <use xlink:href="{{ asset('icons/coreui.svg#cil-people') }}"></use>
+                            </svg>
+                            Members
+                        </a>
+                    </li>
+                @endcanany
+                @can('absensi_access')
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('admin/absensi*') || request()->is('absensi*') ? 'active' : '' }}"
+                            href="{{ route('absensi.index') }}">
+                            <svg class="nav-icon">
+                                <use xlink:href="{{ asset('icons/coreui.svg#cil-calendar') }}"></use>
+                            </svg>
+                            Absensi
+                        </a>
+                    </li>
+                @endcan
+                @can('ar_access')
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('admin/ars*') || request()->is('ars*') ? 'active' : '' }}"
+                            href="{{ route('ars.index') }}">
+                            <svg class="nav-icon">
+                                <use xlink:href="{{ asset('icons/coreui.svg#cil-headphones') }}"></use>
+                            </svg>
+                            {{ __('cs') }}
                         </a>
                     </li>
                 @endcan
@@ -395,64 +433,6 @@
                                 <use xlink:href="{{ asset('icons/coreui.svg#cil-factory') }}"></use>
                             </svg>
                             Produk
-                        </a>
-                    </li>
-                @endcan
-            </ul>
-        </li>
-    @endif
-
-    @if ($showPegawai)
-        <li class="nav-group{{ $openPegawai ? ' show' : '' }}"
-            aria-expanded="{{ $openPegawai ? 'true' : 'false' }}">
-            <a class="nav-link nav-group-toggle" href="#">
-                <svg class="nav-icon">
-                    <use xlink:href="{{ asset('icons/coreui.svg#cil-people') }}"></use>
-                </svg>
-                Pegawai
-            </a>
-            <ul class="nav-group-items">
-                @can('member_access')
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('members*') ? 'active' : '' }}"
-                            href="{{ route('members.index') }}">
-                            <svg class="nav-icon">
-                                <use xlink:href="{{ asset('icons/coreui.svg#cil-user') }}"></use>
-                            </svg>
-                            Karyawan
-                        </a>
-                    </li>
-                @endcan
-                @can('freelance_access')
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('members*') ? 'active' : '' }}"
-                            href="{{ route('members.freelance') }}">
-                            <svg class="nav-icon">
-                                <use xlink:href="{{ asset('icons/coreui.svg#cil-user-follow') }}"></use>
-                            </svg>
-                            Freelance
-                        </a>
-                    </li>
-                @endcan
-                @can('absensi_access')
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('absensi*') ? 'active' : '' }}"
-                            href="{{ route('absensi.index') }}">
-                            <svg class="nav-icon">
-                                <use xlink:href="{{ asset('icons/coreui.svg#cil-calendar') }}"></use>
-                            </svg>
-                            Absensi
-                        </a>
-                    </li>
-                @endcan
-                @can('ar_access')
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('ars*') ? 'active' : '' }}"
-                            href="{{ route('ars.index') }}">
-                            <svg class="nav-icon">
-                                <use xlink:href="{{ asset('icons/coreui.svg#cil-headphones') }}"></use>
-                            </svg>
-                            {{ __('cs') }}
                         </a>
                     </li>
                 @endcan

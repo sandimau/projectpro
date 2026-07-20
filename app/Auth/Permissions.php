@@ -635,6 +635,10 @@ class Permissions
             ],
             'data' => [
                 'kontak_access',
+                'member_access',
+                'freelance_access',
+                'absensi_access',
+                'ar_access',
             ],
             'keuangan' => [
                 'akun_access',
@@ -652,12 +656,6 @@ class Permissions
             'produksi' => [
                 'produksi_proses_access',
                 'produksi_produk_access',
-            ],
-            'pegawai' => [
-                'member_access',
-                'freelance_access',
-                'absensi_access',
-                'ar_access',
             ],
             'analisa' => [
                 'analisa_beban_access',

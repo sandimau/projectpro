@@ -26,11 +26,13 @@ class MemberController extends Controller
 
     public function index(Request $request)
     {
-        $tab = $request->get('tab', 'aktif') === 'nonaktif' ? 'nonaktif' : 'aktif';
+        if ($request->get('tab') === 'nonaktif') {
+            return redirect()->route('members.nonaktif');
+        }
 
         $members = Member::with(['user'])
-            ->when($tab === 'nonaktif', fn ($q) => $q->nonaktif()->orderBy('id', 'desc'))
-            ->when($tab === 'aktif', fn ($q) => $q->aktif()->orderBy('id', 'asc'))
+            ->aktif()
+            ->orderBy('id', 'asc')
             ->get();
 
         $absenWfhHariIni = Absensi::whereDate('tanggal', Carbon::today())
@@ -39,12 +41,32 @@ class MemberController extends Controller
             ->flip()
             ->all();
 
-        return view('admin.members.index', compact('members', 'tab', 'absenWfhHariIni'));
+        return view('admin.members.index', compact('members', 'absenWfhHariIni'));
     }
 
     public function nonaktif()
     {
-        return redirect()->route('members.index', ['tab' => 'nonaktif']);
+        $user = auth()->user();
+        $jenis = [];
+
+        if ($user->can('member_access')) {
+            $jenis[] = 'karyawan';
+        }
+        if ($user->can('freelance_access')) {
+            $jenis[] = 'freelance';
+        }
+
+        if ($jenis === []) {
+            abort(403);
+        }
+
+        $members = Member::with(['user'])
+            ->where('status', 0)
+            ->whereIn('jenis', $jenis)
+            ->orderBy('id', 'desc')
+            ->get();
+
+        return view('admin.members.nonaktif', compact('members'));
     }
 
     public function create()
@@ -262,20 +284,19 @@ class MemberController extends Controller
 
     public function freelance(Request $request)
     {
-        $tab = $request->get('tab', 'aktif') === 'nonaktif' ? 'nonaktif' : 'aktif';
+        if ($request->get('tab') === 'nonaktif') {
+            return redirect()->route('members.nonaktif');
+        }
 
         $members = Member::with(['user'])
-            ->when($tab === 'nonaktif', fn ($q) => $q->nonaktif('freelance')->orderBy('id', 'desc'))
-            ->when($tab === 'aktif', function ($q) {
-                $q->freelance()
-                    ->withSum(['freelanceTagihans as total_upah_belum_dibayar' => function ($q) {
-                        $q->where('dibayar', 'belum');
-                    }], 'nominal_upah')
-                    ->orderBy('id', 'asc');
-            })
+            ->freelance()
+            ->withSum(['freelanceTagihans as total_upah_belum_dibayar' => function ($q) {
+                $q->where('dibayar', 'belum');
+            }], 'nominal_upah')
+            ->orderBy('id', 'asc')
             ->get();
 
-        return view('admin.members.freelance', compact('members', 'tab'));
+        return view('admin.members.freelance', compact('members'));
     }
 
     public function freelanceTagihan(Member $member)
