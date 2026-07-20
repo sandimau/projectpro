@@ -1,0 +1,51 @@
+// Modern theme overrides
+$primary-base:  #6366f1 !default;
+$primary-dark:  #4f46e5 !default;
+$primary:       $primary-base !default;
+
+$success-base:  #10b981 !default;
+$success:       $success-base !default;
+
+$danger-base:   #ef4444 !default;
+$danger:        $danger-base !default;
+
+$warning-base:  #f59e0b !default;
+$warning:       $warning-base !default;
+
+$info-base:     #0ea5e9 !default;
+$info:          $info-base !default;
+
+$gray-base:     #1e293b !default;
+$body-bg:       #0f172a !default;
+
+$border-radius:    .625rem !default;
+$border-radius-sm: .5rem !default;
+$border-radius-lg: .875rem !default;
+
+$enable-shadows: true !default;
+
+$font-family-sans-serif: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !default;
+
+$card-border-radius: .875rem !default;
+$card-border-width:  0 !default;
+$card-box-shadow:    0 1px 3px rgba(15, 23, 42, .06), 0 1px 2px rgba(15, 23, 42, .04) !default;
+
+$input-border-radius: .5rem !default;
+$btn-border-radius:   .5rem !default;
+
+$sidebar-bg:    #0f172a !default;
+$sidebar-color: #64748b !default;
+
+$sidebar-nav-link-color:                   #64748b !default;
+$sidebar-nav-link-icon-color:              #64748b !default;
+$sidebar-nav-link-hover-color:             #334155 !default;
+$sidebar-nav-link-hover-icon-color:        #334155 !default;
+$sidebar-nav-link-active-color:            #4f46e5 !default;
+$sidebar-nav-link-active-icon-color:       #6366f1 !default;
+$sidebar-nav-group-indicator-color:        #64748b !default;
+$sidebar-nav-group-indicator-hover-color:  #334155 !default;
+$sidebar-nav-group-toggle-show-color:      #334155 !default;
+$sidebar-toggler-indicator-color:          #94a3b8 !default;
+$sidebar-toggler-indicator-hover-color:    #334155 !default;
+
+$header-bg:     rgba(30, 41, 59, .92) !default;

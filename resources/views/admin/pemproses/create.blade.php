@@ -1,0 +1,44 @@
+@extends('layouts.app')
+
+@section('title')
+    Create Pemproses
+@endsection
+
+@section('content')
+    <div class="card">
+        <div class="card-header">
+            <h5>Tambah Pemproses</h5>
+        </div>
+
+        <div class="card-body">
+            <form method="POST" action="{{ route('pemproses.store') }}" enctype="multipart/form-data">
+                @csrf
+                <div class="form-group">
+                    <label for="nama">Nama</label>
+                    <input class="form-control {{ $errors->has('nama') ? 'is-invalid' : '' }}" type="text"
+                        name="nama" id="nama" maxlength="50" value="{{ old('nama', '') }}">
+                    @if ($errors->has('nama'))
+                        <div class="invalid-feedback">
+                            {{ $errors->first('nama') }}
+                        </div>
+                    @endif
+                </div>
+                <div class="form-group">
+                    <label for="warna">Warna</label>
+                    <input class="form-control {{ $errors->has('warna') ? 'is-invalid' : '' }}" type="color"
+                        name="warna" id="warna" value="{{ old('warna', '#000000') }}">
+                    @if ($errors->has('warna'))
+                        <div class="invalid-feedback">
+                            {{ $errors->first('warna') }}
+                        </div>
+                    @endif
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-primary mt-4" type="submit">
+                        Simpan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+@endsection
