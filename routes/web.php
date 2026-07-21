@@ -64,6 +64,7 @@ Auth::routes();
 Route::group(['namespace' => 'App\Http\Controllers'], function()
 {
     Route::middleware('auth')->group(function () {
+        Route::middleware('company.user')->group(function () {
 
         Route::get('/whattodo', 'HomeController@index')->name('whattodo');
         Route::get('/profile', 'ProfileController@show')->name('profile.show');
@@ -251,6 +252,13 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::post('/sistem', 'SistemController@store')->name('sistem.store');
             Route::get('/sistem/edit', 'SistemController@edit')->name('sistem.edit');
             Route::post('/sistem/update', 'SistemController@update')->name('sistem.update');
+
+            // companies (multi-tenant)
+            Route::get('/companies', 'CompanyController@index')->name('companies.index');
+            Route::get('/companies/create', 'CompanyController@create')->name('companies.create');
+            Route::post('/companies', 'CompanyController@store')->name('companies.store');
+            Route::get('/companies/{company}/edit', 'CompanyController@edit')->name('companies.edit');
+            Route::patch('/companies/{company}/update', 'CompanyController@update')->name('companies.update');
 
             // belanja
             Route::get('/belanja', 'BelanjaController@index')->name('belanja.index');
@@ -442,6 +450,7 @@ Route::group(['namespace' => 'App\Http\Controllers'], function()
             Route::get('/linkPages/{linkPage}/items/{item}/edit', 'LinkPageController@editItem')->name('linkPages.items.edit');
             Route::put('/linkPages/{linkPage}/items/{item}', 'LinkPageController@updateItem')->name('linkPages.items.update');
             Route::delete('/linkPages/{linkPage}/items/{item}', 'LinkPageController@destroyItem')->name('linkPages.items.destroy');
+        });
         });
     });
 });

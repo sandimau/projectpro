@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToCompany;
+
 use Illuminate\Database\Eloquent\Model;
 
 class LinkItem extends Model
 {
+    use BelongsToCompany;
+
     protected $table = 'link_items';
 
     protected $fillable = [

@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToCompany;
+
 use Illuminate\Database\Eloquent\Model;
 
 class ShopeeStockSync extends Model
 {
+    use BelongsToCompany;
+
     protected $table = 'shopee_stock_syncs';
 
     protected $guarded = [];

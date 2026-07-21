@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToCompany;
+
 use App\Services\StokService;
 use Illuminate\Database\Eloquent\Model;
 
 class Produk extends Model
 {
+    use BelongsToCompany;
+
 
     public $table = 'produks';
 

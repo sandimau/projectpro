@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToCompany;
+
 use Carbon\Carbon;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Tunjangan extends Model
 {
-    use HasFactory;
+    use BelongsToCompany, HasFactory;
 
     public $table = 'tunjangans';
     protected $guarded = [];

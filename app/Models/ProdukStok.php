@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToCompany;
+
 use App\Services\ShopeeStockSyncService;
 use App\Services\StokService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 
 class ProdukStok extends Model
 {
-    use SoftDeletes, HasFactory;
+    use BelongsToCompany, SoftDeletes, HasFactory;
 
     public $table = 'produk_stoks';
 

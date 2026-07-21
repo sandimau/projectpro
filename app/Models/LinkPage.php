@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToCompany;
+
 use Illuminate\Database\Eloquent\Model;
 
 class LinkPage extends Model
 {
+    use BelongsToCompany;
+
     protected $table = 'link_pages';
 
     protected $fillable = [

@@ -8,22 +8,25 @@ use Illuminate\Support\Facades\DB;
 class MarketplaceFormatSeeder extends Seeder
 {
     /**
-     * Seed struktur format marketplace (cara membaca file order/keuangan/stok).
-     * Struktur ini SAMA untuk semua perusahaan.
-     *
-     * Kredensial Open Platform Shopee (partnerId, partnerKey, host) TIDAK di-seed
-     * dengan nilai asli — diisi manual per perusahaan setelah seeding, mis:
-     *
-     *   UPDATE marketplace_formats
-     *   SET partnerId = 1234567,
-     *       partnerKey = 'xxxx',
-     *       host = 'https://partner.shopeemobile.com/'
-     *   WHERE marketplace = 'shopee' AND jenis = 'order';
-     *
-     * Seeder bersifat idempoten: baris yang sudah ada (mis. kredensial sudah
-     * diisi) TIDAK ditimpa, hanya baris yang belum ada yang ditambahkan.
+     * Seed struktur format marketplace per company.
+     * Kredensial Open Platform diisi manual setelah seeding.
      */
     public function run(): void
+    {
+        $companyId = current_company_id()
+            ?? \App\Models\Company::query()->where('slug', config('tenancy.default_company_slug', 'default'))->value('id')
+            ?? \App\Models\Company::query()->orderBy('id')->value('id');
+
+        if (! $companyId) {
+            $this->command?->warn('MarketplaceFormatSeeder dilewati: belum ada company.');
+
+            return;
+        }
+
+        $this->seedForCompany((int) $companyId);
+    }
+
+    public function seedForCompany(int $companyId): void
     {
         $rows = [
             ['marketplace' => 'shopee', 'jenis' => 'order', 'kolom1' => 'No. Pesanan', 'kolom2' => 'Status Pesanan', 'kolom3' => 'Alasan Pembatalan', 'nota' => 1, 'status' => 2, 'tanggal' => 10, 'nama' => 43, 'sku' => 13, 'sku_anak' => 15, 'jumlah' => 19, 'harga' => 18, 'tema' => 16, 'saldo' => 39, 'barisHeader' => null, 'formatTanggal' => 'Y-m-d H:i', 'produk' => 14, 'batal' => 'Batal', 'ongkir' => 40, 'deathline' => 8],
@@ -38,19 +41,20 @@ class MarketplaceFormatSeeder extends Seeder
 
         foreach ($rows as $row) {
             $exists = DB::table('marketplace_formats')
+                ->where('company_id', $companyId)
                 ->where('marketplace', $row['marketplace'])
                 ->where('jenis', $row['jenis'])
                 ->exists();
 
             if ($exists) {
-                continue; // jangan timpa baris yang sudah ada (kredensial bisa hilang)
+                continue;
             }
 
             DB::table('marketplace_formats')->insert(array_merge($row, [
-                // kredensial default kosong — diisi manual per perusahaan
-                'partnerId'  => 0,
+                'company_id' => $companyId,
+                'partnerId' => 0,
                 'partnerKey' => '',
-                'host'       => $row['marketplace'] === 'shopee' ? 'https://partner.shopeemobile.com/' : '',
+                'host' => $row['marketplace'] === 'shopee' ? 'https://partner.shopeemobile.com/' : '',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]));

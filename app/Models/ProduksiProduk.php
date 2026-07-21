@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToCompany;
+
 use DateTimeInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 
 class ProduksiProduk extends Model
 {
+    use BelongsToCompany;
+
     public $table = 'produksi_produks';
 
     protected $dates = [

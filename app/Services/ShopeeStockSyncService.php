@@ -17,7 +17,7 @@ class ShopeeStockSyncService
 
     public function markDirty(int $produk_id): void
     {
-        if (!DB::table('produks')->where('id', $produk_id)->exists()) {
+        if (!company_where(DB::table('produks'))->where('id', $produk_id)->exists()) {
             return;
         }
 
@@ -35,7 +35,7 @@ class ShopeeStockSyncService
     {
         $paket = max($paket, 1);
 
-        $produk = DB::table('produks')
+        $produk = company_where(DB::table('produks'), 'produks.company_id')
             ->join('produk_models', 'produks.produk_model_id', '=', 'produk_models.id')
             ->where('produks.id', $produk_id)
             ->select('produk_models.stok', 'produk_models.stok_min_mp')
@@ -127,7 +127,7 @@ class ShopeeStockSyncService
             return ['success' => true, 'synced' => 0, 'failed' => 0, 'errors' => []];
         }
 
-        $listings = DB::table('produk_marketplaces as pm')
+        $listings = company_where(DB::table('produk_marketplaces as pm'), 'pm.company_id')
             ->where('pm.marketplace_id', $marketplaceId)
             ->whereIn('pm.produk_id', $produkIds)
             ->select('pm.*')
@@ -270,7 +270,7 @@ class ShopeeStockSyncService
      */
     public function groupProdukIdsByMarketplace(array $produkIds, ?int $marketplaceId = null): Collection
     {
-        $query = DB::table('produk_marketplaces as pm')
+        $query = company_where(DB::table('produk_marketplaces as pm'), 'pm.company_id')
             ->join('marketplaces as m', 'm.id', '=', 'pm.marketplace_id')
             ->whereIn('pm.produk_id', $produkIds)
             ->where('m.marketplace', 'shopee')
@@ -294,7 +294,7 @@ class ShopeeStockSyncService
      */
     public function getActiveMarketplaceIdsForProduk(int $produk_id): array
     {
-        return DB::table('produk_marketplaces as pm')
+        return company_where(DB::table('produk_marketplaces as pm'), 'pm.company_id')
             ->join('marketplaces as m', 'm.id', '=', 'pm.marketplace_id')
             ->where('pm.produk_id', $produk_id)
             ->where('m.marketplace', 'shopee')

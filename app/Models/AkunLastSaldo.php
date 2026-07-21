@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToCompany;
+
 use App\Services\BukuBesarService;
 use Illuminate\Database\Eloquent\Model;
 
 class AkunLastSaldo extends Model
 {
+    use BelongsToCompany;
+
     public $table = 'akun_last_saldos';
 
     protected $guarded = [];

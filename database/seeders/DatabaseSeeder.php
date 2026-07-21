@@ -14,7 +14,11 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(PermissionSeeder::class);
         $this->call(RolePermissionSeeder::class);
-        $this->call(AdminSeeder::class);
-        $this->call(MarketplaceFormatSeeder::class);
+
+        // Admin & marketplace format butuh company (dibuat migrasi / company:create)
+        if (\App\Models\Company::query()->exists()) {
+            $this->call(AdminSeeder::class);
+            $this->call(MarketplaceFormatSeeder::class);
+        }
     }
 }

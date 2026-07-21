@@ -11,6 +11,7 @@ class LoadSistemConfig
 {
     public function handle(Request $request, Closure $next): Response
     {
+        // Otomatis scoped by BelongsToCompany jika current company sudah di-set
         foreach (Sistem::pluck('isi', 'nama') as $nama => $isi) {
             session([$nama => $isi]);
         }

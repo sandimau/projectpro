@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToCompany;
+
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class AkunKategori extends Model
 {
-    use SoftDeletes, HasFactory;
+    use BelongsToCompany, SoftDeletes, HasFactory;
 
     public $table = 'akun_kategoris';
 

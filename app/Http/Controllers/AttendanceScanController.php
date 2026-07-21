@@ -123,7 +123,7 @@ class AttendanceScanController extends Controller
             ], 403);
         }
 
-        $secretCode = config('company.qr_code_secret');
+        $secretCode = company_setting('qr_code_secret');
         if ($request->qr_code_result !== $secretCode) {
             return response()->json(['success' => false, 'message' => 'QR Code tidak valid!']);
         }
@@ -131,11 +131,11 @@ class AttendanceScanController extends Controller
         $distance = $this->calculateDistance(
             $request->latitude,
             $request->longitude,
-            config('company.office_latitude'),
-            config('company.office_longitude')
+            company_setting('office_latitude'),
+            company_setting('office_longitude')
         );
 
-        if ($distance > config('company.max_distance_radius')) {
+        if ($distance > company_setting('max_distance_radius')) {
             return response()->json([
                 'success' => false,
                 'message' => 'Anda berada di luar radius kantor yang diizinkan. Jarak Anda: '.round($distance).' meter.',
@@ -145,8 +145,8 @@ class AttendanceScanController extends Controller
         $today = now()->toDateString();
         $currentTime = now();
 
-        $scheduledClockIn = Carbon::createFromTimeString(config('company.clock_in_time', '08:00:00'));
-        $scheduledClockOut = Carbon::createFromTimeString(config('company.clock_out_time', '17:00:00'));
+        $scheduledClockIn = Carbon::createFromTimeString(company_setting('clock_in_time', '08:00:00'));
+        $scheduledClockOut = Carbon::createFromTimeString(company_setting('clock_out_time', '17:00:00'));
 
         $clockIn = Attendance::where('user_id', $user->id)
             ->where('attendance_date', $today)
@@ -163,7 +163,7 @@ class AttendanceScanController extends Controller
                 return response()->json(['success' => false, 'message' => 'Sesi absensi untuk hari ini telah ditutup.']);
             }
 
-            $lateThreshold = $scheduledClockIn->copy()->addMinutes(config('company.late_tolerance_minutes', 15));
+            $lateThreshold = $scheduledClockIn->copy()->addMinutes(company_setting('late_tolerance_minutes', 15));
             $minutesLate = $currentTime->isAfter($lateThreshold)
                 ? $currentTime->diffInMinutes($scheduledClockIn)
                 : 0;
@@ -248,8 +248,8 @@ class AttendanceScanController extends Controller
 
     private function sendWhatsAppNotification(string $message): void
     {
-        $token = config('company.fonnte_token');
-        $target = config('company.whatsapp_group_target');
+        $token = company_setting('fonnte_token');
+        $target = company_setting('whatsapp_group_target');
 
         if (! $token || ! $target) {
             Log::warning('Fonnte token atau target grup WhatsApp tidak diatur.');

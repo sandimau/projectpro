@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToCompany;
+
 use App\Services\BukuBesarService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 
 class BukuBesar extends Model
 {
-    use HasFactory;
+    use BelongsToCompany, HasFactory;
 
     public $table = 'buku_besars';
 

@@ -66,6 +66,7 @@
         'admin/speks*',
         'admin/pemproses*',
         'admin/sistem*',
+        'admin/companies*',
         'admin/linkPages*',
     );
 
@@ -665,7 +666,7 @@
                 <svg class="nav-icon">
                     <use xlink:href="{{ asset('icons/coreui.svg#cil-people') }}"></use>
                 </svg>
-                User Management
+                Setting
             </a>
             <ul class="nav-group-items">
                 @can('user_access')
@@ -761,12 +762,23 @@
                 @endcan
                 @can('sistem_access')
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->is('sistems*') ? 'active' : '' }}"
+                        <a class="nav-link {{ request()->is('sistems*') || request()->is('admin/sistem*') ? 'active' : '' }}"
                             href="{{ route('sistem.index') }}">
                             <svg class="nav-icon">
                                 <use xlink:href="{{ asset('icons/coreui.svg#cil-settings') }}"></use>
                             </svg>
                             {{ __('Sistem') }}
+                        </a>
+                    </li>
+                @endcan
+                @can('company_access')
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('admin/companies*') ? 'active' : '' }}"
+                            href="{{ route('companies.index') }}">
+                            <svg class="nav-icon">
+                                <use xlink:href="{{ asset('icons/coreui.svg#cil-building') }}"></use>
+                            </svg>
+                            {{ __('Company') }}
                         </a>
                     </li>
                 @endcan

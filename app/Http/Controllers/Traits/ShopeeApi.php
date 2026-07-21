@@ -181,7 +181,7 @@ trait ShopeeApi
     {
         try {
             $marketplaceId = is_object($marketplace) ? $marketplace->id : (int) $marketplace;
-            $record = DB::table('marketplaces')->find($marketplaceId);
+            $record = company_where(DB::table('marketplaces'))->where('id', $marketplaceId)->first();
 
             if (!$record) {
                 return false;
@@ -220,7 +220,7 @@ trait ShopeeApi
         }
 
         try {
-            $marketplace = DB::table('marketplaces')->find($marketplaceId);
+            $marketplace = company_where(DB::table('marketplaces'))->where('id', $marketplaceId)->first();
 
             if (!$marketplace || !$marketplace->refresh_token || !$marketplace->shop_id) {
                 return null;
@@ -241,7 +241,7 @@ trait ShopeeApi
             $ret = $this->curlPost($path, $body);
 
             if ($ret && !empty($ret['access_token'])) {
-                DB::table('marketplaces')->where('id', $marketplaceId)->update([
+                company_where(DB::table('marketplaces'))->where('id', $marketplaceId)->update([
                     'access_token' => $ret['access_token'],
                     'refresh_token' => $ret['refresh_token'],
                     'access_expired' => ($ret['expire_in'] + time()),

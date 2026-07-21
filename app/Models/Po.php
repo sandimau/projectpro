@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToCompany;
+
 use Illuminate\Database\Eloquent\Model;
 
 class Po extends Model
 {
+    use BelongsToCompany;
+
     protected $guarded = [];
     protected $table = "produk_po";
 

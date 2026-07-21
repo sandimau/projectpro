@@ -33,19 +33,20 @@ class BukuBesarService
 
     public function updateLastSaldo($akun_detail_id): void
     {
-        if (!$akun_detail_id || !DB::table('akun_details')->where('id', $akun_detail_id)->exists()) {
+        if (!$akun_detail_id || !company_where(DB::table('akun_details'))->where('id', $akun_detail_id)->exists()) {
             return;
         }
 
         $tahun = (int) date('Y');
+        $companyId = current_company_id();
 
-        $saldoTahunLalu = (float) (DB::table('akun_last_saldos')
+        $saldoTahunLalu = (float) (company_where(DB::table('akun_last_saldos'))
             ->where('akun_detail_id', $akun_detail_id)
             ->where('tahun', '<', $tahun)
             ->orderBy('tahun', 'desc')
             ->value('saldo') ?? 0);
 
-        $mutasiTahunIni = (float) (DB::table('buku_besars')
+        $mutasiTahunIni = (float) (company_where(DB::table('buku_besars'))
             ->where('akun_detail_id', $akun_detail_id)
             ->whereYear('created_at', $tahun)
             ->selectRaw('COALESCE(SUM(COALESCE(debet, 0) - COALESCE(kredit, 0)), 0) as saldo')
@@ -58,25 +59,26 @@ class BukuBesarService
             'updated_at' => now(),
         ];
 
-        $exists = DB::table('akun_last_saldos')
+        $exists = company_where(DB::table('akun_last_saldos'))
             ->where('akun_detail_id', $akun_detail_id)
             ->where('tahun', $tahun)
             ->exists();
 
         if ($exists) {
-            DB::table('akun_last_saldos')
+            company_where(DB::table('akun_last_saldos'))
                 ->where('akun_detail_id', $akun_detail_id)
                 ->where('tahun', $tahun)
                 ->update($payload);
         } else {
-            DB::table('akun_last_saldos')->insert(array_merge($payload, [
+            DB::table('akun_last_saldos')->insert(array_merge($payload, array_filter([
                 'akun_detail_id' => $akun_detail_id,
                 'tahun' => $tahun,
+                'company_id' => $companyId,
                 'created_at' => now(),
-            ]));
+            ])));
         }
 
-        DB::table('akun_details')
+        company_where(DB::table('akun_details'))
             ->where('id', $akun_detail_id)
             ->update(['saldo' => $saldo]);
     }
@@ -85,13 +87,13 @@ class BukuBesarService
     {
         $tahun = (int) date('Y');
 
-        $saldoTahunLalu = (float) (DB::table('akun_last_saldos')
+        $saldoTahunLalu = (float) (company_where(DB::table('akun_last_saldos'))
             ->where('akun_detail_id', $akun_detail_id)
             ->where('tahun', '<', $tahun)
             ->orderBy('tahun', 'desc')
             ->value('saldo') ?? 0);
 
-        $mutasiTahunIni = (float) (DB::table('buku_besars')
+        $mutasiTahunIni = (float) (company_where(DB::table('buku_besars'))
             ->where('akun_detail_id', $akun_detail_id)
             ->whereYear('created_at', $tahun)
             ->selectRaw('COALESCE(SUM(COALESCE(debet, 0) - COALESCE(kredit, 0)), 0) as saldo')

@@ -30,7 +30,7 @@ class AnalisaController extends Controller
                 ->sum('jumlah') ?? 0;
 
             // Beban Operasional (Belanja non-stok)
-            $operasional = DB::table('produks')
+            $operasional = company_where(DB::table('produks'))
                 ->selectRaw('sum(belanja_details.harga*jumlah) as total')
                 ->join('produk_models', 'produk_model_id', '=', 'produk_models.id')
                 ->join('belanja_details', 'produk_id', '=', 'produks.id')
@@ -86,7 +86,7 @@ class AnalisaController extends Controller
         $tahun = $request->input('tahun', date('Y'));
 
         // Ambil semua kategori yang ada terlebih dahulu
-        $allKategori = DB::table('produks')
+        $allKategori = company_where(DB::table('produks'))
             ->select('produk_kategoris.nama as kategori', 'kategori_id')
             ->join('produk_models', 'produk_model_id', '=', 'produk_models.id')
             ->join('belanja_details', 'produk_id', '=', 'produks.id')
@@ -101,7 +101,7 @@ class AnalisaController extends Controller
             ->get();
 
         // Ambil data per bulan dan kategori
-        $ambil = DB::table('produks')
+        $ambil = company_where(DB::table('produks'))
             ->selectRaw('MONTH(belanjas.created_at) as bulan_num,
             sum(belanja_details.harga*jumlah) as total,
             produk_kategoris.nama as kategori,kategori_id')
@@ -187,7 +187,7 @@ class AnalisaController extends Controller
             $waktu_po = $sistems->isi ?? 30; // Bisa disesuaikan dengan config
 
             // Ambil data produk dengan stok = 1 dan jual = 1
-            $query = DB::table('produks')
+            $query = company_where(DB::table('produks'))
                 ->selectRaw('
                     COALESCE(produk_kategoris.nama, \'Tanpa Kategori\') as kategori,
                     COALESCE(produk_kategoris.id, 0) as kategori_id,
@@ -215,7 +215,7 @@ class AnalisaController extends Controller
 
         foreach ($produks as $produk) {
             // Hitung totalPakai dari produk_stoks (kurang) dalam periode
-            $totalPakai = DB::table('produk_stoks')
+            $totalPakai = company_where(DB::table('produk_stoks'))
                 ->where('produk_id', $produk->produk_id)
                 ->where('created_at', '>=', $awalBulan)
                 ->where('created_at', '<=', $hariIni)
@@ -223,7 +223,7 @@ class AnalisaController extends Controller
                 ->sum('kurang') ?? 0;
 
             // Hitung omzet dari order_details dalam periode yang sama
-            $omzet = DB::table('order_details')
+            $omzet = company_where(DB::table('order_details'))
                 ->join('orders', 'order_details.order_id', '=', 'orders.id')
                 ->where('order_details.produk_id', $produk->produk_id)
                 ->where('orders.created_at', '>=', $awalBulan)
@@ -297,7 +297,7 @@ class AnalisaController extends Controller
     public function getKategoriStok()
     {
         try {
-            $kategori = DB::table('produk_kategoris')
+            $kategori = company_where(DB::table('produk_kategoris'))
                 ->select('produk_kategoris.id', 'produk_kategoris.nama')
                 ->join('produk_models', 'produk_models.kategori_id', '=', 'produk_kategoris.id')
                 ->join('produks', 'produks.produk_model_id', '=', 'produk_models.id')

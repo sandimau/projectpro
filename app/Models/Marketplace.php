@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToCompany;
+
 use DateTimeInterface;
 use App\Models\MarketplaceFormat;
 use Illuminate\Database\Eloquent\Model;
@@ -9,7 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Marketplace extends Model
 {
-    use HasFactory;
+    use BelongsToCompany, HasFactory;
 
     public $table = 'marketplaces';
 

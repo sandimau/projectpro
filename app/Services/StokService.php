@@ -68,19 +68,20 @@ class StokService
 
     public function updateLastStok($produk_id): void
     {
-        if (!DB::table('produks')->where('id', $produk_id)->exists()) {
+        if (! company_where(DB::table('produks'))->where('id', $produk_id)->exists()) {
             return;
         }
 
         $tahun = (int) date('Y');
+        $companyId = current_company_id();
 
-        $saldoTahunLalu = (int) DB::table('produk_last_stoks')
+        $saldoTahunLalu = (int) company_where(DB::table('produk_last_stoks'))
             ->where('produk_id', $produk_id)
             ->where('tahun', '<', $tahun)
             ->orderBy('tahun', 'desc')
             ->value('saldo') ?? 0;
 
-        $mutasiTahunIni = (int) DB::table('produk_stoks')
+        $mutasiTahunIni = (int) company_where(DB::table('produk_stoks'))
             ->where('produk_id', $produk_id)
             ->whereNull('deleted_at')
             ->whereYear('created_at', $tahun)
@@ -92,22 +93,22 @@ class StokService
             'updated_at' => now(),
         ];
 
-        $exists = DB::table('produk_last_stoks')
+        $existsQuery = company_where(DB::table('produk_last_stoks'))
             ->where('produk_id', $produk_id)
-            ->where('tahun', $tahun)
-            ->exists();
+            ->where('tahun', $tahun);
 
-        if ($exists) {
-            DB::table('produk_last_stoks')
+        if ($existsQuery->exists()) {
+            company_where(DB::table('produk_last_stoks'))
                 ->where('produk_id', $produk_id)
                 ->where('tahun', $tahun)
                 ->update($payload);
         } else {
-            DB::table('produk_last_stoks')->insert(array_merge($payload, [
+            DB::table('produk_last_stoks')->insert(array_merge($payload, array_filter([
                 'produk_id' => $produk_id,
                 'tahun' => $tahun,
+                'company_id' => $companyId,
                 'created_at' => now(),
-            ]));
+            ])));
         }
     }
 
@@ -115,13 +116,13 @@ class StokService
     {
         $tahun = (int) date('Y');
 
-        $saldoTahunLalu = (int) DB::table('produk_last_stoks')
+        $saldoTahunLalu = (int) company_where(DB::table('produk_last_stoks'))
             ->where('produk_id', $produk_id)
             ->where('tahun', '<', $tahun)
             ->orderBy('tahun', 'desc')
             ->value('saldo') ?? 0;
 
-        $mutasiTahunIni = (int) DB::table('produk_stoks')
+        $mutasiTahunIni = (int) company_where(DB::table('produk_stoks'))
             ->where('produk_id', $produk_id)
             ->whereNull('deleted_at')
             ->whereYear('created_at', $tahun)
@@ -185,7 +186,7 @@ class StokService
     private function labelProduk(int $produk_id): string
     {
         try {
-            $nama = trim((string) DB::table('produks')
+            $nama = trim((string) company_where(DB::table('produks'), 'produks.company_id')
                 ->leftJoin('produk_models', 'produk_models.id', '=', 'produks.produk_model_id')
                 ->where('produks.id', $produk_id)
                 ->selectRaw("CONCAT(COALESCE(produk_models.nama, ''), ' ', COALESCE(produks.nama, '')) as label")

@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToCompany;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class MarketplaceBuffer extends Model
 {
-    use HasFactory;
+    use BelongsToCompany, HasFactory;
 
     public $table = 'marketplace_buffers';
 

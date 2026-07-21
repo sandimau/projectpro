@@ -608,6 +608,16 @@ class Permissions
                     'delete' => 'sistem_delete',
                 ],
             ],
+            'company' => [
+                'label' => 'Company',
+                'group' => 'Config',
+                'actions' => [
+                    'read' => 'company_access',
+                    'create' => 'company_create',
+                    'update' => 'company_edit',
+                    'delete' => 'company_delete',
+                ],
+            ],
             'link_page' => [
                 'label' => 'Link Pages',
                 'group' => 'Config',
@@ -699,6 +709,7 @@ class Permissions
                 'spek_access',
                 'pemproses_access',
                 'sistem_access',
+                'company_access',
                 'link_page_access',
             ],
         ];

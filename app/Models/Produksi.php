@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToCompany;
+
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,7 +12,7 @@ use Illuminate\Support\Collection;
 
 class Produksi extends Model
 {
-    use SoftDeletes, HasFactory;
+    use BelongsToCompany, SoftDeletes, HasFactory;
 
     public $table = 'produksis';
 

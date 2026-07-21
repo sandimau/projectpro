@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToCompany;
+
 use Carbon\Carbon;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Cuti extends Model
 {
-    use SoftDeletes, HasFactory;
+    use BelongsToCompany, SoftDeletes, HasFactory;
 
     public $table = 'cutis';
 

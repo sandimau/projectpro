@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToCompany;
+
 use Illuminate\Database\Eloquent\Model;
 
 class HutangDetail extends Model
 {
+    use BelongsToCompany;
+
     protected $fillable = [
         'hutang_id',
         'akun_detail_id',

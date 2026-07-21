@@ -230,10 +230,11 @@ class ShopeeLivePushController extends Controller
                     'shop_id' => $hasil['shop_id'] ?? null,
                     'nota' => $nota,
                     'mp' => 'shopee',
+                    'company_id' => current_company_id(),
                     'created_at' => now(),
                     'updated_at' => now(),
                     'status' => $hasil['data']['status'] ?? null,
-                ]], ['nota'], ['updated_at', 'status']);
+                ]], ['company_id', 'nota'], ['updated_at', 'status']);
             }
         } catch (\Exception $e) {
             Log::channel('shopee')->error('Shopee Push Error', [

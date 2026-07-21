@@ -8,9 +8,10 @@
         </button>
 
         <a class="header-brand d-md-none" href="#">
-            @if (session()->has('logo'))
+            @php $logo = session('logo'); @endphp
+            @if (is_string($logo) && strlen($logo) >= 4)
                 <img style="height:35px"
-                    src="{{ url('storage/logo/' . session('logo')[0] . session('logo')[1] . '/' . session('logo')[2] . session('logo')[3] . '/' . session('logo')) }}"
+                    src="{{ url('storage/logo/' . $logo[0] . $logo[1] . '/' . $logo[2] . $logo[3] . '/' . $logo) }}"
                     alt="{{ config('app.name') }}"
                     srcset="">
             @endif
